@@ -1,8 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.compose)// Compose Compiler // هيلت plugin (نفس الاسم الموجود في toml)
 }
+
+
 
 android {
     namespace = "com.example.mda"
@@ -14,6 +16,16 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
+
+
+        val tmdbKey: String? = project.findProperty("TMDB_API_KEY") as? String
+        buildConfigField(
+            "String",
+            "TMDB_API_KEY",
+            "\"${tmdbKey}\""
+        )
+
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,10 +48,28 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
+    // Retrofit + Gson
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+// OkHttp + logging
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
+// Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+// Lifecycle
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+// Image loader (Coil)
+    implementation("io.coil-kt:coil:2.7.0")
+
+
+// (اختياري لاختبارات) MockWebServer
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.1.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
