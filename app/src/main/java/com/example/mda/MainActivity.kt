@@ -4,18 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.mda.data.remote.RetrofitInstance
 import com.example.mda.data.remote.api.TmdbApi
-import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.genreScreen.GenreScreen
 import com.example.mda.ui.moivebygenrescreen.GenreDetailsScreen
 import com.example.mda.ui.theme.MovieAppTheme
@@ -38,7 +34,6 @@ import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.Screens.home.HomeViewModel
 import com.example.mda.ui.Screens.home.HomeViewModelFactory
 import com.example.mda.ui.navigation.AnimatedNavigationBar
-import com.example.mda.ui.navigation.BottomNavigationBar
 import com.example.mda.ui.navigation.ButtonData
 import com.example.mda.ui.navigation.MdaNavHost
 
@@ -74,11 +69,12 @@ class MainActivity : ComponentActivity() {
                             barColor = Color(0xFF101528),
                             circleColor = Color(0xFF1E2238),
                             selectedColor = Color(0xFF4FC3F7),
-                            unselectedColor = Color.Gray
+                            unselectedColor = Color.Gray,
                         )
-                    }
+                    },
+                    containerColor = Color(0xFF101528)
                 ) { innerPadding ->
-                    Box(modifier = Modifier.padding(innerPadding)) {
+                    Box(modifier = Modifier.padding(0.dp)) {
                         // 🔗 تمرير الـ ViewModel أو Repository حسب الحاجة
                         MdaNavHost(
                             navController = navController,

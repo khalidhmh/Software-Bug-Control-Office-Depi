@@ -61,19 +61,23 @@ fun MovieCardGrid(
                 Column(
                     modifier = Modifier.align(Alignment.BottomStart)
                 ) {
-                    Text(
-                        text = movie.title,
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1
-                    )
+                    movie.title?.let {
+                        Text(
+                            text = it,
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = movie.releaseDate.take(4),
-                        color = Color.LightGray,
-                        style = MaterialTheme.typography.bodyMedium
+                    movie.releaseDate?.let {
+                        Text(
+                            text = it.take(4),
+                            color = Color.LightGray,
+                            style = MaterialTheme.typography.bodyMedium
 
-                    )
+                        )
+                    }
                 }
             }
 

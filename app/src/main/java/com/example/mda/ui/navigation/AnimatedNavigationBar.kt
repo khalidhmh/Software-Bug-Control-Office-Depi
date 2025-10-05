@@ -75,7 +75,7 @@ fun AnimatedNavigationBar(
     val circleOffset by offsetTransition.animateIntOffset(
         transitionSpec = { if (initialState == 0f) snap() else spring(animation.dampingRatio, animation.stiffness) },
         label = "circle offset"
-    ) { IntOffset(it.toInt() - circleRadiusPx, -circleRadiusPx) }
+    ) { IntOffset(it.toInt() - circleRadiusPx, -circleRadiusPx-10) }
 
     val barShape = remember(cutoutOffset) {
         BarShape(offset = cutoutOffset, circleRadius = circleRadius, cornerRadius = 25.dp)
