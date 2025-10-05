@@ -22,5 +22,11 @@ data class Movie(
     @SerializedName("overview")
     val overview: String,
     @SerializedName("poster_path")
-    val posterPath: String?
+    val posterPath: String?,
+    @SerializedName("vote_average")
+    val voteAverage: Double,
+    @SerializedName("release_date")
+    val releaseDate: String,
+
+    val runtime: Int? = null
 )

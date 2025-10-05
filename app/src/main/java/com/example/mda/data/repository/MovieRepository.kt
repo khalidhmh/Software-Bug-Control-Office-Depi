@@ -5,5 +5,8 @@ import com.example.mda.data.remote.model.MovieResponse
 
 class MoviesRepository(private val api: TmdbApi) {
     suspend fun getPopularMovies() = api.getPopularMovies().body() ?: MovieResponse(0, emptyList(),0,0)
+    suspend fun getGenres() = api.getGenres()
+    suspend fun getMoviesByGenre(genreId: Int) = api.getMoviesByGenre(genreId)
+
 }
 
