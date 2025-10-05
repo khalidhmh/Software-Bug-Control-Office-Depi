@@ -3,6 +3,22 @@ package com.example.mda
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.mda.data.remote.RetrofitInstance
+import com.example.mda.data.remote.api.TmdbApi
+import com.example.mda.data.repository.MoviesRepository
+import com.example.mda.ui.genreScreen.GenreScreen
+import com.example.mda.ui.moivebygenrescreen.GenreDetailsScreen
+import com.example.mda.ui.theme.MovieAppTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -27,26 +43,24 @@ import com.example.mda.ui.navigation.ButtonData
 import com.example.mda.ui.navigation.MdaNavHost
 
 class MainActivity : ComponentActivity() {
+
+    // ✅ إنشاء Repository مرة واحدة
+    private val moviesRepository = MoviesRepository(RetrofitInstance.api)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
-            MaterialTheme {
-                // 🧱 إنشاء الريبو والفاكتوري
-                val repository = MoviesRepository(RetrofitInstance.api)
-                val factory = HomeViewModelFactory(repository)
-
-                // ⚙️ إنشاء الـ ViewModel داخل الـ Compose scope
+            MovieAppTheme {
+                // ⚡️ إنشاء الـ ViewModel مع Factory
+                val factory = HomeViewModelFactory(moviesRepository)
                 val homeViewModel: HomeViewModel = viewModel(factory = factory)
 
-                // 🧭 إنشاء الـ NavController
+                // ⚡️ إنشاء NavController
                 val navController = rememberNavController()
 
-                // 🧩 Scaffold فيه الـ BottomBar والمحتوى
                 Scaffold(
-//                    bottomBar = {
-//                        BottomNavigationBar(navController = navController)
-//                    }
                     bottomBar = {
                         val buttons = listOf(
                             ButtonData("home", "Home", Icons.Default.Home),
@@ -54,7 +68,6 @@ class MainActivity : ComponentActivity() {
                             ButtonData("tv", "TV", Icons.Default.Tv),
                             ButtonData("profile", "Profile", Icons.Default.Person),
                         )
-
                         AnimatedNavigationBar(
                             navController = navController,
                             buttons = buttons,
@@ -64,13 +77,13 @@ class MainActivity : ComponentActivity() {
                             unselectedColor = Color.Gray
                         )
                     }
-
                 ) { innerPadding ->
-                    Box(modifier = Modifier.padding(innerPadding.calculateTopPadding())) {
-                        // 🔗 تمرير الـ ViewModel إلى NavHost
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        // 🔗 تمرير الـ ViewModel أو Repository حسب الحاجة
                         MdaNavHost(
                             navController = navController,
-                            homeViewModel = homeViewModel
+                            homeViewModel = homeViewModel,
+                            repository = moviesRepository
                         )
                     }
                 }
