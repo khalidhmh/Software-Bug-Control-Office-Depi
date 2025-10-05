@@ -53,9 +53,36 @@ android {
 }
 
 dependencies {
+    implementation("androidx.navigation:navigation-compose:2.8.8")
+
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+
+
+    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
+
+// UI
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+
+// Material
+    implementation("androidx.compose.material3:material3")
+
+// Activity Compose
+    implementation("androidx.activity:activity-compose:1.9.2")
+
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
+
     // Retrofit + Gson
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
 // OkHttp + logging
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")

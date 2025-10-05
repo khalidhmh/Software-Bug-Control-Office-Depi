@@ -19,12 +19,33 @@ import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.genreScreen.GenreScreen
 import com.example.mda.ui.moivebygenrescreen.GenreDetailsScreen
 import com.example.mda.ui.theme.MovieAppTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
+import com.example.mda.data.remote.RetrofitInstance
+import com.example.mda.data.repository.MoviesRepository
+import com.example.mda.ui.Screens.home.HomeViewModel
+import com.example.mda.ui.Screens.home.HomeViewModelFactory
+import com.example.mda.ui.navigation.AnimatedNavigationBar
+import com.example.mda.ui.navigation.BottomNavigationBar
+import com.example.mda.ui.navigation.ButtonData
+import com.example.mda.ui.navigation.MdaNavHost
 
 class MainActivity : ComponentActivity() {
 
     // ✅ إنشاء Repository مرة واحدة
-    private val moviesRepository = MoviesRepository(api = RetrofitInstance.api)
-
+    private val moviesRepository = MoviesRepository(RetrofitInstance.api)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,49 +53,41 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MovieAppTheme {
-                Surface(
-                    modifier = Modifier,
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MovieAppNav(moviesRepository)
+                // ⚡️ إنشاء الـ ViewModel مع Factory
+                val factory = HomeViewModelFactory(moviesRepository)
+                val homeViewModel: HomeViewModel = viewModel(factory = factory)
+
+                // ⚡️ إنشاء NavController
+                val navController = rememberNavController()
+
+                Scaffold(
+                    bottomBar = {
+                        val buttons = listOf(
+                            ButtonData("home", "Home", Icons.Default.Home),
+                            ButtonData("movies", "Movies", Icons.Default.Movie),
+                            ButtonData("tv", "TV", Icons.Default.Tv),
+                            ButtonData("profile", "Profile", Icons.Default.Person),
+                        )
+                        AnimatedNavigationBar(
+                            navController = navController,
+                            buttons = buttons,
+                            barColor = Color(0xFF101528),
+                            circleColor = Color(0xFF1E2238),
+                            selectedColor = Color(0xFF4FC3F7),
+                            unselectedColor = Color.Gray
+                        )
+                    }
+                ) { innerPadding ->
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        // 🔗 تمرير الـ ViewModel أو Repository حسب الحاجة
+                        MdaNavHost(
+                            navController = navController,
+                            homeViewModel = homeViewModel,
+                            repository = moviesRepository
+                        )
+                    }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun MovieAppNav(repository: MoviesRepository) {
-    val navController = rememberNavController()
-
-    NavHost(
-        navController = navController,
-        startDestination = "genres"
-    ) {
-        // 🟢 شاشة الجينرا الرئيسية
-        composable("genres") {
-            GenreScreen(
-                navController = navController,
-                repository = repository // ⚡️ تمرير Repository
-            )
-        }
-
-        // 🔵 شاشة تفاصيل الجينرا (الأفلام)
-        composable(
-            route = "genre_details/{genreId}/{genreName}",
-            arguments = listOf(
-                navArgument("genreId") { type = NavType.IntType },
-                navArgument("genreName") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val genreId = backStackEntry.arguments?.getInt("genreId") ?: 0
-            val genreName = backStackEntry.arguments?.getString("genreName") ?: ""
-            GenreDetailsScreen(
-                navController = navController,
-                repository = repository, // ⚡️ تمرير Repository
-                genreId = genreId,
-                genreNameRaw = genreName
-            )
         }
     }
 }
