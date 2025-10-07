@@ -22,14 +22,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.mda.R // Make sure to import your R class for drawables
+import com.example.mda.R
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.util.GenreViewModelFactory
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.annotation.DrawableRes
+import androidx.compose.material3.HorizontalDivider
 import com.example.mda.data.remote.model.Genre
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +53,6 @@ fun GenreScreen(
         modifier = Modifier.background(Color(0xFF101528)),
         topBar = {
             Column {
-                // 🔹 TopAppBar ثابت بلون متناسق
                 TopAppBar(
                     title = {
                         Text(
@@ -68,10 +66,10 @@ fun GenreScreen(
                     )
                 )
 
-                // ✨ Divider بسيط شفاف يفصل بين التوب بار والمحتوى
-                Divider(
-                    color = Color.White.copy(alpha = 0.15f), // شفاف خفيف جدًا
-                    thickness = 1.dp
+
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.White.copy(alpha = 0.15f)
                 )
             }
         }
@@ -140,7 +138,7 @@ fun GenreScreen(
     }
 }
 
-// 🎨 كروت الأنواع بنفس اللون الجديد
+
 @Composable
 fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit) {
     Card(

@@ -14,9 +14,6 @@ class GenreViewModel(private val repository: MoviesRepository) : ViewModel(){
     var isLoading by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
 
-    init {
-
-    }
     fun loadGenres() {
         viewModelScope.launch {
             isLoading = true
