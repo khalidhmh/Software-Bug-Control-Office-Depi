@@ -9,18 +9,36 @@ import com.example.mda.data.remote.model.Movie
 import com.example.mda.data.repository.MoviesRepository
 import kotlinx.coroutines.launch
 
-class GenreDetailsViewModel(private val repository : MoviesRepository) : ViewModel() {
+class GenreDetailsViewModel(private val repository: MoviesRepository) : ViewModel() {
 
     var movies by mutableStateOf<List<Movie>>(emptyList())
+        private set
+
     var isLoading by mutableStateOf(false)
+        private set
+
     var error by mutableStateOf<String?>(null)
+        private set
+
+    private var currentPage = 1
+    private var canLoadMore = true
 
     fun loadMoviesByGenre(genreId: Int) {
+        if (isLoading || !canLoadMore) return
+
         viewModelScope.launch {
             isLoading = true
             try {
-                val response = repository.getMoviesByGenre(genreId)
-                movies = response.results
+                val response = repository.getMoviesByGenre(genreId, currentPage)
+
+                if (response.results.isNotEmpty()) {
+                    movies = movies + response.results
+                    currentPage++
+                } else {
+
+                    canLoadMore = false
+                }
+
                 error = null
             } catch (e: Exception) {
                 error = e.localizedMessage
@@ -28,5 +46,13 @@ class GenreDetailsViewModel(private val repository : MoviesRepository) : ViewMod
                 isLoading = false
             }
         }
+    }
+
+    // to make the Screen load the first page if you back
+    fun resetAndLoad(genreId: Int) {
+        movies = emptyList()
+        currentPage = 1
+        canLoadMore = true
+        loadMoviesByGenre(genreId)
     }
 }

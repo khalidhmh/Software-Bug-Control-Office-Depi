@@ -23,8 +23,11 @@ interface TmdbApi {
     // Movies by Genre
     @GET("discover/movie")
     suspend fun getMoviesByGenre(
-        @Query("with_genres") genreId: Int
+        @Query("with_genres") genreId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US"
     ): Response<MovieResponse>
+
 
     // Trending Movies (Day / Week)
     @GET("trending/{media_type}/{time_window}")

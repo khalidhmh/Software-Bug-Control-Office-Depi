@@ -35,10 +35,9 @@ fun MovieCardGrid(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
-            // 🖼 صورة الفيلم
+            // moive image
             Image(
                 painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${movie.posterPath}"),
                 contentDescription = movie.title,
@@ -46,7 +45,6 @@ fun MovieCardGrid(
                 contentScale = ContentScale.Crop
             )
 
-            // 🎨 تدرّج غامق من الأسفل
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -58,39 +56,27 @@ fun MovieCardGrid(
                     )
                     .padding(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.align(Alignment.BottomStart)
-                ) {
-                    movie.title?.let {
-                        Text(
-                            text = it,
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            maxLines = 1
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    movie.releaseDate?.let {
-                        Text(
-                            text = it.take(4),
-                            color = Color.LightGray,
-                            style = MaterialTheme.typography.bodyMedium
-
-                        )
-                    }
+                // moive ReleaseDate
+                movie.releaseDate?.let {
+                    Text(
+                        text = it.take(4),
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.align(Alignment.BottomStart)
+                    )
                 }
             }
 
-            // ⭐ التقييم في الأعلى مع خلفية
+            // moive Rate
             Row(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(8.dp) // الهامش الخارجي عن حافة الكارت
+                    .padding(8.dp)
                     .background(
-                        color = Color.Black.copy(alpha = 0.6f), // خلفية داكنة شبه شفافة
-                        shape = RoundedCornerShape(8.dp) // حواف دائرية
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(8.dp)
                     )
-                    .padding(horizontal = 6.dp, vertical = 4.dp), // الهامش الداخلي بين المحتوى والخلفية
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -101,14 +87,13 @@ fun MovieCardGrid(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    // Format the vote average to one decimal place
                     text = String.format("%.1f", movie.voteAverage),
                     color = Color.White,
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold
-
                 )
             }
         }
     }
 }
+

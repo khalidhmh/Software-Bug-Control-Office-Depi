@@ -18,14 +18,15 @@ class MoviesRepository(private val api: TmdbApi) {
     }
 
     // Movies by Genre
-    suspend fun getMoviesByGenre(genreId: Int): MovieResponse {
-        val response = api.getMoviesByGenre(genreId)
+    suspend fun getMoviesByGenre(genreId: Int, page: Int): MovieResponse {
+        val response = api.getMoviesByGenre(genreId, page)
         if (response.isSuccessful) {
             return response.body()!!
         } else {
             throw Exception("Failed to load movies by genre: ${response.code()} ${response.message()}")
         }
     }
+
 
     // Popular Movies
     suspend fun getPopularMovies(): MovieResponse {

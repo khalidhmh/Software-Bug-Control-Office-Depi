@@ -50,23 +50,37 @@ fun GenreScreen(
         viewModel.loadGenres()
     }
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.background(Color(0xFF101528)),
         topBar = {
-            LargeTopAppBar(
-                title = { Text("Discover Genres 🎬")},
-                    scrollBehavior = scrollBehavior
+            Column {
+                // 🔹 TopAppBar ثابت بلون متناسق
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Discover Genres 🎬",
+                            color = Color.White
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF1A2233),
+                        titleContentColor = Color.White
+                    )
+                )
 
-
-            )
+                // ✨ Divider بسيط شفاف يفصل بين التوب بار والمحتوى
+                Divider(
+                    color = Color.White.copy(alpha = 0.15f), // شفاف خفيف جدًا
+                    thickness = 1.dp
+                )
+            }
         }
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .background(Color(0xFF101528))
         ) {
             when {
                 isLoading -> {
@@ -74,9 +88,10 @@ fun GenreScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = Color.White)
                     }
                 }
+
                 error != null -> {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -93,7 +108,7 @@ fun GenreScreen(
                         Text(
                             text = "Something went wrong",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = Color.White
                         )
                         Text(
                             text = error,
@@ -102,16 +117,15 @@ fun GenreScreen(
                         )
                     }
                 }
+
                 else -> {
-                    // Use LazyVerticalGrid for 2 items per row
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(2), // 2 items per row
+                        columns = GridCells.Fixed(2),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp), // Space between columns
-                        verticalArrangement = Arrangement.spacedBy(12.dp) // Space between rows
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(genres, key = { it.id }) { genre ->
-                            // Use the new GenreGridCard
                             GenreGridCard(
                                 genre = genre,
                                 imageUrl = getGenrePlaceholderImage(genre.name)
@@ -126,7 +140,7 @@ fun GenreScreen(
     }
 }
 
-// New Composable for Grid item
+// 🎨 كروت الأنواع بنفس اللون الجديد
 @Composable
 fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit) {
     Card(
@@ -134,31 +148,30 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF191E2A)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally // Center content horizontally
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Image part (takes most of the space)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp) // Fixed height for image area
+                    .height(120.dp)
             ) {
                 Image(
                     painter = painterResource(id = imageUrl),
                     contentDescription = "${genre.name} icon",
-                    contentScale = ContentScale.Crop, // Crop to fill
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-                // Optional: Add a subtle gradient or overlay if needed for icon clarity
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.2f)),
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.25f)),
                                 startY = 0f,
                                 endY = 1000f
                             )
@@ -166,19 +179,17 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
                 )
             }
 
-            // Genre Name part (under the image)
             Text(
                 text = genre.name,
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
-                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = Color.White,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
             )
         }
     }
 }
+
 
 // Helper function to get a local drawable resource for a genre
 @DrawableRes
