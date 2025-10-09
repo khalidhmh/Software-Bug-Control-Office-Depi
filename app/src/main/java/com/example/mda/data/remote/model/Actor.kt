@@ -10,8 +10,8 @@ data class ActorFullDetails(
     val profile_path: String?,
     val homepage: String?,
     val external_ids: ExternalIds,
-    val images: ActorImages,
-    val combined_credits: ActorCredits
+    val images: ActorImages?,
+    val combined_credits: ActorCredits?
 )
 
 data class ExternalIds(

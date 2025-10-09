@@ -24,23 +24,12 @@ class ActorViewModel(private val repository: ActorRepository) : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun loadPopularMovies() {
-        viewModelScope.launch {
-            try {
-                _loading.value = true
-                val response = repository.getPopularMovies()
-                if (response.isSuccessful) {
-                    _popularMovies.value = response.body()
-                } else {
-                    _error.value = "Failed to load popular movies"
-                }
-            } catch (e: Exception) {
-                _error.value = e.localizedMessage
-            } finally {
-                _loading.value = false
-            }
-        }
-    }
+    // ✅ Movie and TV show count
+    private val _movieCount = MutableStateFlow(0)
+    val movieCount: StateFlow<Int> = _movieCount
+
+    private val _tvShowCount = MutableStateFlow(0)
+    val tvShowCount: StateFlow<Int> = _tvShowCount
 
     fun loadActorFullDetails(personId: Int) {
         viewModelScope.launch {
@@ -48,7 +37,14 @@ class ActorViewModel(private val repository: ActorRepository) : ViewModel() {
                 _loading.value = true
                 val response = repository.getFullActorDetails(personId)
                 if (response.isSuccessful) {
-                    _actorFullDetails.value = response.body()
+                    val actorDetails = response.body()
+                    _actorFullDetails.value = actorDetails
+
+
+                    val castList = actorDetails?.combined_credits?.cast ?: emptyList()
+                    _movieCount.value = castList.count { it.media_type == "movie" }
+                    _tvShowCount.value = castList.count { it.media_type == "tv" }
+
                 } else {
                     _error.value = "Failed to load actor details"
                 }
@@ -61,11 +57,8 @@ class ActorViewModel(private val repository: ActorRepository) : ViewModel() {
     }
 }
 
-
-
-
-
-class ActorViewModelFactory(private val repository: ActorRepository) : ViewModelProvider.Factory {
+class ActorViewModelFactory : ViewModelProvider.Factory {
+    private val repository = ActorRepository()
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ActorViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
