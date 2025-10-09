@@ -1,5 +1,6 @@
 package com.example.mda.ui.actors
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +26,7 @@ import com.example.mda.data.remote.model.Actor
 @Composable
 fun ActorCard(
     actor: Actor,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.clickable(onClick = {})
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -46,7 +47,7 @@ fun ActorCard(
         )
 
         Column(
-            modifier = Modifier.height(90.dp)
+            modifier = Modifier.height(70.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 

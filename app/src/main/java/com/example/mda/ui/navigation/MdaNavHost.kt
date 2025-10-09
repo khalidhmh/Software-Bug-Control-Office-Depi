@@ -11,6 +11,7 @@ import com.example.mda.ui.DemoScreens.MoviesScreen
 import com.example.mda.ui.DemoScreens.ProfileScreen
 import com.example.mda.ui.DemoScreens.TvScreen
 import com.example.mda.ui.Screens.home.HomeViewModel
+import com.example.mda.ui.actors.ActorsScreen
 import com.example.mda.ui.genreScreen.GenreScreen
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.moivebygenrescreen.GenreDetailsScreen
@@ -58,7 +59,7 @@ fun MdaNavHost(
             )
         }
         composable("movies") { GenreScreen(navController,repository) }
-        composable("tv") { TvScreen(navController) }
+        composable("Actors") { ActorsScreen() }
         composable("profile") { ProfileScreen(navController) }
         // لو حبيت تضيف شاشة تفاصيل في المستقبل:
         // composable("detail/{id}") { backStackEntry -> ... }
