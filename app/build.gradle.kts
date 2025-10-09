@@ -53,24 +53,55 @@ android {
 }
 
 dependencies {
+    implementation("androidx.navigation:navigation-compose:2.8.8")
+
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+
+
+    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
+
+// UI
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+
+// Material
+    implementation("androidx.compose.material3:material3")
+
+// Activity Compose
+    implementation("androidx.activity:activity-compose:1.9.2")
+
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
+
     // Retrofit + Gson
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
 // OkHttp + logging
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
-// Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
 // Image loader (Coil)
     implementation("io.coil-kt:coil:2.7.0")
     implementation(libs.volley)
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
 
 // (اختياري لاختبارات) MockWebServer
     testImplementation("com.squareup.okhttp3:mockwebserver:5.1.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    implementation("androidx.navigation:navigation-compose:2.9.5")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

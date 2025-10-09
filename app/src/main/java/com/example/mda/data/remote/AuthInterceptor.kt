@@ -1,20 +1,19 @@
 package com.example.mda.data.remote
 
 
-import android.util.Log
+import com.example.mda.util.Constants.API_KEY
 import okhttp3.Interceptor
 import okhttp3.Response
-import com.example.mda.BuildConfig
 
 class AuthInterceptor : Interceptor {
+
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
-        val newUrl = original.url.newBuilder()
-            .addQueryParameter("api_key", BuildConfig.TMDB_API_KEY)
-            .build()
 
+        // تعديل الطلب لإضافة الـ Bearer token
         val request = original.newBuilder()
-            .url(newUrl)
+            .addHeader("Authorization", API_KEY)
             .build()
 
         return chain.proceed(request)
