@@ -1,5 +1,10 @@
 package com.example.mda.data.remote.api
 
+
+import com.example.mda.data.remote.model.ActorResponse
+import com.example.mda.data.remote.model.MovieResponse
+import retrofit2.Response
+import retrofit2.http.GET
 import com.example.mda.data.remote.model.GenreResponse
 import com.example.mda.data.remote.model.MovieResponse
 import retrofit2.Response
@@ -11,6 +16,12 @@ interface TmdbApi {
 
     // Popular Movies
     @GET("movie/popular")
+    suspend fun getPopularMovies(): Response<MovieResponse>
+
+    @GET("person/popular")
+    suspend fun getPopularActors(
+        @Query("page") page: Int,
+    ): Response<ActorResponse>
     suspend fun getPopularMovies(
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
@@ -52,3 +63,4 @@ interface TmdbApi {
         @Query("page") page: Int = 1
     ): Response<MovieResponse>
 }
+
