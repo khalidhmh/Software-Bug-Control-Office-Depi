@@ -93,6 +93,7 @@ dependencies {
     implementation("io.coil-kt:coil:2.7.0")
     implementation(libs.volley)
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation(libs.androidx.compose.runtime)
 
     // Coil for Jetpack Compose
     implementation("io.coil-kt:coil-compose:2.7.0")
