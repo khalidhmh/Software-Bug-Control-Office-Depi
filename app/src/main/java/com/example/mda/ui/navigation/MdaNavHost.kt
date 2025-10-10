@@ -10,6 +10,7 @@ import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.DemoScreens.MoviesScreen
 import com.example.mda.ui.DemoScreens.ProfileScreen
 import com.example.mda.ui.DemoScreens.TvScreen
+import com.example.mda.ui.Screens.MovieDetail.MovieDetailsScreen
 import com.example.mda.ui.Screens.home.HomeViewModel
 import com.example.mda.ui.genreScreen.GenreScreen
 import com.example.mda.ui.home.HomeScreen
@@ -62,6 +63,15 @@ fun MdaNavHost(
         composable("profile") { ProfileScreen(navController) }
         // لو حبيت تضيف شاشة تفاصيل في المستقبل:
         // composable("detail/{id}") { backStackEntry -> ... }
+        composable("movie_detail/{movieId}") { backStackEntry ->
+            val movieId = backStackEntry.arguments?.getString("movieId")?.toIntOrNull() ?: 0
+            // get repository instance that you have in the host
+            MovieDetailsScreen(
+                movieId = movieId,
+                navController = navController,
+                repository = repository // ⚠️ ensure 'repository' variable is available here (pass it down like other screens)
+            )
+        }
     }
 }
 

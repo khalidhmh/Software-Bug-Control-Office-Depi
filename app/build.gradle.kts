@@ -91,6 +91,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
 // Image loader (Coil)
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation(libs.androidx.compose.runtime)
 
 
 // (اختياري لاختبارات) MockWebServer
