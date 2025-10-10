@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.MaterialTheme
@@ -60,7 +61,7 @@ class MainActivity : ComponentActivity() {
                         val buttons = listOf(
                             ButtonData("home", "Home", Icons.Default.Home),
                             ButtonData("movies", "Movies", Icons.Default.Movie),
-                            ButtonData("tv", "TV", Icons.Default.Tv),
+                            ButtonData("Actors", "People", Icons.Default.People),
                             ButtonData("profile", "Profile", Icons.Default.Person),
                         )
                         AnimatedNavigationBar(
@@ -87,3 +88,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

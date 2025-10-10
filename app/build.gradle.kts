@@ -90,8 +90,14 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
 // Image loader (Coil)
+    implementation("io.coil-kt:coil:2.7.0")
+    implementation(libs.volley)
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation(libs.androidx.compose.runtime)
+
+    // Coil for Jetpack Compose
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    //implementation(libs.ui)
 
 
 // (اختياري لاختبارات) MockWebServer
@@ -101,6 +107,13 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.5")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
+
+    // Lifecycle (for ViewModel)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+
+    implementation("androidx.compose.material:material-icons-core:1.7.2")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -117,4 +130,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+
+        implementation("androidx.compose.material:material-icons-extended")
+    
+
+
 }
