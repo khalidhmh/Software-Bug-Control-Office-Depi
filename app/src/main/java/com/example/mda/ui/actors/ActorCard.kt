@@ -16,6 +16,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mda.data.remote.model.Actor
@@ -26,7 +29,14 @@ import com.example.mda.data.remote.model.Actor
 @Composable
 fun ActorCard(
     actor: Actor,
-    modifier: Modifier = Modifier.clickable(onClick = {})
+    navController: NavHostController ,
+    modifier: Modifier = Modifier.clickable(
+        onClick = {
+            // will navigate to actor details screen (Omar)
+
+            navController.navigate("ActorDetails/${actor.id}")
+
+        })
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),

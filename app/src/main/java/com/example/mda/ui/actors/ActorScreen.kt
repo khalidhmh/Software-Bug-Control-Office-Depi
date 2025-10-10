@@ -36,11 +36,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.mda.data.remote.model.Actor
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ActorsScreen(
+    navController: NavHostController,
     viewModel: ActorViewModel = viewModel(factory = ActorViewModelFactory()),
 ) {
     val uiState by viewModel.state.collectAsState()
@@ -85,11 +88,11 @@ fun ActorsScreen(
     ) {  innerPadding ->
         when (val state = uiState) {
             is ActorUiState.Loading -> {
-                ActorsGrid(actors = emptyList(), isLoading = true, viewModel = viewModel, innerPadding)
+                ActorsGrid(actors = emptyList(), isLoading = true, viewModel = viewModel,navController, innerPadding )
             }
 
             is ActorUiState.Success -> {
-                ActorsGrid(actors = state.actors, isLoading = false, viewModel = viewModel,innerPadding)
+                ActorsGrid(actors = state.actors, isLoading = false,viewModel = viewModel,navController , innerPadding)
             }
 
             is ActorUiState.Error -> {
@@ -103,7 +106,7 @@ fun ActorsScreen(
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ActorsGrid(actors: List<Actor>, isLoading: Boolean, viewModel: ActorViewModel, innerPadding: PaddingValues) {
+fun ActorsGrid(actors: List<Actor>, isLoading: Boolean, viewModel: ActorViewModel , navController: NavHostController, innerPadding: PaddingValues) {
     val listState = rememberLazyGridState()
 
     LaunchedEffect(listState.firstVisibleItemIndex, listState.layoutInfo.totalItemsCount) {
@@ -125,7 +128,7 @@ fun ActorsGrid(actors: List<Actor>, isLoading: Boolean, viewModel: ActorViewMode
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(actors, key = { it.id }) { actor ->
-                ActorCard(actor = actor)
+                ActorCard(actor = actor  , navController = navController)
             }
         }
 

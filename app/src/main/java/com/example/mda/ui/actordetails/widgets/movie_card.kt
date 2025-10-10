@@ -1,6 +1,7 @@
 package com.example.mda.ui.actordetails.widgets
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,11 +26,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 
 
 @Composable
-fun MovieCard(title: String, posterUrl: String?, role: String) {
+fun MovieCard( navController: NavController, title: String, posterUrl: String?, role: String ,  modifier: Modifier = Modifier.clickable(
+    onClick = {
+        // will navigate to Movie details screen (Fares)
+
+
+
+    })) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E2E)),

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.mda.R
 import com.example.mda.data.remote.model.ActorFullDetails
 import com.example.mda.ui.actordetails.widgets.ActorProfile
@@ -29,7 +30,8 @@ fun ActorDetailsScreenContent(
     actor: ActorFullDetails,
     movieCount: Int,
     tvShowCount: Int,
-    age: Int?
+    age: Int? ,
+    navController: NavController
 ) {
     val uriHandler = LocalUriHandler.current
     var showAll by remember { mutableStateOf(false) }
@@ -55,7 +57,8 @@ fun ActorDetailsScreenContent(
                 ActorProfile(
                     profilePath = actor.profile_path,
                     name = actor.name,
-                    gender = actor.gender
+                    gender = actor.gender ,
+                    navController = navController
                 )
             }
         }
@@ -137,7 +140,7 @@ fun ActorDetailsScreenContent(
 
             items(displayedList.size) { index ->
                 val movie = displayedList[index]
-                MovieCard(
+                MovieCard(navController = navController,
                     title = movie.title ?: movie.name ?: "Unknown",
                     posterUrl = movie.poster_path,
                     role = movie.character ?: "Actor"
@@ -180,7 +183,7 @@ fun ActorDetailsScreenContent(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(120.dp))
         }
     }
 }

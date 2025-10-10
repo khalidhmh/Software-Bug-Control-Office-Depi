@@ -96,7 +96,7 @@ dependencies {
 
     // Coil for Jetpack Compose
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation(libs.ui)
+    //implementation(libs.ui)
 
 
 // (اختياري لاختبارات) MockWebServer

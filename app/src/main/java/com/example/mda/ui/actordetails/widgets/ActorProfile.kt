@@ -2,10 +2,12 @@ package com.example.mda.ui.actordetails.widgets
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,12 +18,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 
-
 @Composable
-fun ActorProfile(profilePath: String?, name: String, gender: Int?) {
+fun ActorProfile(
+    profilePath: String?,
+    name: String,
+    gender: Int?,
+    navController: NavController
+) {
     Box(modifier = Modifier.fillMaxSize()) {
+        // Background Image
         Image(
             painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500$profilePath"),
             contentDescription = name,
@@ -40,7 +48,21 @@ fun ActorProfile(profilePath: String?, name: String, gender: Int?) {
                 )
         )
 
-        // Actor info
+        // 🔙 Back Button at Top-Left
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Back",
+                tint = Color.White
+            )
+        }
+
+        // Actor info at bottom
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)

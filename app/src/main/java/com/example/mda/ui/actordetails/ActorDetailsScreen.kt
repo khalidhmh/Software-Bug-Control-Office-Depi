@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.mda.ui.actor.ActorViewModel
 import com.example.mda.ui.actor.ActorViewModelFactory
 
@@ -21,7 +22,8 @@ import com.example.mda.ui.actor.ActorViewModelFactory
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ActorDetailsScreen(
-    personId: Int
+    personId: Int ,
+    navController: NavHostController
 ) {
     val viewModel: ActorViewModel = viewModel(factory = ActorViewModelFactory())
     val actor by viewModel.actorFullDetails.collectAsState()
@@ -64,7 +66,8 @@ fun ActorDetailsScreen(
                 actor = actor!!,
                 movieCount = movieCount,
                 tvShowCount = tvShowCount ,
-                age = age
+                age = age  ,
+                navController = navController
             )
         }
     }
