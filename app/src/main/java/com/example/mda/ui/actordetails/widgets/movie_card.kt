@@ -28,16 +28,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.mda.data.remote.model.Credit
+import com.example.mda.data.remote.model.Movie
 
 
 @Composable
-fun MovieCard( navController: NavController, title: String, posterUrl: String?, role: String ,  modifier: Modifier = Modifier.clickable(
-    onClick = {
-        // will navigate to Movie details screen (Fares)
-
-
-
-    })) {
+fun MovieCard(
+    navController: NavController,
+    title: String,
+    posterUrl: String?,
+    role: String,
+    movie: Credit
+) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E2E)),
@@ -45,6 +47,10 @@ fun MovieCard( navController: NavController, title: String, posterUrl: String?, 
             .fillMaxWidth()
             .padding(vertical = 6.dp)
             .height(110.dp)
+            .clickable(
+                onClick = { // will navigate to Movie details screen (Fares)
+                    navController.navigate("movie_detail/${movie.id}")
+                })
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),

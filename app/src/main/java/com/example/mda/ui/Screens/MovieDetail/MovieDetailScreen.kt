@@ -12,18 +12,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -37,6 +46,7 @@ fun MovieDetailsScreen(
     navController: NavController,
     repository: MoviesRepository // pass repository from the host (or obtain via DI)
 ) {
+
     // create ViewModel using project factory style
     val factory = MovieDetailsViewModelFactory(repository)
     val viewModel: MovieDetailsViewModel = viewModel(factory = factory)
@@ -50,34 +60,36 @@ fun MovieDetailsScreen(
     }
 
     if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
     error?.let {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text = "Error: $it")
         }
         return
     }
 
     details?.let { movie ->
-        MovieDetailsContent(movie)
-    } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        MovieDetailsContent(movie,navController)
+    } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text = "No details")
     }
 }
 
 @Composable
-fun MovieDetailsContent(movie: MovieDetailsResponse) {
+fun MovieDetailsContent(movie: MovieDetailsResponse,navController: NavController) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        //khalid added Arrow back
+        TopBarWithBack(navController = navController, title = movie.title)
         val imageUrl = "https://image.tmdb.org/t/p/w780${movie.backdropPath ?: movie.posterPath}"
         Image(
             painter = rememberAsyncImagePainter(imageUrl),
@@ -92,7 +104,7 @@ fun MovieDetailsContent(movie: MovieDetailsResponse) {
 
         Text(text = movie.title, style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = " ${movie.voteAverage} • ${movie.releaseDate ?: "N/A"}", style = MaterialTheme.typography.bodyMedium)
+        Text(text = " ${movie.voteAverage} • ${movie.releaseDate}", style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = movie.overview.toString(), style = MaterialTheme.typography.bodyLarge)
         Spacer(modifier = Modifier.height(12.dp))
@@ -124,5 +136,30 @@ private fun FlowRowGenres(genres: List<String>) {
         genres.forEach { g ->
             AssistChip(onClick = {}, label = { Text(g) })
         }
+    }
+}
+@Composable
+fun TopBarWithBack(navController: NavController, title: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = { navController.popBackStack() }) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
+                contentDescription = "Back",
+                tint = Color.White
+            )
+        }
+
+        Text(
+            text = title,
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }

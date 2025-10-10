@@ -111,7 +111,9 @@ fun GenreDetailsScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(movies) { movie ->
-                        MovieCardGrid(movie = movie, onClick = {})
+                        MovieCardGrid(movie = movie, onClick = {
+                            navController.navigate("movie_detail/${movie.id}")
+                        })
                     }
 
                     if (isLoading) {

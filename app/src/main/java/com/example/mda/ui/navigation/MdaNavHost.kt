@@ -9,9 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.mda.data.repository.MoviesRepository
-import com.example.mda.ui.DemoScreens.MoviesScreen
 import com.example.mda.ui.DemoScreens.ProfileScreen
-import com.example.mda.ui.DemoScreens.TvScreen
 import com.example.mda.ui.Screens.MovieDetail.MovieDetailsScreen
 import com.example.mda.ui.Screens.home.HomeViewModel
 import com.example.mda.ui.actordetails.ActorDetailsScreen
@@ -36,7 +34,7 @@ fun MdaNavHost(
         startDestination = "home"
     ) {
         composable("home") {
-            HomeScreen(viewModel = homeViewModel)
+            HomeScreen(viewModel = homeViewModel,navController)
         }
 
         composable(

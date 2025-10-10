@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -16,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.mda.ui.Screens.home.HomeScreen.BannerSection
 import com.example.mda.ui.Screens.home.HomeScreen.ForYouSection
 import com.example.mda.ui.Screens.home.HomeScreen.PopularSection
@@ -24,13 +24,13 @@ import com.example.mda.ui.Screens.home.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(viewModel: HomeViewModel,navController: NavController) {
 
     val trendingMovies = viewModel.trendingMovies.collectAsState(initial = emptyList()).value
     val popularMovies = viewModel.popularMovies.collectAsState(initial = emptyList()).value
     val popularTvShows = viewModel.popularTvShows.collectAsState(initial = emptyList()).value
     val popularMixed = viewModel.popularMixed.collectAsState(initial = emptyList()).value
-    val topRatedMovies = viewModel.topRatedMovies.collectAsState(initial = emptyList()).value
+//    val topRatedMovies = viewModel.topRatedMovies.collectAsState(initial = emptyList()).value
 
     // 🔹 حفظ حالة Scroll
     val scrollState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
@@ -90,7 +90,9 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 ForYouSection(
                     movies = popularMovies,
                     tvShows = popularTvShows,
-                    onMovieClick = { /* navigate to detail */ }
+                    onMovieClick = {movie ->
+                        navController.navigate("movie_detail/${movie.id}")
+                    }
                 )
             }
 
@@ -100,7 +102,9 @@ fun HomeScreen(viewModel: HomeViewModel) {
                     trendingMovies = trendingMovies,
                     selectedWindow = viewModel.selectedTimeWindow,
                     onTimeWindowChange = { timeWindow -> viewModel.loadTrending(timeWindow) },
-                    onMovieClick = { /* navigate */ }
+                    onMovieClick = {movie ->
+                        navController.navigate("movie_detail/${movie.id}")
+                    }
                 )
             }
 
@@ -108,7 +112,9 @@ fun HomeScreen(viewModel: HomeViewModel) {
             item {
                 PopularSection(
                     popularMovies = popularMixed,
-                    onMovieClick = { /* navigate */ },
+                    onMovieClick = {movie ->
+                        navController.navigate("movie_detail/${movie.id}")
+                    },
                     onViewMoreClick = { /* show all popular */ }
                 )
             }

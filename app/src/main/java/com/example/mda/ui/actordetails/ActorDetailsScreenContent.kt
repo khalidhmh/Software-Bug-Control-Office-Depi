@@ -143,7 +143,8 @@ fun ActorDetailsScreenContent(
                 MovieCard(navController = navController,
                     title = movie.title ?: movie.name ?: "Unknown",
                     posterUrl = movie.poster_path,
-                    role = movie.character ?: "Actor"
+                    role = movie.character ?: "Actor",
+                    movie =movie
                 )
             }
         }
