@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 
 
-
+enum class ViewType { GRID, LIST }
 
 class ActorViewModel(
     private val repository: ActorRepository
@@ -22,7 +22,12 @@ class ActorViewModel(
     private var isLastPage = false
     private var isLoading = false
 
+    private val _viewType = MutableStateFlow(ViewType.GRID)
+    val viewType: StateFlow<ViewType> = _viewType
 
+    fun toggleViewType() {
+        _viewType.value = if (_viewType.value == ViewType.GRID) ViewType.LIST else ViewType.GRID
+    }
 
     init {
         loadMoreActors()

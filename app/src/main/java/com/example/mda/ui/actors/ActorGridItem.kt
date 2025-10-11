@@ -1,8 +1,10 @@
 package com.example.mda.ui.actors
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,54 +13,69 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mda.data.remote.model.Actor
-
+import com.example.mda.R
 
 
 
 @Composable
-fun ActorCard(
+fun ActorGridItem(
     actor: Actor,
-    navController: NavHostController ,
-    modifier: Modifier = Modifier.clickable(
-        onClick = {
-            // will navigate to actor details screen (Omar)
-
-            navController.navigate("ActorDetails/${actor.id}")
-
-        })
+    navController: NavHostController,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable {
+                navController.navigate("ActorDetails/${actor.id}")
+            },
         horizontalAlignment = Alignment.Start
     ) {
 
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data("https://image.tmdb.org/t/p/w500${actor.profilePath}")
-                .crossfade(true)
-                .build(),
-            contentDescription = actor.name,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(16.dp)),
-            contentScale = ContentScale.Crop
-        )
-
-        Column(
-            modifier = Modifier.height(70.dp)
+                .clip(RoundedCornerShape(16.dp))
         ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://image.tmdb.org/t/p/w500${actor.profilePath}")
+                    .crossfade(true)
+                    .build(),
+                contentDescription = actor.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize(),
+                error = painterResource(id = R.drawable.person_placeholder)
+            )
+            if (actor.profilePath.isNullOrBlank()) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(MaterialTheme.colorScheme.inverseOnSurface),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.person_placeholder),
+                        contentDescription = "Placeholder",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(64.dp)
+                    )
+                }
+            }
+        }
+
+        Column(modifier = Modifier.height(70.dp)) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
