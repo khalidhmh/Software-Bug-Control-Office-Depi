@@ -1,39 +1,27 @@
+// Khaled Edit: Unified color palette (Dark + Light themes)
+
 package com.example.mda.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-//------------------ Dark Theme Colors (مستوحاة من الصور) ------------------
+// ---------------------- ⚫ Dark Theme Colors ----------------------
+val DarkBackground = Color(0xFF0D0F1C)      // خلفية أساسية داكنة
+val DarkSurface = Color(0xFF1A1C2A)         // سطح الكروت والعناصر
+val DarkContainer = Color(0xFF101528)       // خلفية الـ BottomBar وغيرها
+val PrimaryBlue = Color(0xFF4FC3F7)         // الأزرق الأساسي
+val AccentCyan = Color(0xFF00BCD4)          // سماوي للتأكيد
+val RatingYellow = Color(0xFFFFC107)        // النجوم
+val TextPrimaryDark = Color(0xFFFFFFFF)
+val TextSecondaryDark = Color(0xFFB0BEC5)
+val IconGrayDark = Color(0xFF757575)
 
-// اللون الأساسي للخلفية في كل الشاشات
-val AppBackground = Color(0xFF0D0F1C)
-
-// لون الكروت والعناصر اللي فوق الخلفية زي كارت الفيلم
-val SurfaceDark = Color(0xFF1A1C2A)
-
-// اللون الأساسي للأزرار والعناصر المهمة (الجزء الأزرق من التدرج اللوني)
-val PrimaryBlue = Color(0xFF3A8BFF)
-
-// الجزء البنفسجي من التدرج اللوني في الأزرار وشاشات الـ Onboarding
-val PrimaryPurple = Color(0xFFA13AFF)
-
-// لون التقييمات (النجوم والنصوص زي IMDB)
-val RatingYellow = Color(0xFFFFC107)
-
-// لون النصوص الأساسية (الأبيض)
-val TextPrimary = Color(0xFFFFFFFF)
-
-// لون النصوص الثانوية والعناوين الفرعية (الرمادي الفاتح)
-val TextSecondary = Color(0xFF8E909A)
-
-// لون الأيقونات غير المفعلة في الـ Navigation Bar
-val IconGray = Color(0xFF636573)
-
-
-//------------------ Light Theme Colors (مقترحة) ------------------
-// ملاحظة: الصور كلها Dark mode، فالألوان دي مجرد اقتراح عشان يكون عندك Light mode متناسق
-
-val PrimaryLight = Color(0xFF3A8BFF)
-val BackgroundLight = Color(0xFFF5F7FA)
-val SurfaceLight = Color(0xFFFFFFFF)
-val TextPrimaryLight = Color(0xFF0D0F1C)
-val TextSecondaryLight = Color(0xFF636573)
+// ---------------------- ⚪ Light Theme Colors ----------------------
+val LightBackground = Color(0xFFF6F7FB)
+val LightSurface = Color(0xFFFFFFFF)
+val LightContainer = Color(0xFFEAEFF3)
+val PrimaryLightBlue = Color(0xFF2196F3)
+val AccentLightCyan = Color(0xFF26C6DA)
+val RatingYellowLight = Color(0xFFFFC107)
+val TextPrimaryLight = Color(0xFF212121)
+val TextSecondaryLight = Color(0xFF757575)
+val IconGrayLight = Color(0xFF9E9E9E)

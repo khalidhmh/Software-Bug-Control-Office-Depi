@@ -1,3 +1,5 @@
+// Khaled Edit: Unified typography for app consistency.
+
 package com.example.mda.ui.theme
 
 import androidx.compose.material3.Typography
@@ -6,7 +8,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// لو عندك خط مخصص (من الصور) ضيفه هنا بدل Default
 val Typography = Typography(
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,

@@ -8,81 +8,121 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.mda.data.local.dao.MediaDao
+import com.example.mda.data.repository.MovieDetailsRepository
 import com.example.mda.data.repository.MoviesRepository
-import com.example.mda.ui.DemoScreens.ProfileScreen
-import com.example.mda.ui.Screens.MovieDetail.MovieDetailsScreen
-import com.example.mda.ui.Screens.home.HomeViewModel
-import com.example.mda.ui.actordetails.ActorDetailsScreen
-import com.example.mda.ui.actors.ActorsScreen
-import com.example.mda.ui.genreScreen.GenreScreen
 import com.example.mda.ui.home.HomeScreen
-import com.example.mda.ui.moivebygenrescreen.GenreDetailsScreen
+import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
+import com.example.mda.ui.screens.actors.ActorsScreen
+import com.example.mda.ui.screens.genre.GenreScreen
+import com.example.mda.ui.screens.genre.GenreViewModel
+import com.example.mda.ui.screens.home.HomeViewModel
+import com.example.mda.ui.screens.moivebygenrescreen.GenreDetailsScreen
+import com.example.mda.ui.screens.movieDetail.MovieDetailsScreen
+import com.example.mda.ui.screens.search.SearchScreen
+import com.example.mda.ui.screens.search.SearchViewModel
+import com.example.mda.data.repository.ActorsRepository
 
-/**
- * NavHost للتطبيق — هنا تسجل الراوتس (destinations).
- * عندما تكون الشاشات الحقيقية جاهزة، استبدل HomeDemoScreen بـ HomeScreen(viewModel = ...)
- */
+// ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MdaNavHost(
     navController: NavHostController,
     homeViewModel: HomeViewModel,
-    repository: MoviesRepository
+    moviesRepository: MoviesRepository,
+    localDao: MediaDao,
+    actorRepository: ActorsRepository, // ✅ موجود ومستخدم تحت
+    movieDetailsRepository: MovieDetailsRepository,
+    GenreViewModel: GenreViewModel,
+    SearchViewModel: SearchViewModel
 ) {
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
+
+        // 🏠 Home
         composable("home") {
-            HomeScreen(viewModel = homeViewModel,navController)
+            HomeScreen(viewModel = homeViewModel, navController = navController)
         }
 
+        // 👤 Actor Details
         composable(
-            route = "ActorDetails/{personId}"
-        ) { backStackEntry ->
-            val personId = backStackEntry.arguments?.getString("personId")?.toInt() ?: 0
-            ActorDetailsScreen(personId = personId , navController = navController)
+            route = "ActorDetails/{personId}",
+            arguments = listOf(navArgument("personId") { type = NavType.IntType })
+        ) {
+            val personId = it.arguments?.getInt("personId") ?: 0
+            if (personId != 0) {
+                ActorDetailsScreen(
+                    personId = personId,
+                    navController = navController,
+                    repository = actorRepository
+                )
+            }
         }
 
-
+        // 🎭 Genres List
         composable("genres") {
-            GenreScreen(
-                navController = navController,
-                repository = repository // ⚡️ تمرير Repository
-            )
+            GenreScreen(navController = navController, GenreViewModel)
         }
 
-        // 🔵 شاشة تفاصيل الجينرا (الأفلام)
+        // 🎬 Genre Details
         composable(
             route = "genre_details/{genreId}/{genreName}",
             arguments = listOf(
                 navArgument("genreId") { type = NavType.IntType },
                 navArgument("genreName") { type = NavType.StringType }
             )
-        ) { backStackEntry ->
-            val genreId = backStackEntry.arguments?.getInt("genreId") ?: 0
-            val genreName = backStackEntry.arguments?.getString("genreName") ?: ""
+        ) {
+            val genreId = it.arguments?.getInt("genreId") ?: 0
+            val genreName = it.arguments?.getString("genreName") ?: ""
             GenreDetailsScreen(
                 navController = navController,
-                repository = repository, // ⚡️ تمرير Repository
+                repository = moviesRepository,
                 genreId = genreId,
                 genreNameRaw = genreName
             )
         }
-        composable("movies") { GenreScreen(navController,repository) }
-        composable("Actors") { ActorsScreen( navController) }
-        composable("profile") { ProfileScreen(navController) }
-        // لو حبيت تضيف شاشة تفاصيل في المستقبل:
-        // composable("detail/{id}") { backStackEntry -> ... }
-        composable("movie_detail/{movieId}") { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getString("movieId")?.toIntOrNull() ?: 0
-            // get repository instance that you have in the host
-            MovieDetailsScreen(
-                movieId = movieId,
+
+        // 🎞️ Movies (Genre reuse)
+        composable("movies") {
+            GenreScreen(navController = navController, GenreViewModel)
+        }
+
+        // 🌟 Actors List (People)
+        composable("actors") {
+            // ✅ تعديل: استخدمنا ActorsScreen الجديدة اللي فيها Offline Mode + كاش
+            ActorsScreen(
                 navController = navController,
-                repository = repository // ⚠️ ensure 'repository' variable is available here (pass it down like other screens)
+                repository = actorRepository
+            )
+        }
+
+        // 🔍 Search
+        composable("search") {
+            SearchScreen(
+                navController = navController,
+                SearchViewModel
+            )
+        }
+
+        // 🎥 Movie/TV Details
+        composable(
+            route = "detail/{mediaType}/{id}",
+            arguments = listOf(
+                navArgument("mediaType") { type = NavType.StringType },
+                navArgument("id") { type = NavType.IntType }
+            )
+        ) {
+            val type = it.arguments?.getString("mediaType") ?: "movie"
+            val id = it.arguments?.getInt("id") ?: 0
+            MovieDetailsScreen(
+                id = id,
+                isTvShow = (type == "tv"),
+                navController = navController,
+                repository = movieDetailsRepository
             )
         }
     }
 }
-

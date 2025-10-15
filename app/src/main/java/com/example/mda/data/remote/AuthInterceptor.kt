@@ -13,7 +13,7 @@ class AuthInterceptor : Interceptor {
 
         // تعديل الطلب لإضافة الـ Bearer token
         val request = original.newBuilder()
-            .addHeader("Authorization", API_KEY)
+            .addHeader("Authorization", "Bearer $API_KEY")
             .build()
 
         return chain.proceed(request)

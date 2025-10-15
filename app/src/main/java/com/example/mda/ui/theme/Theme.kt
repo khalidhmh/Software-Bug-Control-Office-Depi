@@ -1,31 +1,34 @@
+// Khaled Edit: Full Dark / Light Theme setup with unified colors.
+
 package com.example.mda.ui.theme
 
-
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.example.mda.ui.theme.Shapes
 
-private val LightColors = lightColorScheme(
-    primary = PrimaryLight,
+private val DarkColorScheme = darkColorScheme(
+    primary = PrimaryBlue,
     onPrimary = Color.White,
-    background = BackgroundLight,
-    onBackground = TextPrimaryLight,
-    surface = SurfaceLight,
-    onSurface = TextPrimaryLight
-    // تقدر تكمل باقي الألوان لو محتاج
+    secondary = AccentCyan,
+    background = DarkBackground,
+    onBackground = TextPrimaryDark,
+    surface = DarkSurface,
+    onSurface = TextPrimaryDark,
+    tertiary = RatingYellow
 )
 
-private val DarkColors = darkColorScheme(
-    primary = PrimaryBlue, // اللون الأساسي للأزرار
-    onPrimary = Color.White, // لون الكلام اللي على الأزرار
-    background = AppBackground, // لون الخلفية
-    onBackground = TextPrimary, // لون الكلام اللي على الخلفية
-    surface = SurfaceDark, // لون الكروت
-    onSurface = TextPrimary // لون الكلام اللي على الكروت
-    // تقدر تكمل باقي الألوان لو محتاج
+private val LightColorScheme = lightColorScheme(
+    primary = PrimaryLightBlue,
+    onPrimary = Color.White,
+    secondary = AccentLightCyan,
+    background = LightBackground,
+    onBackground = TextPrimaryLight,
+    surface = LightSurface,
+    onSurface = TextPrimaryLight,
+    tertiary = RatingYellowLight
 )
 
 @Composable
@@ -33,11 +36,11 @@ fun MovieAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    // التطبيق تصميمه الأساسي Dark، ممكن تفرض الـ Dark Theme
-    val colors = DarkColors // or: if (darkTheme) DarkColors else LightColors
+    // ✅ Khaled Edit: تحديد أي ثيم نستخدم
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
-        colorScheme = colors,
+        colorScheme = colorScheme,
         typography = Typography,
         shapes = Shapes,
         content = content

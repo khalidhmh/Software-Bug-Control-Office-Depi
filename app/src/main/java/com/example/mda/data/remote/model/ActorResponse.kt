@@ -9,20 +9,23 @@ data class ActorResponse(
     val total_results: Int
 )
 
+
 data class Actor(
     val id: Int,
     val name: String,
-
     @SerializedName("profile_path")
     val profilePath: String?,
-
-    @SerializedName("known_for")
-    val knownFor: List<KnownFor>?,
-
+    val biography: String?,
+    val birthday: String?,
+    val placeOfBirth: String?,
+    val knownFor: List<KnownFor>? = null
 )
+
+// Khalid: Model used in ViewModels and UI
+
 data class KnownFor(
-    val id: Int,
-    val title: String?,           // movies
+    val id: Int?,
+    val title: String,           // movies
     val name: String?,            //  (TV shows)
     @SerializedName("media_type")
     val mediaType:String?

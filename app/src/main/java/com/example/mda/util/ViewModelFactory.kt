@@ -3,8 +3,8 @@ package com.example.mda.util
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.mda.data.repository.MoviesRepository
-import com.example.mda.ui.genreScreen.GenreViewModel
-import com.example.mda.ui.moivebygenrescreen.GenreDetailsViewModel
+import com.example.mda.ui.screens.genre.GenreViewModel
+import com.example.mda.ui.screens.moivebygenrescreen.GenreDetailsViewModel
 
 class GenreViewModelFactory(private val repository: MoviesRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
