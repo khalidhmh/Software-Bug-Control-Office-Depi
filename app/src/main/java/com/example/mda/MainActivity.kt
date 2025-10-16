@@ -34,6 +34,10 @@ import com.example.mda.ui.screens.genre.GenreViewModel
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.theme.MovieAppTheme
 import androidx.core.content.edit
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.mda.ui.navigation.getTitleForRoute
+import com.example.mda.ui.screens.actors.ActorViewModel
+import com.example.mda.ui.screens.actors.ViewType
 import com.example.mda.util.GenreViewModelFactory
 
 class MainActivity : ComponentActivity() {
@@ -45,6 +49,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var movieDetailsRepository: MovieDetailsRepository
     private lateinit var actorRepository: ActorsRepository
     lateinit var searchViewModel: SearchViewModel
+
+    lateinit var  actorViewModel: ActorViewModel
+
+
 
     @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.O)
@@ -66,6 +74,8 @@ class MainActivity : ComponentActivity() {
         movieDetailsRepository = MovieDetailsRepository(RetrofitInstance.api, database.mediaDao())
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())
         searchViewModel = SearchViewModel(moviesRepository, localDao = database.mediaDao())
+
+         actorViewModel= ActorViewModel(actorRepository)
 
         // ======= Theme Preferences =======
         val prefs = getSharedPreferences("theme_prefs", MODE_PRIVATE)
@@ -91,10 +101,40 @@ class MainActivity : ComponentActivity() {
                 // ======= Scaffold with TopAppBar and Bottom Navigation =======
                 Scaffold(
                     topBar = {
+                        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
                         TopAppBar(
-                            modifier = Modifier.height(100.dp), // ارتفاع الـ TopAppBar مثل القديم
-                            title = { Text("") },
+                            modifier = Modifier.height(100.dp),
+                            title = { Text(getTitleForRoute(currentRoute)) },
                             actions = {
+                                // أزرار حسب الصفحة
+                                when (currentRoute) {
+                                    "home" -> {
+                                        IconButton(onClick = { navController.navigate("search") }) {
+                                            Icon(Icons.Default.Search, contentDescription = "Search")
+                                        }
+                                    }
+
+                                    "actors" -> {
+                                        val viewType by actorViewModel.viewType.collectAsState()
+                                        IconButton(onClick = { actorViewModel.toggleViewType() }) {
+                                            Icon(
+                                                imageVector = if (viewType == ViewType.GRID) Icons.Default.List else Icons.Default.GridView ,
+                                                contentDescription = "Toggle View"
+                                            )
+                                        }
+                                    }
+
+                                    "movies" -> {
+                                        IconButton(onClick = { /* refresh */ }) {
+                                            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                                        }
+                                    }
+
+                                    else -> {}
+                                }
+
+                                // زر تبديل الثيم (ثابت)
                                 IconButton(onClick = {
                                     darkTheme = !darkTheme
                                     prefs.edit { putBoolean("dark_mode", darkTheme) }
@@ -137,7 +177,8 @@ class MainActivity : ComponentActivity() {
                             actorRepository = actorRepository,
                             movieDetailsRepository = movieDetailsRepository,
                             GenreViewModel = genreViewModel,
-                            SearchViewModel = searchViewModel
+                            SearchViewModel = searchViewModel,
+                            actorViewModel= actorViewModel
                         )
                     }
                 }

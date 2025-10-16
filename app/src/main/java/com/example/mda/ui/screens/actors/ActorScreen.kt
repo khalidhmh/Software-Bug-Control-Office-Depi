@@ -3,10 +3,16 @@ package com.example.mda.ui.screens.actors
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -22,25 +28,14 @@ import com.example.mda.data.repository.ActorsRepository
 fun ActorsScreen(
     navController: NavHostController,
     repository: ActorsRepository,
-    viewModel: ActorViewModel = viewModel(factory = ActorViewModelFactory(repository))
+    viewModel: ActorViewModel
 ) {
     val uiState by viewModel.state.collectAsState()
     val viewType by viewModel.viewType.collectAsState()
     var refreshing by remember { mutableStateOf(false) }
     val refreshState = rememberSwipeRefreshState(isRefreshing = refreshing)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("People", color = MaterialTheme.colorScheme.onSurface) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        }
-    ) { padding ->
-
-        SwipeRefresh(
+    SwipeRefresh(
             state = refreshState,
             onRefresh = {
                 refreshing = true
@@ -71,7 +66,7 @@ fun ActorsScreen(
                             viewModel = viewModel,
                             viewType = viewType,
                             navController = navController,
-                            modifier = Modifier.padding(padding)
+                            modifier = Modifier.padding(8.dp)
                         )
                     }
                 }
@@ -82,13 +77,12 @@ fun ActorsScreen(
                         onRetry = { viewModel.retry() },
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(padding)
+                            .padding(8.dp)
                     )
                 }
             }
         }
     }
-}
 
 @Composable
 fun ErrorScreen(

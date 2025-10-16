@@ -90,7 +90,7 @@ fun ActorGridItem(
         )
 
         val knownForTitles = actor.knownFor
-            ?.mapNotNull { it.title ?: it.name }
+            ?.map { it.title }
             ?.take(2)
             ?.joinToString(", ")
             ?: ""

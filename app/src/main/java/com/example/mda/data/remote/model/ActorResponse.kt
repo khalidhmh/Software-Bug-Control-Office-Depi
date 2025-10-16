@@ -18,7 +18,8 @@ data class Actor(
     val biography: String?,
     val birthday: String?,
     val placeOfBirth: String?,
-    val knownFor: List<KnownFor>? = null
+    @SerializedName("knownFor")
+    val knownFor: List<KnownFor>
 )
 
 // Khalid: Model used in ViewModels and UI

@@ -86,10 +86,9 @@ fun ActorListItem(
             Spacer(modifier = Modifier.height(4.dp))
 
             val knownForTitles = actor.knownFor
-                ?.mapNotNull { it.title ?: it.name }
-                ?.take(2)
-                ?.joinToString(", ")
-                ?: ""
+                .map { it.title }
+                .take(2)
+                .joinToString(", ")
             if (knownForTitles.isNotEmpty()) {
                 Log.d("knownForTitles.isNotEmpty()", "Loading image for ${actor.name}: $imageUrl")
                 Text(
