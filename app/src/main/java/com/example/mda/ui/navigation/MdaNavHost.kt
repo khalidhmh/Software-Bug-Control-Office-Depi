@@ -14,7 +14,7 @@ import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
 import com.example.mda.ui.screens.actors.ActorsScreen
-import com.example.mda.ui.screens.genre.GenreScreen
+import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.genre.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.moivebygenrescreen.GenreDetailsScreen

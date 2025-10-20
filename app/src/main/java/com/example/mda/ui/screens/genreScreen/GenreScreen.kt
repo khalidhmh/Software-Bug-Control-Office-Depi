@@ -1,5 +1,6 @@
-package com.example.mda.ui.screens.genre
+package com.example.mda.ui.screens.genreScreen
 
+import android.R.attr.padding
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.mda.R
 import com.example.mda.data.remote.model.Genre
+import com.example.mda.ui.screens.genre.GenreViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,27 +40,7 @@ fun GenreScreen(
     val scope = rememberCoroutineScope()
 
     Scaffold(
-        modifier = Modifier.background(Color(0xFF101528)),
-        topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Discover Genres 🎬",
-                            color = Color.White
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF1A2233),
-                        titleContentColor = Color.White
-                    )
-                )
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = Color.White.copy(alpha = 0.15f)
-                )
-            }
-        }
+        modifier = Modifier.background(Color(0xFF101528))
     ) { padding ->
 
         Box(
@@ -122,7 +104,7 @@ fun GenreScreen(
                                 genre = genre,
                                 imageUrl = getGenrePlaceholderImage(genre.name)
                             ) {
-                                navController.navigate("moviesByGenre/${genre.id}")
+                                navController.navigate("genre_details/${genre.id}/${genre.name}")
                             }
                         }
                     }
@@ -139,7 +121,7 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF191E2A)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A2233)),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(
@@ -154,7 +136,7 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
                 Image(
                     painter = painterResource(id = imageUrl),
                     contentDescription = "${genre.name} icon",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize()
                 )
                 Box(

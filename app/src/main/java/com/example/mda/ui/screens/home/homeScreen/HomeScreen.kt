@@ -38,14 +38,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = { Text("Good Morning", color = MaterialTheme.colorScheme.onSurface) },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                )
-//            )
-//        }
+
     ) { padding ->
         SwipeRefresh(
             state = refreshState,
