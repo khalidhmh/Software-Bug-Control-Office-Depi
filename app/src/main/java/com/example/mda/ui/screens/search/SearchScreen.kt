@@ -281,7 +281,9 @@ fun SearchFiltersRow(
             val selected = selectedFilter.equals(filter, true)
             FilterChip(
                 selected = selected,
-                onClick = { onFilterChange(filter) },
+                onClick = {
+                    onFilterChange(filter)
+                },
                 label = { Text(filter.replaceFirstChar { it.uppercaseChar() }) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -296,9 +298,10 @@ fun SearchFiltersRow(
 fun SearchResultsGrid(results: List<MediaEntity>, onItemClick: (MediaEntity) -> Unit) {
     val gridState = rememberLazyGridState()
     LazyVerticalGrid(
+        contentPadding = PaddingValues(bottom = 106.dp, top = 16.dp, start = 16.dp, end = 16.dp),
         columns = GridCells.Adaptive(150.dp),
         state = gridState,
-        contentPadding = PaddingValues(16.dp),
+//        contentPadding = PaddingValues(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

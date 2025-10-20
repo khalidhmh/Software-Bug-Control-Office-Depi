@@ -21,7 +21,7 @@ import com.example.mda.data.local.entities.SearchHistoryEntity
         ActorDetailsEntity::class,
         SearchHistoryEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
