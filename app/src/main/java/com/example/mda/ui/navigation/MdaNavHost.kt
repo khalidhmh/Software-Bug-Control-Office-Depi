@@ -22,6 +22,7 @@ import com.example.mda.ui.screens.movieDetail.MovieDetailsScreen
 import com.example.mda.ui.screens.search.SearchScreen
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.data.repository.ActorsRepository
+import com.example.mda.ui.screens.actors.ActorViewModel
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -35,7 +36,8 @@ fun MdaNavHost(
     actorRepository: ActorsRepository, // ✅ موجود ومستخدم تحت
     movieDetailsRepository: MovieDetailsRepository,
     GenreViewModel: GenreViewModel,
-    SearchViewModel: SearchViewModel
+    SearchViewModel: SearchViewModel,
+    actorViewModel: ActorViewModel
 ) {
     NavHost(
         navController = navController,
@@ -95,7 +97,8 @@ fun MdaNavHost(
             // ✅ تعديل: استخدمنا ActorsScreen الجديدة اللي فيها Offline Mode + كاش
             ActorsScreen(
                 navController = navController,
-                repository = actorRepository
+                repository = actorRepository,
+                viewModel=actorViewModel,
             )
         }
 
@@ -125,4 +128,11 @@ fun MdaNavHost(
             )
         }
     }
+}
+fun getTitleForRoute(route: String?): String = when (route) {
+    "home" -> "Home"
+    "movies" -> "Movies"
+    "actors" -> "Actors"
+    "search" -> "Search"
+    else -> ""
 }
