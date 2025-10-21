@@ -12,6 +12,8 @@ data class ActorEntity(
     val biography: String?,
     val birthday: String?,
     val placeOfBirth: String?,
+    val knownFor: String? = null
+
 )
 
 // Khalid: Entity for Room database to store actor info

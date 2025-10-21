@@ -7,9 +7,12 @@ import com.example.mda.data.remote.api.TmdbApi
 import com.example.mda.data.remote.model.Actor
 import com.example.mda.data.remote.model.ActorFullDetails
 import com.example.mda.data.remote.model.ActorResponse
+import com.example.mda.data.remote.model.KnownFor
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+import kotlin.collections.emptyList
 
 /**
  * ✅ Khalid: Repository for fetching popular actors, caching them,
@@ -43,15 +46,20 @@ class ActorsRepository(
                 if (response.isSuccessful) {
                     val actors = response.body()?.results ?: emptyList()
                     Log.d("ActorsRepo", "Fetched ${actors.size} actors from API")
+                    actors.forEach {
+                        Log.d("ActorsRepo", "API known_for for ${it.name}: ${it.knownFor}")
+                    }
+
                     cacheActors(actors)
-                    actors.map {
+                    actors.map { actor ->
                         ActorEntity(
-                            id = it.id,
-                            name = it.name,
-                            profilePath = it.profilePath,
-                            biography = it.biography,
-                            birthday = it.birthday,
-                            placeOfBirth = it.placeOfBirth
+                            id = actor.id,
+                            name = actor.name,
+                            profilePath = actor.profilePath,
+                            biography = actor.biography,
+                            birthday = actor.birthday,
+                            placeOfBirth = actor.placeOfBirth,
+                            knownFor = Gson().toJson(actor.knownFor ?: emptyList<KnownFor>())
                         )
                     }
                 } else {
@@ -74,13 +82,17 @@ class ActorsRepository(
         }
         Log.d("ActorsRepo", "Caching ${actors.size} actors")
         actors.forEach { actor ->
+            val gson = Gson()
+            val knownForJson = gson.toJson(actor.knownFor)
+
             val entity = ActorEntity(
                 id = actor.id,
                 name = actor.name,
                 profilePath = actor.profilePath,
                 biography = actor.biography,
                 birthday = actor.birthday,
-                placeOfBirth = actor.placeOfBirth
+                placeOfBirth = actor.placeOfBirth,
+                knownFor = knownForJson
             )
             actorDao.upsert(entity)
             Log.d("ActorsRepo", "Cached actor: ${actor.name}")

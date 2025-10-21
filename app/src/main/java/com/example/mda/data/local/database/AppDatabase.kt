@@ -14,7 +14,7 @@ import com.example.mda.data.local.entities.MediaEntity
 
 @Database(
     entities = [MediaEntity::class, ActorEntity::class, ActorDetailsEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(ListConverters::class)

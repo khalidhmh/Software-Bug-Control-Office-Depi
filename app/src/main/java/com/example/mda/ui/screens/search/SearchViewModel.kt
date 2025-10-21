@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
-
+import androidx.lifecycle.ViewModelProvider
 class SearchViewModel(
     private val repository: MoviesRepository,
     private val localDao: MediaDao
@@ -67,5 +67,28 @@ class SearchViewModel(
                 _results.value = emptyList()
             }
         }
+    }
+}
+ // تأكدي من أن هذا المسار يطابق مسار SearchViewModel
+
+
+/**
+ * مصنع لإنشاء وتزويد SearchViewModel بالاعتماديات (dependencies) التي يحتاجها.
+ * هذا ضروري لأن SearchViewModel يتطلب MoviesRepository في مُنشئه (constructor).
+ */
+class SearchViewModelFactory(
+    private val moviesRepository: MoviesRepository,
+    private val localDao: MediaDao
+) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(SearchViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return SearchViewModel(
+                repository = moviesRepository,
+                localDao = localDao
+            ) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

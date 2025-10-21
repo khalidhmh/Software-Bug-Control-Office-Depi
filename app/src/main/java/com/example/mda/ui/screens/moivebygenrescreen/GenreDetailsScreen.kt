@@ -28,6 +28,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.repository.MoviesRepository
+import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.components.MovieCardGrid
 import com.example.mda.util.GenreDetailsViewModelFactory
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -43,10 +44,14 @@ fun GenreDetailsScreen(
     navController: NavController,
     repository: MoviesRepository,
     genreId: Int,
-    genreNameRaw: String
+    genreNameRaw: String,
+    onTopBarStateChange: (TopBarState) -> Unit // ✅ استقبال دالة الاتصال
 ) {
-    val genreName = URLDecoder.decode(genreNameRaw, StandardCharsets.UTF_8.toString())
-    val viewModel: GenreDetailsViewModel = viewModel(factory = GenreDetailsViewModelFactory(repository))
+    val genreName = remember(genreNameRaw) {
+        URLDecoder.decode(genreNameRaw, StandardCharsets.UTF_8.toString())
+    }
+    val viewModel: GenreDetailsViewModel =
+        viewModel(factory = GenreDetailsViewModelFactory(repository))
 
     val movies = viewModel.movies
     val isLoading = viewModel.isLoading
@@ -120,11 +125,11 @@ fun GenreDetailsScreen(
                         CircularProgressIndicator(color = Color.White)
                     }
 
-                    error != null -> Text(
-                        text = "Error: $error",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                error != null -> Text(
+                    text = "Error: $error",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.Center)
+                )
 
                     else -> {
                         // Conditionally display Grid or List
@@ -266,3 +271,4 @@ fun LoadingIndicator() {
         CircularProgressIndicator(color = Color.White.copy(alpha = 0.8f))
     }
 }
+

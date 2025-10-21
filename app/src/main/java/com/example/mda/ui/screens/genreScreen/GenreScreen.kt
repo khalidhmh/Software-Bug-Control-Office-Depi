@@ -1,4 +1,4 @@
-package com.example.mda.ui.screens.genreScreen
+package com.example.mda.ui.screens.genre
 
 import android.R.attr.padding
 import androidx.annotation.DrawableRes
@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.mda.R
 import com.example.mda.data.remote.model.Genre
+import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.genre.GenreViewModel
 import kotlinx.coroutines.launch
 
@@ -32,23 +33,19 @@ import kotlinx.coroutines.launch
 @Composable
 fun GenreScreen(
     navController: NavController,
-    viewModel: GenreViewModel
+    viewModel: GenreViewModel,
+    onTopBarStateChange: (TopBarState) -> Unit // ✅ الخطوة 2: استقبال دالة الاتصال
 ) {
     val genres by viewModel.genres.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        onTopBarStateChange(
+            TopBarState(title = "Movies") // استخدام العنوان من getTitleForRoute
+        )
+    }
 
-    Scaffold(
-        modifier = Modifier.background(Color(0xFF101528))
-    ) { padding ->
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(Color(0xFF101528))
-        ) {
             when {
                 isLoading -> {
                     Box(
@@ -111,8 +108,7 @@ fun GenreScreen(
                 }
             }
         }
-    }
-}
+
 
 @Composable
 fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit) {

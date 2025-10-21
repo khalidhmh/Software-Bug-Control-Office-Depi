@@ -15,36 +15,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.mda.data.local.entities.MediaEntity
+import com.example.mda.ui.navigation.TopBarState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     navController: NavController,
-    viewModel: SearchViewModel
+    viewModel: SearchViewModel,
+    onTopBarStateChange: (TopBarState) -> Unit // ✅ الخطوة 2: استقبال دالة الاتصال
 ) {
     val results by viewModel.results.collectAsState()
     val history by viewModel.history.collectAsState()
     var query by remember { mutableStateOf(viewModel.query) }
 
     val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        onTopBarStateChange(
+            TopBarState(title = "Search")
+        )
+    }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Search") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = 16.dp)
+                .padding(top = 16.dp)
         ) {
             // 🔍 Search Field
             OutlinedTextField(
@@ -117,4 +114,4 @@ fun SearchScreen(
             }
         }
     }
-}
+

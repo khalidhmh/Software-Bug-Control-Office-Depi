@@ -1,9 +1,17 @@
 package com.example.mda.ui.screens.actors
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +29,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.mda.R
 import com.example.mda.data.remote.model.Actor
+import com.example.mda.data.remote.model.getKnownForTitles
 
 @Composable
 fun ActorListItem(
@@ -28,13 +37,12 @@ fun ActorListItem(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    val imageUrl = actor.profilePath?.let { "https://image.tmdb.org/t/p/w500$it" }
-    Log.d("ActorListItem", "Loading image for ${actor.name}: $imageUrl")
-
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { navController.navigate("ActorDetails/${actor.id}") }
+            .clickable {
+                navController.navigate("actorDetails/${actor.id}")
+            }
             .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -43,19 +51,18 @@ fun ActorListItem(
             modifier = Modifier
                 .width(80.dp)
                 .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             AsyncImage(
-                model = imageUrl,
+                model = "https://image.tmdb.org/t/p/w500${actor.profilePath}",
                 contentDescription = actor.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize(),
-                placeholder = painterResource(id = R.drawable.person_placeholder),
                 error = painterResource(id = R.drawable.person_placeholder)
             )
 
-            if (imageUrl.isNullOrBlank()) {
+            if (actor.profilePath.isNullOrBlank()) {
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -74,7 +81,9 @@ fun ActorListItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = actor.name,
                 style = MaterialTheme.typography.titleMedium,
@@ -85,12 +94,9 @@ fun ActorListItem(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            val knownForTitles = actor.knownFor
-                .map { it.title }
-                .take(2)
-                .joinToString(", ")
+            val knownForTitles = actor.getKnownForTitles()
+
             if (knownForTitles.isNotEmpty()) {
-                Log.d("knownForTitles.isNotEmpty()", "Loading image for ${actor.name}: $imageUrl")
                 Text(
                     text = knownForTitles,
                     style = MaterialTheme.typography.bodyMedium,

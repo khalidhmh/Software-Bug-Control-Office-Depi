@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +25,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mda.R
 import com.example.mda.data.remote.model.Actor
+import com.example.mda.data.remote.model.getKnownForTitles
 
 @Composable
 fun ActorGridItem(
@@ -32,14 +34,15 @@ fun ActorGridItem(
     modifier: Modifier = Modifier
 ) {
     val imageUrl = actor.profilePath?.let { "https://image.tmdb.org/t/p/w500$it" }
-    Log.d("ActorListItem", "Loading image for ${actor.name}: $imageUrl")
-
+    Log.d("ActorGridItem", "Loading image for ${actor.name}: $imageUrl")
 
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
             .clickable {
                 navController.navigate("ActorDetails/${actor.id}")
+
             },
         horizontalAlignment = Alignment.Start
     ) {
@@ -47,7 +50,7 @@ fun ActorGridItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(16.dp))
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -78,32 +81,40 @@ fun ActorGridItem(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = actor.name,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        val knownForTitles = actor.knownFor
-            ?.map { it.title }
-            ?.take(2)
-            ?.joinToString(", ")
-            ?: ""
-
-        if (knownForTitles.isNotBlank()) {
-            Spacer(modifier = Modifier.height(4.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 4.dp)
+        ) {
             Text(
-                text = knownForTitles,
-                style = MaterialTheme.typography.bodySmall,
+                text = actor.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                textAlign = TextAlign.Start,
+                minLines = 2
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            val knownForTitles = actor.getKnownForTitles()
+
+
+            if (knownForTitles.isNotBlank()) {
+                Text(
+                    text = knownForTitles,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    lineHeight = 16.sp,
+                    minLines = 2
+                )
+            }
         }
     }
 }
+
