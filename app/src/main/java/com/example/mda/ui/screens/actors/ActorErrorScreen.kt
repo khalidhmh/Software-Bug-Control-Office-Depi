@@ -16,11 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 
 @Composable
 fun ActorErrorScreen(
-    errorType: ErrorType,
+    errorType: ErrorType?,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -40,6 +39,10 @@ fun ActorErrorScreen(
         is ErrorType.UnknownError -> {
             title = "Unexpected error"
             message = errorType.message ?: "Please try again later."
+        }
+        else -> {
+            title = "Loading Error"
+            message = "An unspecified error occurred. Please try again."
         }
     }
 

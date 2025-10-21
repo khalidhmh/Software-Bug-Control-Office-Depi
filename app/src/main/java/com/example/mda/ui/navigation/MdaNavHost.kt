@@ -3,38 +3,44 @@ package com.example.mda.ui.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.mda.data.local.dao.MediaDao
+import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.data.repository.MovieDetailsRepository
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
 import com.example.mda.ui.screens.actors.ActorsScreen
-import com.example.mda.ui.screens.genre.GenreScreen
+import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.genre.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
+import com.example.mda.ui.screens.home.HomeViewModelFactory
 import com.example.mda.ui.screens.moivebygenrescreen.GenreDetailsScreen
 import com.example.mda.ui.screens.movieDetail.MovieDetailsScreen
 import com.example.mda.ui.screens.search.SearchScreen
 import com.example.mda.ui.screens.search.SearchViewModel
+import com.example.mda.ui.screens.search.SearchViewModelFactory
+import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.screens.actors.ActorViewModel
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
+// ✅ تعديل شامل: تم تنظيف تعريف الدالة وتصحيح بنية كل الشاشات
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MdaNavHost(
     navController: NavHostController,
-    homeViewModel: HomeViewModel,
     moviesRepository: MoviesRepository,
-    localDao: MediaDao,
-    actorRepository: ActorsRepository, // ✅ موجود ومستخدم تحت
+    actorsRepository: ActorsRepository,
     movieDetailsRepository: MovieDetailsRepository,
+    localDao: MediaDao,
+    onTopBarStateChange: (TopBarState) -> Unit
     GenreViewModel: GenreViewModel,
     SearchViewModel: SearchViewModel,
     actorViewModel: ActorViewModel
@@ -46,7 +52,51 @@ fun MdaNavHost(
 
         // 🏠 Home
         composable("home") {
-            HomeScreen(viewModel = homeViewModel, navController = navController)
+            // ✅ صحيح: الشاشة تنشئ الـ ViewModel الخاص بها
+            val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(moviesRepository))
+            HomeScreen(
+                viewModel = homeViewModel,
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+
+        // 🌟 Actors List (People)
+        composable("actors") {
+            // ✅ صحيح: تم تمرير الـ repository والدالة بشكل صحيح
+            ActorsScreen(
+                navController = navController,
+                actorsRepository = actorsRepository,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+
+        // 🔍 Search
+        composable("search") {
+            // ✅ صحيح: الشاشة تنشئ الـ ViewModel الخاص بها
+            val searchViewModel: SearchViewModel = viewModel(factory = SearchViewModelFactory(
+                moviesRepository
+                ,localDao
+
+            )
+            )
+            SearchScreen(
+                navController = navController,
+                viewModel = searchViewModel,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+
+        // 🎞️ Movies / Genres List
+        // تم دمج "movies" و "genres" في مسار واحد لأنهما يعرضان نفس الشاشة
+        composable("movies") {
+            // ✅ صحيح: الشاشة تنشئ الـ ViewModel الخاص بها
+            val genreViewModel: GenreViewModel = viewModel(factory = GenreViewModelFactory(moviesRepository))
+            GenreScreen(
+                navController = navController,
+                viewModel = genreViewModel,
+                onTopBarStateChange = onTopBarStateChange
+            )
         }
 
         // 👤 Actor Details
@@ -55,18 +105,12 @@ fun MdaNavHost(
             arguments = listOf(navArgument("personId") { type = NavType.IntType })
         ) {
             val personId = it.arguments?.getInt("personId") ?: 0
-            if (personId != 0) {
-                ActorDetailsScreen(
-                    personId = personId,
-                    navController = navController,
-                    repository = actorRepository
-                )
-            }
-        }
-
-        // 🎭 Genres List
-        composable("genres") {
-            GenreScreen(navController = navController, GenreViewModel)
+            ActorDetailsScreen(
+                personId = personId,
+                navController = navController,
+                repository = actorsRepository,
+                onTopBarStateChange = onTopBarStateChange
+            )
         }
 
         // 🎬 Genre Details
@@ -83,6 +127,8 @@ fun MdaNavHost(
                 navController = navController,
                 repository = moviesRepository,
                 genreId = genreId,
+                genreNameRaw = genreName,
+                onTopBarStateChange = onTopBarStateChange
                 genreNameRaw = genreName
             )
         }
@@ -124,7 +170,8 @@ fun MdaNavHost(
                 id = id,
                 isTvShow = (type == "tv"),
                 navController = navController,
-                repository = movieDetailsRepository
+                repository = movieDetailsRepository,
+                onTopBarStateChange = onTopBarStateChange
             )
         }
     }

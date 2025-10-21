@@ -75,6 +75,7 @@ android {
 
 dependencies {
     implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
     // =============================================================
     // 🔹 CORE & LIFECYCLE
     // =============================================================

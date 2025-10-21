@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +22,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.repository.MovieDetailsRepository
 import com.example.mda.data.repository.MoviesRepository
+import com.example.mda.ui.navigation.TopBarState
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 
@@ -30,7 +32,8 @@ fun MovieDetailsScreen(
     id: Int,
     isTvShow: Boolean = false,
     navController: NavController,
-    repository: MovieDetailsRepository
+    repository: MovieDetailsRepository,
+    onTopBarStateChange: (TopBarState) -> Unit, // ✅ الخطوة 2: استقبال دالة الاتصال
 ) {
     val viewModel: MovieDetailsViewModel = viewModel(factory = MovieDetailsViewModelFactory(repository))
     val scope = rememberCoroutineScope()
@@ -41,6 +44,7 @@ fun MovieDetailsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
+
     // Load from cache first
     LaunchedEffect(id, isTvShow) {
         scope.launch {
@@ -48,23 +52,24 @@ fun MovieDetailsScreen(
             else viewModel.loadMovieDetails(id)
         }
     }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {},
+    LaunchedEffect(details) {
+        onTopBarStateChange(
+            TopBarState(
+                // العنوان هو اسم الفيلم، أو فارغ أثناء التحميل
+                title = details?.title ?: details?.name ?: "",
+                // إضافة أيقونة الرجوع
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, // استخدام الأيقونة الموحدة
+                            contentDescription = "Back"
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
-        }
-    ) { padding ->
+        )
+    }
+
 
         SwipeRefresh(
             state = refreshState,
@@ -82,7 +87,7 @@ fun MovieDetailsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(padding)
+
             ) {
                 when {
                     isLoading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
@@ -108,7 +113,7 @@ fun MovieDetailsScreen(
             }
         }
     }
-}
+
 
 @Composable
 private fun MovieDetailsContent(details: MediaEntity) {

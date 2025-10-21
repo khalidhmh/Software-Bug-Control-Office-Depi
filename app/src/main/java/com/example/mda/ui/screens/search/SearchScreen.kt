@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.mda.R
 import com.example.mda.data.local.entities.MediaEntity
+import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.data.local.entities.SearchHistoryEntity
 import com.example.mda.ui.screens.components.MovieCardGrid
 import kotlinx.coroutines.launch
@@ -42,32 +43,26 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchScreen(
     navController: NavController,
-    viewModel: SearchViewModel
+    viewModel: SearchViewModel,
+    onTopBarStateChange: (TopBarState) -> Unit // ✅ الخطوة 2: استقبال دالة الاتصال
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val query by viewModel.query.collectAsStateWithLifecycle()
-    val selectedFilter by viewModel.selectedFilter.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
-    val suggestionList by viewModel.suggestions.collectAsStateWithLifecycle()
-    var isFocused by remember { mutableStateOf(false) }
+    val results by viewModel.results.collectAsState()
+    val history by viewModel.history.collectAsState()
+    var query by remember { mutableStateOf(viewModel.query) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Search") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        onTopBarStateChange(
+            TopBarState(title = "Search")
+        )
+    }
+
 
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp)
         ) {
             // -------- Search Box + Dropdown Suggestions --------
             var expanded by remember { mutableStateOf(false) }

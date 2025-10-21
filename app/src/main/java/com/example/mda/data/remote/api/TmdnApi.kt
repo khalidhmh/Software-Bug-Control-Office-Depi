@@ -82,7 +82,7 @@ interface TmdbApi {
     suspend fun getPopularPeople(
         @Query("page") page: Int = 1,
         @Query("language") language: String = "en-US",
-        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY,
     ): Response<ActorResponse>
 
     // ✅ Khaled Edit: Search people by name (optional, used for future search feature)
@@ -92,7 +92,7 @@ interface TmdbApi {
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
         @Query("language") language: String = "en-US",
-        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY,
     ): Response<ActorResponse>
 
     @GET("person/{person_id}")

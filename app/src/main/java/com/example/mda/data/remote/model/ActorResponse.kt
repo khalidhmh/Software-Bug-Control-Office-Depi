@@ -18,7 +18,8 @@ data class Actor(
     val biography: String?,
     val birthday: String?,
     val placeOfBirth: String?,
-    val knownFor: List<KnownFor>? = null
+    @SerializedName("known_for")
+    val knownFor: List<KnownFor>?
 )
 
 // Khalid: Model used in ViewModels and UI
@@ -30,3 +31,12 @@ data class KnownFor(
     @SerializedName("media_type")
     val mediaType:String?
 )
+
+
+fun Actor.getKnownForTitles(limit: Int = 2): String {
+    return this.knownFor
+        ?.mapNotNull { it.title ?: it.name }
+        ?.take(limit)
+        ?.joinToString(", ")
+        ?: ""
+}

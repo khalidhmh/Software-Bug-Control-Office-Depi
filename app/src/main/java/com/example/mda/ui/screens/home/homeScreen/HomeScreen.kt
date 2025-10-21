@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.mda.data.repository.mappers.toMovie
+import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.homeScreen.*
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -24,7 +25,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    navController: NavController,
+    onTopBarStateChange: (TopBarState) -> Unit
+) {
 
     val trending = viewModel.trendingMedia.collectAsState(initial = emptyList()).value
     val movies = viewModel.popularMovies.collectAsState(initial = emptyList()).value
@@ -37,16 +42,20 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
     val refreshState = rememberSwipeRefreshState(isRefreshing = refreshing)
     val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = { Text("Good Morning", color = MaterialTheme.colorScheme.onSurface) },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                )
-//            )
-//        }
-    ) { padding ->
+    LaunchedEffect(Unit) {
+        onTopBarStateChange(
+            TopBarState(
+                title = "Home",
+                actions = {
+                    // يمكنك إضافة أيقونات خاصة بالصفحة الرئيسية هنا إذا أردتِ
+                    // مثال:
+                    // IconButton(onClick = { /* do something */ }) {
+                    //     Icon(Icons.Default.Favorite, contentDescription = "Favorites")
+                    // }
+                }
+            )
+        )
+    }
         SwipeRefresh(
             state = refreshState,
             onRefresh = {
@@ -74,7 +83,6 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(padding)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -122,4 +130,4 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
             }
         }
     }
-}
+

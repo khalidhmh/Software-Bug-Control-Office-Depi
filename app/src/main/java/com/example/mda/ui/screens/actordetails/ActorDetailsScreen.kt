@@ -19,6 +19,7 @@ import androidx.navigation.NavHostController
 import com.example.mda.ui.actor.ActorViewModel
 import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.actordetails.calculateAge
+import com.example.mda.ui.navigation.TopBarState
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 import kotlin.math.log
@@ -29,7 +30,8 @@ import kotlin.math.log
 fun ActorDetailsScreen(
     personId: Int,
     navController: NavHostController,
-    repository: ActorsRepository
+    repository: ActorsRepository,
+    onTopBarStateChange: (TopBarState) -> Unit
 ) {
     val vm: ActorViewModel = viewModel(factory = ActorViewModel.ActorViewModelFactory(repository))
     val actor by vm.actorFullDetails.collectAsState()
@@ -47,19 +49,6 @@ fun ActorDetailsScreen(
         Log.d("ActorDetailsScreen","ActorDetailsScreen received personId=$personId")
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Actor Details", color = MaterialTheme.colorScheme.onSurface) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            )
-        }
-    ) { padding ->
         SwipeRefresh(
             state = refreshState,
             onRefresh = {
@@ -85,7 +74,7 @@ fun ActorDetailsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(padding)
+
             ) {
                 when {
                     loading -> Box(
@@ -120,4 +109,4 @@ fun ActorDetailsScreen(
             }
         }
     }
-}
+

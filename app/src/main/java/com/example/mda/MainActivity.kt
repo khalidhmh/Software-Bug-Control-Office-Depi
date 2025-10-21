@@ -6,11 +6,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -19,7 +23,6 @@ import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.room.Room
 import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.local.database.AppDatabase
 import com.example.mda.data.remote.RetrofitInstance
@@ -32,7 +35,12 @@ import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.theme.MovieAppTheme
+import androidx.core.content.edit
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.room.Room
 import com.example.mda.util.GenreViewModelFactory
+import com.example.mda.ui.navigation.TopBarState // ✅ استيراد الكلاس الجديد
+
 
 class MainActivity : ComponentActivity() {
 
@@ -44,6 +52,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var searchViewModel: SearchViewModel
     private lateinit var actorViewModel: ActorViewModel
+
 
     @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.O)
@@ -76,6 +85,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+// ======= Theme Preferences =======
         val prefs = getSharedPreferences("theme_prefs", MODE_PRIVATE)
         val savedTheme = prefs.getBoolean("dark_mode", true)
 
@@ -96,53 +106,34 @@ class MainActivity : ComponentActivity() {
                 val searchVM: SearchViewModel = viewModel(factory = searchViewModelFactory)
                 searchViewModel = searchVM
 
+                val navController = rememberNavController()
+
+                var topBarState by remember { mutableStateOf(TopBarState()) }
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
                 Scaffold(
                     contentWindowInsets = WindowInsets(0),
                     topBar = {
                         val currentRoute =
                             navController.currentBackStackEntryAsState().value?.destination?.route
                         TopAppBar(
-                            modifier = Modifier
-                                .height(100.dp)
-                                .windowInsetsPadding(WindowInsets(0)), // ← السطر المهم
-                            title = {},
-                            actions = {
-                                when (currentRoute) {
-                                    "home" -> {
-                                        IconButton(onClick = {
-                                            navController.navigate("search")
-                                        }) {
-                                            Icon(
-                                                Icons.Default.Search,
-                                                contentDescription = "Search"
-                                            )
-                                        }
+                            title = {
+                                val titleToShow = if (topBarState.title.isNotEmpty()) {
+                                    topBarState.title
+                                } else {
+                                    when (currentRoute) {
+                                        "home" -> "Home"
+                                        "movies" -> "Movies"
+                                        "actors" -> "People"
+                                        "search" -> "Search"
+                                        else -> ""
                                     }
-
-                                    "actors" -> {
-                                        val viewType by actorViewModel.viewType.collectAsState()
-                                        IconButton(onClick = { actorViewModel.toggleViewType() }) {
-                                            Icon(
-                                                imageVector = if (viewType == ViewType.GRID)
-                                                    Icons.Default.List
-                                                else Icons.Default.GridView,
-                                                contentDescription = "Toggle View"
-                                            )
-                                        }
-                                    }
-
-                                    "movies" -> {
-                                        IconButton(onClick = { /* refresh */ }) {
-                                            Icon(
-                                                Icons.Default.Refresh,
-                                                contentDescription = "Refresh"
-                                            )
-                                        }
-                                    }
-
-                                    else -> {}
                                 }
-
+                                Text(titleToShow)
+                            },
+                            actions = {
+                                topBarState.actions(this)
                                 IconButton(onClick = {
                                     darkTheme = !darkTheme
                                     prefs.edit { putBoolean("dark_mode", darkTheme) }
@@ -154,11 +145,9 @@ class MainActivity : ComponentActivity() {
                                         contentDescription = "Toggle Theme"
                                     )
                                 }
-                            },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color.Unspecified
-                            )
+                            }
                         )
+
                     },
                     // ================== تم التعديل هنا ==================
                     // أزلنا الـ Box الإضافي لتبسيط التركيب
@@ -184,11 +173,13 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier.padding(bottom = 0.dp)){
                         MdaNavHost(
                             navController = navController,
-                            homeViewModel = homeViewModel,
                             moviesRepository = moviesRepository,
-                            localDao = mediaDao,
-                            actorRepository = actorRepository,
+                            actorsRepository = actorRepository,
                             movieDetailsRepository = movieDetailsRepository,
+                            localDao = mediaDao,
+                            onTopBarStateChange = { newState ->
+                                topBarState = newState
+                            }
                             GenreViewModel = genreViewModel,
                             SearchViewModel = searchViewModel,
                             actorViewModel = actorViewModel
