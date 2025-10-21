@@ -114,8 +114,11 @@ class MoviesRepository(
             if (res.isSuccessful) res.body() else null
         },
         fallback = { localRepo.getAll().first().filter { it.mediaType == "tv" } },
-        typeFilter = "tv"
-    )
+        typeFilter = null // ❌ شيل الفلتر مؤقتًا عشان مايحذفش الداتا
+    ).map { entity ->
+        // ✅ بعد ما ترجع البيانات، لو مفيش mediaType خليها "tv"
+        if (entity.mediaType.isNullOrBlank()) entity.copy(mediaType = "tv") else entity
+    }.also { Log.d("MoviesRepository", "✅ TV Shows fetched: ${it.size}") }
 
     // ---------------------- Trending ----------------------
 
