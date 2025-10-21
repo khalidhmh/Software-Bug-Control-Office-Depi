@@ -18,7 +18,6 @@ class MoviesRepository(
      * 🔹 دالة عامة للتعامل مع الـ API والكاش
      * - تحاول تجيب البيانات من السيرفر
      * - لو فشلت ترجع بيانات من قاعدة البيانات المحلية
-     * - فيها فلترة حسب النوع أو الـ genre
      */
     private suspend fun safeApiCall(
         apiCall: suspend () -> MovieResponse?,
@@ -46,7 +45,6 @@ class MoviesRepository(
 
                 // حفظ البيانات في قاعدة البيانات المحلية
                 localRepo.addOrUpdateAll(entities)
-
                 Log.d("MoviesRepository", "✅ API success: ${entities.size} items loaded")
                 entities
             } else {
@@ -116,8 +114,11 @@ class MoviesRepository(
             if (res.isSuccessful) res.body() else null
         },
         fallback = { localRepo.getAll().first().filter { it.mediaType == "tv" } },
-        typeFilter = "tv"
-    )
+        typeFilter = null // ❌ شيل الفلتر مؤقتًا عشان مايحذفش الداتا
+    ).map { entity ->
+        // ✅ بعد ما ترجع البيانات، لو مفيش mediaType خليها "tv"
+        if (entity.mediaType.isNullOrBlank()) entity.copy(mediaType = "tv") else entity
+    }.also { Log.d("MoviesRepository", "✅ TV Shows fetched: ${it.size}") }
 
     // ---------------------- Trending ----------------------
 
@@ -130,5 +131,41 @@ class MoviesRepository(
             if (res.isSuccessful) res.body() else null
         },
         fallback = { localRepo.getAll().first() }
+    )
+
+    // ---------------------- 🔍 Search ----------------------
+
+    /** 🔹 بحث شامل (Movies + TV + People) */
+    suspend fun searchMulti(query: String): List<MediaEntity> = safeApiCall(
+        apiCall = {
+            val res = api.searchMulti(query = query)
+            if (res.isSuccessful) res.body() else null
+        },
+        fallback = {
+            val localData = localRepo.getAll().first()
+            localData.filter {
+                (it.title ?: it.name ?: "").contains(query, ignoreCase = true)
+            }
+        }
+    )
+
+    /** 🔹 بحث بنوع محدد (Movie / TV / Person) */
+    suspend fun searchByType(query: String, type: String): List<MediaEntity> = safeApiCall(
+        apiCall = {
+            val res = when (type) {
+                "movie" -> api.searchMovies(query)
+                "tv" -> api.searchTvShows(query)
+                else -> api.searchMulti(query)
+            }
+            if (res.isSuccessful) res.body() else null
+        },
+        fallback = {
+            val localData = localRepo.getAll().first()
+            localData.filter {
+                (it.title ?: it.name ?: "").contains(query, ignoreCase = true)
+                        && (type == "all" || it.mediaType == type)
+            }
+        },
+        typeFilter = if (type == "all") null else type
     )
 }

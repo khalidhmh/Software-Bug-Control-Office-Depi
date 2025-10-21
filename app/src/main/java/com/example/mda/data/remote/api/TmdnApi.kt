@@ -109,6 +109,33 @@ interface TmdbApi {
         @Query("language") language: String = "en-US",
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<GenreResponse>
+    // ------------------ Search ------------------
+    @GET("search/multi")
+    suspend fun searchMulti(
+        @Query("query") query: String,
+        @Query("page") page: Int = 1,
+        @Query("include_adult") includeAdult: Boolean = false,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("search/movie")
+    suspend fun searchMovies(
+        @Query("query") query: String,
+        @Query("page") page: Int = 1,
+        @Query("include_adult") includeAdult: Boolean = false,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("search/tv")
+    suspend fun searchTvShows(
+        @Query("query") query: String,
+        @Query("page") page: Int = 1,
+        @Query("include_adult") includeAdult: Boolean = false,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
 }
 
 

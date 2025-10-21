@@ -61,6 +61,7 @@ class HomeViewModel(
             try {
                 val movies = repository.getPopularMovies()
                 val tvShows = repository.getPopularTvShows()
+                Log.d("HomeVM", "📺 TV Shows Loaded: ${tvShows.size}")
 
                 _popularMovies.value = movies
                 _popularTvShows.value = tvShows
