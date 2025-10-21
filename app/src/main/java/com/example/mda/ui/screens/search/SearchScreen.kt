@@ -1,6 +1,5 @@
 package com.example.mda.ui.screens.search
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -23,46 +22,60 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.example.mda.R
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.ui.navigation.TopBarState
-import com.example.mda.data.local.entities.SearchHistoryEntity
 import com.example.mda.ui.screens.components.MovieCardGrid
 import kotlinx.coroutines.launch
 
 /**
- * شاشة البحث – تطبيق جميع التحسينات المطلوبة
+ * شاشة البحث – محسّنة مع دعم التوب بار الديناميكي
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     navController: NavController,
     viewModel: SearchViewModel,
-    onTopBarStateChange: (TopBarState) -> Unit // ✅ الخطوة 2: استقبال دالة الاتصال
+    onTopBarStateChange: (TopBarState) -> Unit
 ) {
-    val results by viewModel.results.collectAsState()
-    val history by viewModel.history.collectAsState()
-    var query by remember { mutableStateOf(viewModel.query) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val query by viewModel.query.collectAsStateWithLifecycle()
+    val selectedFilter by viewModel.selectedFilter.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+    val suggestionList by viewModel.suggestions.collectAsStateWithLifecycle()
+    var isFocused by remember { mutableStateOf(false) }
 
-    val scope = rememberCoroutineScope()
+    // ✅ تحديث التوب بار مع الأكشنز (زي باقي الصفحات)
     LaunchedEffect(Unit) {
         onTopBarStateChange(
-            TopBarState(title = "Search")
+            TopBarState(
+                title = "Search",
+                actions = {
+                    IconButton(onClick = { viewModel.clearHistory() }) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Clear search history"
+                        )
+                    }
+                }
+            )
         )
     }
 
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
 
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp)
+                .padding(padding)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
             // -------- Search Box + Dropdown Suggestions --------
             var expanded by remember { mutableStateOf(false) }
@@ -75,15 +88,13 @@ fun SearchScreen(
                     value = query,
                     onValueChange = {
                         viewModel.onQueryChange(it)
-                        // ✅ ما نقفلش dropdown أثناء الكتابة
                         expanded = it.isNotBlank() && isFocused
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        .menuAnchor()
                         .onFocusChanged { f ->
                             val nowFocused = f.isFocused
-                            // ❌ ما نقفلهاش أثناء الإدخال، فقط عند فقدان الفوكس نهائيًا
                             if (isFocused && !nowFocused) {
                                 expanded = false
                             }
@@ -91,14 +102,11 @@ fun SearchScreen(
                         },
                     placeholder = { Text("Search movies, shows, actors...") },
                     singleLine = true,
-                    leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "Search icon")
-                    },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search icon") },
                     trailingIcon = {
                         if (query.isNotEmpty()) {
                             IconButton(onClick = {
                                 viewModel.onQueryChange("")
-                                // ✅ ما نلمسش الفوكس هنا خلي المستخدم يكمّل كتابة
                                 expanded = false
                             }) {
                                 Icon(Icons.Default.Clear, contentDescription = "Clear text")
@@ -107,7 +115,8 @@ fun SearchScreen(
                     },
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {
-                        // ✅ هنا الضغط على Search = نحفظ التاريخ فعلاً
+                        focusManager.clearFocus()
+                        expanded = false
                         viewModel.submitSearch()
                     }),
                     shape = RoundedCornerShape(16.dp)
@@ -276,9 +285,7 @@ fun SearchFiltersRow(
             val selected = selectedFilter.equals(filter, true)
             FilterChip(
                 selected = selected,
-                onClick = {
-                    onFilterChange(filter)
-                },
+                onClick = { onFilterChange(filter) },
                 label = { Text(filter.replaceFirstChar { it.uppercaseChar() }) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -296,7 +303,6 @@ fun SearchResultsGrid(results: List<MediaEntity>, onItemClick: (MediaEntity) -> 
         contentPadding = PaddingValues(bottom = 106.dp, top = 16.dp, start = 16.dp, end = 16.dp),
         columns = GridCells.Adaptive(150.dp),
         state = gridState,
-//        contentPadding = PaddingValues(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

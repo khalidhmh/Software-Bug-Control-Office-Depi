@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.lifecycle.*
@@ -94,7 +95,6 @@ class MainActivity : ComponentActivity() {
 
             MovieAppTheme(darkTheme = darkTheme) {
 
-                val navController = rememberNavController()
                 val mediaDao = remember { database.mediaDao() }
 
                 val homeViewModel: HomeViewModel = viewModel(
@@ -118,6 +118,7 @@ class MainActivity : ComponentActivity() {
                         val currentRoute =
                             navController.currentBackStackEntryAsState().value?.destination?.route
                         TopAppBar(
+
                             title = {
                                 val titleToShow = if (topBarState.title.isNotEmpty()) {
                                     topBarState.title
@@ -170,7 +171,14 @@ class MainActivity : ComponentActivity() {
                     },
                     // =========================================================
                 ) { innerPadding ->
-                    Box(modifier = Modifier.padding(bottom = 0.dp)){
+                    val adjustedPadding = PaddingValues(
+                        top = innerPadding.calculateTopPadding(),
+                        bottom = 0.dp, // تجاهل الـ bottom padding
+                        start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                        end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
+                    )
+
+                    Box(modifier = Modifier.padding(adjustedPadding)) {
                         MdaNavHost(
                             navController = navController,
                             moviesRepository = moviesRepository,
@@ -179,13 +187,14 @@ class MainActivity : ComponentActivity() {
                             localDao = mediaDao,
                             onTopBarStateChange = { newState ->
                                 topBarState = newState
-                            }
+                            },
                             GenreViewModel = genreViewModel,
                             SearchViewModel = searchViewModel,
                             actorViewModel = actorViewModel
                         )
                     }
                 }
+
             }
         }
     }

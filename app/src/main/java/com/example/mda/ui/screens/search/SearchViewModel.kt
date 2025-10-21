@@ -2,7 +2,9 @@ package com.example.mda.ui.screens.search
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.mda.data.local.dao.MediaDao
 import com.example.mda.data.local.dao.SearchHistoryDao
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.local.entities.SearchHistoryEntity
@@ -11,8 +13,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.first
-import androidx.lifecycle.ViewModelProvider
 
 /**
  * SearchViewModel النهائي
@@ -101,7 +101,6 @@ class SearchViewModel(
 
     // --------------------------- USER ACTIONS ---------------------------
 
-    /** حفظ فقط لما المستخدم يضغط Search */
     fun submitSearch() {
         val q = query.value.trim()
         if (q.isBlank()) return
@@ -109,7 +108,6 @@ class SearchViewModel(
         savedStateHandle["query"] = q
         searchTrigger.tryEmit(Unit)
 
-        // 🔸 نضيفه لـHistory فقط هنا
         viewModelScope.launch {
             try {
                 historyDao.upsertSafe(SearchHistoryEntity(query = q))
@@ -118,17 +116,14 @@ class SearchViewModel(
         }
     }
 
-    /** تغيير النص */
     fun onQueryChange(newValue: String) {
         savedStateHandle["query"] = newValue
     }
 
-    /** تغيير الفلتر: يفعل البحث فوريًا مع نفس الـquery */
     fun onFilterSelected(newFilter: String) {
         val lower = newFilter.lowercase()
         if (selectedFilter.value == lower) return
         savedStateHandle["filter"] = lower
-        // ✅ trigger البحث مباشرة طالما فيه نص
         if (query.value.trim().isNotEmpty()) {
             searchTrigger.tryEmit(Unit)
         }
@@ -212,16 +207,11 @@ class SearchViewModel(
         return dp[a.length][b.length]
     }
 }
- // تأكدي من أن هذا المسار يطابق مسار SearchViewModel
 
-
-/**
- * مصنع لإنشاء وتزويد SearchViewModel بالاعتماديات (dependencies) التي يحتاجها.
- * هذا ضروري لأن SearchViewModel يتطلب MoviesRepository في مُنشئه (constructor).
- */
+// ✅ مصنع لإنشاء وتزويد SearchViewModel بالاعتماديات
 class SearchViewModelFactory(
     private val moviesRepository: MoviesRepository,
-    private val localDao: MediaDao
+    private val historyDao: SearchHistoryDao
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -229,7 +219,8 @@ class SearchViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return SearchViewModel(
                 repository = moviesRepository,
-                localDao = localDao
+                historyDao = historyDao,
+                savedStateHandle = SavedStateHandle()
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

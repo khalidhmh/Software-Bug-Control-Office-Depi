@@ -1,4 +1,5 @@
-// Khaled Edit: Added SwipeRefresh + AnimatedVisibility to HomeScreen
+@file:Suppress("DEPRECATION")
+
 package com.example.mda.ui.home
 
 import androidx.compose.animation.*
@@ -6,12 +7,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.mda.data.repository.mappers.toMovie
 import com.example.mda.ui.navigation.TopBarState
@@ -23,14 +26,13 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     navController: NavController,
     onTopBarStateChange: (TopBarState) -> Unit
 ) {
-
     val trending = viewModel.trendingMedia.collectAsState(initial = emptyList()).value
     val movies = viewModel.popularMovies.collectAsState(initial = emptyList()).value
     val tv = viewModel.popularTvShows.collectAsState(initial = emptyList()).value
@@ -42,21 +44,18 @@ fun HomeScreen(
     val refreshState = rememberSwipeRefreshState(isRefreshing = refreshing)
     val coroutineScope = rememberCoroutineScope()
 
+    // Update top bar (keeps previous behaviour)
     LaunchedEffect(Unit) {
         onTopBarStateChange(
             TopBarState(
                 title = "Home",
                 actions = {
-                    // يمكنك إضافة أيقونات خاصة بالصفحة الرئيسية هنا إذا أردتِ
-                    // مثال:
-                    // IconButton(onClick = { /* do something */ }) {
-                    //     Icon(Icons.Default.Favorite, contentDescription = "Favorites")
-                    // }
+                    // place page-specific icons if needed
                 }
             )
         )
     }
-        SwipeRefresh(
+    SwipeRefresh(
             state = refreshState,
             onRefresh = {
                 refreshing = true
@@ -75,10 +74,13 @@ fun HomeScreen(
                     backgroundColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.primary
                 )
-            }
+            },
+            modifier = Modifier
+                .padding()
+                .fillMaxSize()
         ) {
             LazyColumn(
-                contentPadding = PaddingValues(bottom = 106.dp,),
+                contentPadding = PaddingValues(bottom = 106.dp),
                 state = scrollState,
                 modifier = Modifier
                     .fillMaxSize()
@@ -129,5 +131,4 @@ fun HomeScreen(
                 }
             }
         }
-    }
-
+}

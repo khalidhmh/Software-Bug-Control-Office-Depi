@@ -1,6 +1,5 @@
 package com.example.mda.ui.screens.genre
 
-import android.R.attr.padding
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,90 +25,88 @@ import androidx.navigation.NavController
 import com.example.mda.R
 import com.example.mda.data.remote.model.Genre
 import com.example.mda.ui.navigation.TopBarState
-import com.example.mda.ui.screens.genre.GenreViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenreScreen(
     navController: NavController,
-    viewModel: GenreViewModel,
-    onTopBarStateChange: (TopBarState) -> Unit // ✅ الخطوة 2: استقبال دالة الاتصال
+    viewModel: com.example.mda.ui.screens.genre.GenreViewModel,
+    onTopBarStateChange: (TopBarState) -> Unit
 ) {
     val genres by viewModel.genres.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val scope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         onTopBarStateChange(
-            TopBarState(title = "Movies") // استخدام العنوان من getTitleForRoute
+            TopBarState(title = "Movies")
         )
     }
 
-            when {
-                isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color.White)
-                    }
-                }
+    when {
+        isLoading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
 
-                error != null -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudOff,
-                            contentDescription = "Error",
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Something went wrong",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-                        Text(
-                            text = error ?: "",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Button(
-                            onClick = { scope.launch { viewModel.refreshGenres() } },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A2233))
-                        ) {
-                            Text("Retry", color = Color.White)
-                        }
-                    }
-                }
-
-                else -> {
-                    LazyVerticalGrid(
-                        contentPadding = PaddingValues(bottom = 106.dp, start = 16.dp, end = 16.dp, top = 24.dp),
-                        columns = GridCells.Fixed(2),
-//                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(genres, key = { it.id }) { genre ->
-                            GenreGridCard(
-                                genre = genre,
-                                imageUrl = getGenrePlaceholderImage(genre.name)
-                            ) {
-                                navController.navigate("genre_details/${genre.id}/${genre.name}")
-                            }
-                        }
-                    }
+        error != null -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CloudOff,
+                    contentDescription = "Error",
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Something went wrong",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = error ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Button(
+                    onClick = { scope.launch { viewModel.refreshGenres() } },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A2233))
+                ) {
+                    Text("Retry", color = Color.White)
                 }
             }
         }
 
+        else -> {
+            LazyVerticalGrid(
+                contentPadding = PaddingValues(bottom = 106.dp, start = 16.dp, end = 16.dp, top = 24.dp),
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(genres, key = { it.id }) { genre ->
+                    GenreGridCard(
+                        genre = genre,
+                        imageUrl = getGenrePlaceholderImage(genre.name)
+                    ) {
+                        navController.navigate("genre_details/${genre.id}/${genre.name}")
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit) {
@@ -152,7 +149,7 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
             Text(
                 text = genre.name,
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
             )
@@ -160,7 +157,6 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
     }
 }
 
-// Helper function to get drawable image for each genre
 @DrawableRes
 fun getGenrePlaceholderImage(genreName: String): Int {
     return when (genreName.lowercase()) {

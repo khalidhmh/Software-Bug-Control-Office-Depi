@@ -10,13 +10,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.mda.data.local.dao.MediaDao
-import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.data.repository.MovieDetailsRepository
 import com.example.mda.data.repository.MoviesRepository
-import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
 import com.example.mda.ui.screens.actors.ActorsScreen
-import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.genre.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
@@ -27,7 +24,9 @@ import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.screens.search.SearchViewModelFactory
 import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.data.repository.ActorsRepository
+import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actors.ActorViewModel
+import com.example.mda.ui.screens.genre.GenreScreen
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -40,7 +39,7 @@ fun MdaNavHost(
     actorsRepository: ActorsRepository,
     movieDetailsRepository: MovieDetailsRepository,
     localDao: MediaDao,
-    onTopBarStateChange: (TopBarState) -> Unit
+    onTopBarStateChange: (TopBarState) -> Unit,
     GenreViewModel: GenreViewModel,
     SearchViewModel: SearchViewModel,
     actorViewModel: ActorViewModel
@@ -67,22 +66,17 @@ fun MdaNavHost(
             ActorsScreen(
                 navController = navController,
                 actorsRepository = actorsRepository,
-                onTopBarStateChange = onTopBarStateChange
+                onTopBarStateChange = onTopBarStateChange,
+                viewModel = actorViewModel
             )
         }
 
         // 🔍 Search
         composable("search") {
             // ✅ صحيح: الشاشة تنشئ الـ ViewModel الخاص بها
-            val searchViewModel: SearchViewModel = viewModel(factory = SearchViewModelFactory(
-                moviesRepository
-                ,localDao
-
-            )
-            )
             SearchScreen(
                 navController = navController,
-                viewModel = searchViewModel,
+                viewModel = SearchViewModel,
                 onTopBarStateChange = onTopBarStateChange
             )
         }
@@ -128,14 +122,13 @@ fun MdaNavHost(
                 repository = moviesRepository,
                 genreId = genreId,
                 genreNameRaw = genreName,
-                onTopBarStateChange = onTopBarStateChange
-                genreNameRaw = genreName
+                onTopBarStateChange = onTopBarStateChange,
             )
         }
 
         // 🎞️ Movies (Genre reuse)
         composable("movies") {
-            GenreScreen(navController = navController, GenreViewModel)
+            GenreScreen(navController = navController, GenreViewModel,onTopBarStateChange)
         }
 
         // 🌟 Actors List (People)
@@ -143,8 +136,9 @@ fun MdaNavHost(
             // ✅ تعديل: استخدمنا ActorsScreen الجديدة اللي فيها Offline Mode + كاش
             ActorsScreen(
                 navController = navController,
-                repository = actorRepository,
-                viewModel=actorViewModel,
+                actorsRepository = actorsRepository,
+                viewModel = actorViewModel,
+                onTopBarStateChange = onTopBarStateChange,
             )
         }
 
@@ -152,7 +146,8 @@ fun MdaNavHost(
         composable("search") {
             SearchScreen(
                 navController = navController,
-                SearchViewModel
+                viewModel = SearchViewModel,
+                onTopBarStateChange = onTopBarStateChange
             )
         }
 

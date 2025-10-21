@@ -23,7 +23,8 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 fun ActorsScreen(
     navController: NavHostController,
     actorsRepository: ActorsRepository,
-    onTopBarStateChange: (TopBarState) -> Unit
+    onTopBarStateChange: (TopBarState) -> Unit,
+    viewModel: ActorViewModel
 ) {
     val viewModel: ActorViewModel = viewModel(factory = ActorViewModelFactory(actorsRepository))
     val uiState by viewModel.state.collectAsState()

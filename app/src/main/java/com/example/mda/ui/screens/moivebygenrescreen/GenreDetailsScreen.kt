@@ -2,7 +2,6 @@ package com.example.mda.ui.screens.moivebygenrescreen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.ViewList
-import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -45,11 +44,12 @@ fun GenreDetailsScreen(
     repository: MoviesRepository,
     genreId: Int,
     genreNameRaw: String,
-    onTopBarStateChange: (TopBarState) -> Unit // ✅ استقبال دالة الاتصال
+    onTopBarStateChange: (TopBarState) -> Unit
 ) {
     val genreName = remember(genreNameRaw) {
         URLDecoder.decode(genreNameRaw, StandardCharsets.UTF_8.toString())
     }
+
     val viewModel: GenreDetailsViewModel =
         viewModel(factory = GenreDetailsViewModelFactory(repository))
 
@@ -59,22 +59,18 @@ fun GenreDetailsScreen(
     var refreshing by remember { mutableStateOf(false) }
     val refreshState = rememberSwipeRefreshState(refreshing)
     val scope = rememberCoroutineScope()
-
-    // State to toggle between Grid and List view
     var isGridView by remember { mutableStateOf(true) }
 
-    LaunchedEffect(Unit) { viewModel.resetAndLoad(genreId) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = genreName, color = Color.White) },
+    // ✅ إعداد الـ TopBar بنفس فكرة MovieDetailsScreen
+    LaunchedEffect(genreName) {
+        onTopBarStateChange(
+            TopBarState(
+                title = genreName,
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
+                            contentDescription = "Back"
                         )
                     }
                 },
@@ -82,48 +78,44 @@ fun GenreDetailsScreen(
                     IconButton(onClick = { isGridView = !isGridView }) {
                         Icon(
                             imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                            contentDescription = "Toggle Layout",
-                            tint = Color.White
+                            contentDescription = "Toggle Layout"
                         )
                     }
-                    IconButton(onClick = { /* TODO: Handle theme change */ }) {
-                        Icon(
-                            imageVector = Icons.Default.WbSunny,
-                            contentDescription = "Toggle Theme",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF101528))
+                }
+            )
+        )
+    }
+
+    SwipeRefresh(
+        state = refreshState,
+        onRefresh = {
+            scope.launch {
+                refreshing = true
+                viewModel.resetAndLoad(genreId)
+                refreshing = false
+            }
+        },
+        indicator = { s, t ->
+            SwipeRefreshIndicator(
+                s,
+                t,
+                backgroundColor = Color(0xFF1A2233),
+                contentColor = Color.White
             )
         }
-    ) { padding ->
-        SwipeRefresh(
-            state = refreshState,
-            onRefresh = {
-                scope.launch {
-                    refreshing = true
-                    viewModel.resetAndLoad(genreId)
-                    refreshing = false
-                }
-            },
-            indicator = { s, t ->
-                SwipeRefreshIndicator(s, t, backgroundColor = Color(0xFF1A2233), contentColor = Color.White)
-            }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF101528))
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF101528)) // Dark background
-                    .padding(padding)
-            ) {
-                when {
-                    isLoading && movies.isEmpty() -> Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color.White)
-                    }
+            when {
+                isLoading && movies.isEmpty() -> Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
+                }
 
                 error != null -> Text(
                     text = "Error: $error",
@@ -131,72 +123,68 @@ fun GenreDetailsScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
 
-                    else -> {
-                        // Conditionally display Grid or List
-                        if (isGridView) {
-                            // --- GRID VIEW ---
-                            val gridState = rememberLazyGridState()
-                            LaunchedEffect(gridState, movies.size) {
-                                snapshotFlow {
-                                    val total = gridState.layoutInfo.totalItemsCount
-                                    val lastVisible = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                                    Pair(lastVisible, total)
-                                }.collect { (last, total) ->
-                                    if (last >= total - 4 && !isLoading) {
-                                        viewModel.loadMoviesByGenre(genreId)
-                                    }
+                else -> {
+                    if (isGridView) {
+                        val gridState = rememberLazyGridState()
+                        LaunchedEffect(gridState, movies.size) {
+                            snapshotFlow {
+                                val total = gridState.layoutInfo.totalItemsCount
+                                val lastVisible = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                                Pair(lastVisible, total)
+                            }.collect { (last, total) ->
+                                if (last >= total - 4 && !isLoading) {
+                                    viewModel.loadMoviesByGenre(genreId)
                                 }
                             }
+                        }
 
-                            AnimatedVisibility(visible = true, enter = fadeIn()) {
-                                LazyVerticalGrid(
-                                    state = gridState,
-                                    columns = GridCells.Fixed(2),
-                                    contentPadding = PaddingValues(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    items(movies, key = { it.id }) { movie ->
-                                        MovieCardGrid(movie = movie) {
-                                            navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
-                                        }
+                        AnimatedVisibility(visible = true, enter = fadeIn()) {
+                            LazyVerticalGrid(
+                                state = gridState,
+                                columns = GridCells.Fixed(2),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(movies, key = { it.id }) { movie ->
+                                    MovieCardGrid(movie = movie) {
+                                        navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
                                     }
-                                    if (isLoading) {
-                                        item(span = { GridItemSpan(2) }) {
-                                            LoadingIndicator()
-                                        }
+                                }
+                                if (isLoading) {
+                                    item(span = { GridItemSpan(2) }) {
+                                        LoadingIndicator()
                                     }
                                 }
                             }
-                        } else {
-                            // --- LIST VIEW ---
-                            val listState = rememberLazyListState()
-                            LaunchedEffect(listState, movies.size) {
-                                snapshotFlow {
-                                    val total = listState.layoutInfo.totalItemsCount
-                                    val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                                    Pair(lastVisible, total)
-                                }.collect { (last, total) ->
-                                    if (last >= total - 4 && !isLoading) {
-                                        viewModel.loadMoviesByGenre(genreId)
-                                    }
+                        }
+                    } else {
+                        val listState = rememberLazyListState()
+                        LaunchedEffect(listState, movies.size) {
+                            snapshotFlow {
+                                val total = listState.layoutInfo.totalItemsCount
+                                val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                                Pair(lastVisible, total)
+                            }.collect { (last, total) ->
+                                if (last >= total - 4 && !isLoading) {
+                                    viewModel.loadMoviesByGenre(genreId)
                                 }
                             }
+                        }
 
-                            AnimatedVisibility(visible = true, enter = fadeIn()) {
-                                LazyColumn(
-                                    state = listState,
-                                    contentPadding = PaddingValues(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    items(movies, key = { it.id }) { movie ->
-                                        MovieCardList(movie = movie) {
-                                            navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
-                                        }
+                        AnimatedVisibility(visible = true, enter = fadeIn()) {
+                            LazyColumn(
+                                state = listState,
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(movies, key = { it.id }) { movie ->
+                                    MovieCardList(movie = movie) {
+                                        navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
                                     }
-                                    if (isLoading) {
-                                        item { LoadingIndicator() }
-                                    }
+                                }
+                                if (isLoading) {
+                                    item { LoadingIndicator() }
                                 }
                             }
                         }
@@ -206,7 +194,6 @@ fun GenreDetailsScreen(
         }
     }
 }
-
 
 @Composable
 fun MovieCardList(movie: MediaEntity, onClick: () -> Unit) {
@@ -219,7 +206,6 @@ fun MovieCardList(movie: MediaEntity, onClick: () -> Unit) {
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            // 1. Changed alignment to Top
             verticalAlignment = Alignment.Top
         ) {
             AsyncImage(
@@ -232,14 +218,12 @@ fun MovieCardList(movie: MediaEntity, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(16.dp))
 
-            // 2. Increased padding for the text column
             Column(modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)) {
                 Text(
                     text = movie.title ?: "No Title",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White,
                     maxLines = 2,
-                    // 3. Added ellipsis for long titles
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -249,17 +233,18 @@ fun MovieCardList(movie: MediaEntity, onClick: () -> Unit) {
                     color = Color.Gray
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = movie.overview ?: "",
+                Text(
+                    text = movie.overview ?: "",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     maxLines = 3,
-                    // 4. Added ellipsis for long overview
                     overflow = TextOverflow.Ellipsis
                 )
             }
         }
     }
 }
+
 @Composable
 fun LoadingIndicator() {
     Box(
@@ -271,4 +256,3 @@ fun LoadingIndicator() {
         CircularProgressIndicator(color = Color.White.copy(alpha = 0.8f))
     }
 }
-
