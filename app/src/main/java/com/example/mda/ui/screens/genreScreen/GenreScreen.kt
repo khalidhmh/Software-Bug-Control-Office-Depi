@@ -91,8 +91,9 @@ fun GenreScreen(
 
                 else -> {
                     LazyVerticalGrid(
+                        contentPadding = PaddingValues(bottom = 106.dp, start = 16.dp, end = 16.dp, top = 24.dp),
                         columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
+//                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {

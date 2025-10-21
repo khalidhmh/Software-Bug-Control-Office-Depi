@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,20 +16,23 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
+import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.local.database.AppDatabase
 import com.example.mda.data.remote.RetrofitInstance
-import com.example.mda.data.repository.ActorsRepository
-import com.example.mda.data.repository.MovieDetailsRepository
-import com.example.mda.data.repository.MoviesRepository
-import com.example.mda.ui.navigation.AnimatedNavigationBar
-import com.example.mda.ui.navigation.ButtonData
-import com.example.mda.ui.navigation.MdaNavHost
+import com.example.mda.data.repository.*
+import com.example.mda.ui.navigation.*
+import com.example.mda.ui.screens.actors.ActorViewModel
+import com.example.mda.ui.screens.actors.ViewType
+import com.example.mda.ui.screens.genre.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
-import com.example.mda.ui.screens.genre.GenreViewModel
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.theme.MovieAppTheme
 import androidx.core.content.edit
@@ -40,13 +44,14 @@ import com.example.mda.ui.navigation.TopBarState // ✅ استيراد الكل�
 
 class MainActivity : ComponentActivity() {
 
-    // ======= Database & Repositories =======
     private lateinit var database: AppDatabase
     private lateinit var localRepository: LocalRepository
     private lateinit var moviesRepository: MoviesRepository
     private lateinit var movieDetailsRepository: MovieDetailsRepository
     private lateinit var actorRepository: ActorsRepository
-    lateinit var searchViewModel: SearchViewModel
+
+    private lateinit var searchViewModel: SearchViewModel
+    private lateinit var actorViewModel: ActorViewModel
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -55,20 +60,30 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // ======= Initialize Database & Repositories =======
+        // ======= Database & Repo setup =======
         database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
             "mda_db"
-        )
-            .fallbackToDestructiveMigrationOnDowngrade()
-            .build()
+        ).fallbackToDestructiveMigration().build()
 
         localRepository = LocalRepository(database.mediaDao())
         moviesRepository = MoviesRepository(RetrofitInstance.api, localRepository)
         movieDetailsRepository = MovieDetailsRepository(RetrofitInstance.api, database.mediaDao())
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())
-        searchViewModel = SearchViewModel(moviesRepository, localDao = database.mediaDao())
+        actorViewModel = ActorViewModel(actorRepository)
+
+        val searchViewModelFactory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val savedStateHandle = SavedStateHandle()
+                @Suppress("UNCHECKED_CAST")
+                return SearchViewModel(
+                    repository = moviesRepository,
+                    historyDao = database.searchHistoryDao(),
+                    savedStateHandle = savedStateHandle
+                ) as T
+            }
+        }
 
 // ======= Theme Preferences =======
         val prefs = getSharedPreferences("theme_prefs", MODE_PRIVATE)
@@ -78,16 +93,18 @@ class MainActivity : ComponentActivity() {
             var darkTheme by remember { mutableStateOf(savedTheme) }
 
             MovieAppTheme(darkTheme = darkTheme) {
+
+                val navController = rememberNavController()
                 val mediaDao = remember { database.mediaDao() }
 
-                // ======= Initialize ViewModels =======
                 val homeViewModel: HomeViewModel = viewModel(
                     factory = HomeViewModelFactory(moviesRepository)
                 )
-
                 val genreViewModel: GenreViewModel = viewModel(
                     factory = GenreViewModelFactory(moviesRepository)
                 )
+                val searchVM: SearchViewModel = viewModel(factory = searchViewModelFactory)
+                searchViewModel = searchVM
 
                 val navController = rememberNavController()
 
@@ -96,7 +113,10 @@ class MainActivity : ComponentActivity() {
                 val currentRoute = navBackStackEntry?.destination?.route
 
                 Scaffold(
+                    contentWindowInsets = WindowInsets(0),
                     topBar = {
+                        val currentRoute =
+                            navController.currentBackStackEntryAsState().value?.destination?.route
                         TopAppBar(
                             title = {
                                 val titleToShow = if (topBarState.title.isNotEmpty()) {
@@ -119,7 +139,9 @@ class MainActivity : ComponentActivity() {
                                     prefs.edit { putBoolean("dark_mode", darkTheme) }
                                 }) {
                                     Icon(
-                                        imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                        imageVector = if (darkTheme)
+                                            Icons.Default.LightMode
+                                        else Icons.Default.DarkMode,
                                         contentDescription = "Toggle Theme"
                                     )
                                 }
@@ -127,6 +149,8 @@ class MainActivity : ComponentActivity() {
                         )
 
                     },
+                    // ================== تم التعديل هنا ==================
+                    // أزلنا الـ Box الإضافي لتبسيط التركيب
                     bottomBar = {
                         val buttons = listOf(
                             ButtonData("home", "Home", Icons.Default.Home),
@@ -141,11 +165,12 @@ class MainActivity : ComponentActivity() {
                             barColor = MaterialTheme.colorScheme.surface,
                             circleColor = MaterialTheme.colorScheme.background,
                             selectedColor = MaterialTheme.colorScheme.primary,
-                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
                         )
-                    }
+                    },
+                    // =========================================================
                 ) { innerPadding ->
-                    Box(modifier = Modifier.padding(innerPadding)) {
+                    Box(modifier = Modifier.padding(bottom = 0.dp)){
                         MdaNavHost(
                             navController = navController,
                             moviesRepository = moviesRepository,
@@ -155,6 +180,9 @@ class MainActivity : ComponentActivity() {
                             onTopBarStateChange = { newState ->
                                 topBarState = newState
                             }
+                            GenreViewModel = genreViewModel,
+                            SearchViewModel = searchViewModel,
+                            actorViewModel = actorViewModel
                         )
                     }
                 }

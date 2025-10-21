@@ -26,6 +26,10 @@ import com.example.mda.ui.screens.search.SearchScreen
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.screens.search.SearchViewModelFactory
 import com.example.mda.util.GenreViewModelFactory
+import com.example.mda.data.repository.ActorsRepository
+import com.example.mda.ui.screens.actors.ActorViewModel
+
+// ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
 // ✅ تعديل شامل: تم تنظيف تعريف الدالة وتصحيح بنية كل الشاشات
 @RequiresApi(Build.VERSION_CODES.O)
@@ -37,6 +41,9 @@ fun MdaNavHost(
     movieDetailsRepository: MovieDetailsRepository,
     localDao: MediaDao,
     onTopBarStateChange: (TopBarState) -> Unit
+    GenreViewModel: GenreViewModel,
+    SearchViewModel: SearchViewModel,
+    actorViewModel: ActorViewModel
 ) {
     NavHost(
         navController = navController,
@@ -122,6 +129,30 @@ fun MdaNavHost(
                 genreId = genreId,
                 genreNameRaw = genreName,
                 onTopBarStateChange = onTopBarStateChange
+                genreNameRaw = genreName
+            )
+        }
+
+        // 🎞️ Movies (Genre reuse)
+        composable("movies") {
+            GenreScreen(navController = navController, GenreViewModel)
+        }
+
+        // 🌟 Actors List (People)
+        composable("actors") {
+            // ✅ تعديل: استخدمنا ActorsScreen الجديدة اللي فيها Offline Mode + كاش
+            ActorsScreen(
+                navController = navController,
+                repository = actorRepository,
+                viewModel=actorViewModel,
+            )
+        }
+
+        // 🔍 Search
+        composable("search") {
+            SearchScreen(
+                navController = navController,
+                SearchViewModel
             )
         }
 
@@ -144,4 +175,11 @@ fun MdaNavHost(
             )
         }
     }
+}
+fun getTitleForRoute(route: String?): String = when (route) {
+    "home" -> "Home"
+    "movies" -> "Movies"
+    "actors" -> "Actors"
+    "search" -> "Search"
+    else -> ""
 }

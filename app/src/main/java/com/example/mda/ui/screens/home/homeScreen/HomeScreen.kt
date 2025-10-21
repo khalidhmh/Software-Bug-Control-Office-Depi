@@ -78,6 +78,7 @@ fun HomeScreen(
             }
         ) {
             LazyColumn(
+                contentPadding = PaddingValues(bottom = 106.dp,),
                 state = scrollState,
                 modifier = Modifier
                     .fillMaxSize()
