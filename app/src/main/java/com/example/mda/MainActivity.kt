@@ -115,60 +115,72 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     contentWindowInsets = WindowInsets(0),
                     topBar = {
-                        val currentRoute =
-                            navController.currentBackStackEntryAsState().value?.destination?.route
-                        TopAppBar(
+                        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                        val hideTopBarRoutes = listOf(
+                           "ActorDetails/{personId}",
+                        )
 
-                            title = {
-                                val titleToShow = if (topBarState.title.isNotEmpty()) {
-                                    topBarState.title
-                                } else {
-                                    when (currentRoute) {
-                                        "home" -> "Home"
-                                        "movies" -> "Movies"
-                                        "actors" -> "People"
-                                        "search" -> "Search"
-                                        else -> ""
+                        if (currentRoute !in hideTopBarRoutes) {
+                            TopAppBar(
+                                title = {
+                                    val titleToShow = if (topBarState.title.isNotEmpty()) {
+                                        topBarState.title
+                                    } else {
+                                        when (currentRoute) {
+                                            "home" -> "Home"
+                                            "movies" -> "Movies"
+                                            "actors" -> "People"
+                                            "search" -> "Search"
+                                            else -> ""
+                                        }
+                                    }
+                                    Text(titleToShow)
+                                },
+                                actions = {
+                                    topBarState.actions(this)
+                                    IconButton(onClick = {
+                                        darkTheme = !darkTheme
+                                        prefs.edit { putBoolean("dark_mode", darkTheme) }
+                                    }) {
+                                        Icon(
+                                            imageVector = if (darkTheme)
+                                                Icons.Default.LightMode
+                                            else Icons.Default.DarkMode,
+                                            contentDescription = "Toggle Theme"
+                                        )
                                     }
                                 }
-                                Text(titleToShow)
-                            },
-                            actions = {
-                                topBarState.actions(this)
-                                IconButton(onClick = {
-                                    darkTheme = !darkTheme
-                                    prefs.edit { putBoolean("dark_mode", darkTheme) }
-                                }) {
-                                    Icon(
-                                        imageVector = if (darkTheme)
-                                            Icons.Default.LightMode
-                                        else Icons.Default.DarkMode,
-                                        contentDescription = "Toggle Theme"
-                                    )
-                                }
-                            }
-                        )
-
+                            )
+                        }
                     },
-                    // ================== تم التعديل هنا ==================
+
+                            // ================== تم التعديل هنا ==================
                     // أزلنا الـ Box الإضافي لتبسيط التركيب
                     bottomBar = {
-                        val buttons = listOf(
-                            ButtonData("home", "Home", Icons.Default.Home),
-                            ButtonData("movies", "Movies", Icons.Default.Movie),
-                            ButtonData("actors", "People", Icons.Default.People),
-                            ButtonData("search", "Search", Icons.Default.Search)
+                        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                        val hideBottomBarRoutes = listOf(
+                            "ActorDetails/{personId}",
                         )
 
-                        AnimatedNavigationBar(
-                            navController = navController,
-                            buttons = buttons,
-                            barColor = MaterialTheme.colorScheme.surface,
-                            circleColor = MaterialTheme.colorScheme.background,
-                            selectedColor = MaterialTheme.colorScheme.primary,
-                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                        )
-                    },
+                        if (currentRoute !in hideBottomBarRoutes) {
+                            val buttons = listOf(
+                                ButtonData("home", "Home", Icons.Default.Home),
+                                ButtonData("movies", "Movies", Icons.Default.Movie),
+                                ButtonData("actors", "People", Icons.Default.People),
+                                ButtonData("search", "Search", Icons.Default.Search)
+                            )
+
+                            AnimatedNavigationBar(
+                                navController = navController,
+                                buttons = buttons,
+                                barColor = MaterialTheme.colorScheme.surface,
+                                circleColor = MaterialTheme.colorScheme.background,
+                                selectedColor = MaterialTheme.colorScheme.primary,
+                                unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                            )
+                        }
+                    }
+
                     // =========================================================
                 ) { innerPadding ->
                     val adjustedPadding = PaddingValues(

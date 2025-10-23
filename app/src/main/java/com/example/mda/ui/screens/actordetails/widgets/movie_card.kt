@@ -48,7 +48,7 @@ fun MovieCard(
             .height(110.dp)
             .clickable(
                 onClick = { // will navigate to Movie details screen (Fares)
-                    navController.navigate("movie_detail/${movie.id}")
+                    navController.navigate("detail/${movie.media_type }/${movie.id}")
                 })
     ) {
         Row(

@@ -64,11 +64,15 @@ class ActorsRepository(
                     }
                 } else {
                     Log.d("ActorsRepo", "API error, using cache")
-                    actorDao?.getAllActors()?.also { Log.d("ActorsRepo", "Fetched ${it.size} actors from cache") } ?: emptyList()
+                    actorDao?.getAllActors()
+                        ?.also { Log.d("ActorsRepo", "Fetched ${it.size} actors from cache") }
+                        ?: emptyList()
                 }
             } catch (e: Exception) {
                 Log.d("ActorsRepo", "Exception in API call: ${e.localizedMessage}, using cache")
-                actorDao?.getAllActors()?.also { Log.d("ActorsRepo", "Fetched ${it.size} actors from cache") } ?: emptyList()
+                actorDao?.getAllActors()
+                    ?.also { Log.d("ActorsRepo", "Fetched ${it.size} actors from cache") }
+                    ?: emptyList()
             }
         }
 
@@ -111,13 +115,19 @@ class ActorsRepository(
     /**
      * ✅ 5. Get full actor details by ID (API → Cache fallback)
      */
-    suspend fun getFullActorDetails(personId: Int, forceRefresh: Boolean = false): ActorFullDetails? =
+    suspend fun getFullActorDetails(
+        personId: Int,
+        forceRefresh: Boolean = false
+    ): ActorFullDetails? =
         withContext(Dispatchers.IO) {
-            Log.d("ActorsRepo", "getFullActorDetails called, personId=$personId, forceRefresh=$forceRefresh")
+            Log.d(
+                "ActorsRepo",
+                "getFullActorDetails called, personId=$personId, forceRefresh=$forceRefresh"
+            )
             try {
                 val response = api.getActorDetails(
                     personId = personId,
-                    appendToResponse = "combined_credits,external_ids"
+                    appendToResponse = "images,combined_credits,external_ids"
                 )
                 Log.d("ActorsRepo", "API call completed, success=${response.isSuccessful}")
 
@@ -158,7 +168,10 @@ class ActorsRepository(
                     }
                 }
             } catch (e: Exception) {
-                Log.d("ActorsRepo", "Exception in getFullActorDetails: ${e.localizedMessage}, using cache")
+                Log.d(
+                    "ActorsRepo",
+                    "Exception in getFullActorDetails: ${e.localizedMessage}, using cache"
+                )
                 actorDao?.getDetails(personId)?.let { cached ->
                     Log.d("ActorsRepo", "Fetched details from cache for actor: ${cached.name}")
                     return@withContext ActorFullDetails(
