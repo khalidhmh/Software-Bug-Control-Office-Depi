@@ -4,9 +4,9 @@
 
 package com.example.mda.data.remote.api
 
+
 import com.example.mda.BuildConfig
 import com.example.mda.data.remote.model.*
-import com.example.mda.util.Constants.API_KEY
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -109,6 +109,7 @@ interface TmdbApi {
         @Query("language") language: String = "en-US",
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<GenreResponse>
+
     // ------------------ Search ------------------
     @GET("search/multi")
     suspend fun searchMulti(
@@ -137,51 +138,6 @@ interface TmdbApi {
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //// Khaled Edit: Updated HomeViewModel to use offline cached data via MediaEntity

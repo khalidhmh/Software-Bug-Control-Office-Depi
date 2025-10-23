@@ -3,6 +3,7 @@ package com.example.mda.ui.screens.actordetails.widgets
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
@@ -19,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-
 @Composable
 fun ActorProfile(
     profilePath: String?,
@@ -27,8 +27,12 @@ fun ActorProfile(
     gender: Int?,
     navController: NavController
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(430.dp) // Big hero section
+    ) {
+        // 🖼️ Background image
         Image(
             painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500$profilePath"),
             contentDescription = name,
@@ -36,7 +40,7 @@ fun ActorProfile(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Gradient overlay
+        // 🌈 Gradient overlay
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -47,12 +51,13 @@ fun ActorProfile(
                 )
         )
 
-        // 🔙 Back Button at Top-Left
+        // 🔙 Back arrow button (top-left)
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
+                .background(Color(0xFF090202), shape = CircleShape)
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
@@ -61,19 +66,18 @@ fun ActorProfile(
             )
         }
 
-        // Actor info at bottom
+        // 🧑 Actor info (bottom-left)
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(24.dp)
         ) {
             Text(
-                text = name?:"",
+                text = name ?: "",
                 color = Color.White,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold
             )
-
             Text(
                 text = if (gender == 1) "Actress" else "Actor",
                 color = Color(0xFFFFC107),
