@@ -36,16 +36,22 @@ class MovieDetailsViewModel(
             _isLoading.value = true
             _error.value = null
             try {
-                val media: MediaEntity? = if (fromNetwork) {
-                    if (isTv) repository.getTvById(id)
-                    else repository.getMovieById(id)
-                } else {
-                    if (isTv) repository.getCachedTv(id) ?: repository.getTvById(id)
-                    else repository.getCachedMovie(id) ?: repository.getMovieById(id)
+                // ✅ جيب من الـ cache أول عشان نعرض بيانات سريعة
+                val cached = if (isTv) repository.getCachedTv(id) else repository.getCachedMovie(id)
+                
+                // لو فيه cache، اعرضه أول (للسرعة)
+                if (cached != null && !fromNetwork) {
+                    _details.value = cached
                 }
-
-                if (media != null) _details.value = media
-                else _error.value = "No data available"
+                
+                // ✅ بعد كده روح للـ API عشان تجيب البيانات الكاملة (cast, videos, etc.)
+                val fresh = if (isTv) repository.getTvById(id) else repository.getMovieById(id)
+                
+                if (fresh != null) {
+                    _details.value = fresh
+                } else if (cached == null) {
+                    _error.value = "No data available"
+                }
 
             } catch (e: Exception) {
                 _error.value = e.message ?: "Unknown error"
