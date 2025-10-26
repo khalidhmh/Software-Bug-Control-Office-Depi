@@ -136,6 +136,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                     Text(titleToShow)
                                 },
+                                navigationIcon = {
+                                    topBarState.navigationIcon?.invoke()
+                                },
                                 actions = {
                                     topBarState.actions(this)
                                     IconButton(onClick = {
@@ -160,6 +163,7 @@ class MainActivity : ComponentActivity() {
                         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                         val hideBottomBarRoutes = listOf(
                             "ActorDetails/{personId}",
+                            "detail/{mediaType}/{id}",
                         )
 
                         if (currentRoute !in hideBottomBarRoutes) {
@@ -196,6 +200,7 @@ class MainActivity : ComponentActivity() {
                             moviesRepository = moviesRepository,
                             actorsRepository = actorRepository,
                             movieDetailsRepository = movieDetailsRepository,
+
                             localDao = mediaDao,
                             onTopBarStateChange = { newState ->
                                 topBarState = newState

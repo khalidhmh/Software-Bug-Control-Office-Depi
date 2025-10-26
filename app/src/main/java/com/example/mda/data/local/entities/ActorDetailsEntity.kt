@@ -3,10 +3,10 @@ package com.example.mda.data.local.entities
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.example.mda.data.local.converters.ListConverters
+import com.example.mda.data.local.converters.Converters
 
 @Entity(tableName = "actor_details")
-@TypeConverters(ListConverters::class)
+@TypeConverters(Converters::class)
 data class ActorDetailsEntity(
     @PrimaryKey val id: Int,
     val name: String?,
