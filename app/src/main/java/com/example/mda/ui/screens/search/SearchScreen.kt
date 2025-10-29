@@ -30,6 +30,10 @@ import androidx.navigation.NavController
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.components.MovieCardGrid
+import com.example.mda.ui.screens.components.MovieCardGridWithFavorite
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.components.FavoriteButton
+import com.example.mda.data.remote.model.Movie
 import kotlinx.coroutines.launch
 
 /**
@@ -40,7 +44,8 @@ import kotlinx.coroutines.launch
 fun SearchScreen(
     navController: NavController,
     viewModel: SearchViewModel,
-    onTopBarStateChange: (TopBarState) -> Unit
+    onTopBarStateChange: (TopBarState) -> Unit,
+    favoritesViewModel: FavoritesViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
@@ -228,7 +233,8 @@ fun SearchScreen(
                         results = state.results,
                         onItemClick = { media ->
                             navController.navigate("detail/${media.mediaType}/${media.id}")
-                        }
+                        },
+                        favoritesViewModel = favoritesViewModel
                     )
                 }
 
@@ -297,7 +303,11 @@ fun SearchFiltersRow(
 }
 
 @Composable
-fun SearchResultsGrid(results: List<MediaEntity>, onItemClick: (MediaEntity) -> Unit) {
+fun SearchResultsGrid(
+    results: List<MediaEntity>,
+    onItemClick: (MediaEntity) -> Unit,
+    favoritesViewModel: FavoritesViewModel
+) {
     val gridState = rememberLazyGridState()
     LazyVerticalGrid(
         contentPadding = PaddingValues(bottom = 106.dp, top = 16.dp, start = 16.dp, end = 16.dp),
@@ -310,7 +320,36 @@ fun SearchResultsGrid(results: List<MediaEntity>, onItemClick: (MediaEntity) -> 
             items = results,
             key = { "${it.mediaType}-${it.id}" }
         ) { media ->
-            MovieCardGrid(movie = media) { onItemClick(media) }
+            val movie = media.toMovie()
+            MovieCardGridWithFavorite(
+                movie = media,
+                onClick = { onItemClick(media) },
+                favoriteButton = {
+                    FavoriteButton(
+                        movie = movie,
+                        viewModel = favoritesViewModel,
+                        showBackground = true
+                    )
+                }
+            )
         }
     }
+}
+
+// Extension function to convert MediaEntity to Movie
+private fun MediaEntity.toMovie(): Movie {
+    return Movie(
+        id = this.id,
+        title = this.title,
+        name = this.name,
+        overview = this.overview,
+        posterPath = this.posterPath,
+        backdropPath = this.backdropPath,
+        releaseDate = this.releaseDate,
+        firstAirDate = this.firstAirDate,
+        voteAverage = this.voteAverage ?: 0.0,
+        mediaType = this.mediaType,
+        adult = this.adult,
+        genreIds = this.genreIds
+    )
 }
