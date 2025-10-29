@@ -66,13 +66,42 @@ import com.example.mda.data.remote.model.Movie
 //        }
 //    }
 //}
+//@Composable
+//fun MovieCard(movie: Movie, onClick: (Movie) -> Unit) {
+//    Card(
+//        onClick = { onClick(movie) },
+//        modifier = Modifier
+//            .width(140.dp)
+//            .aspectRatio(0.65f),
+//        shape = RoundedCornerShape(12.dp)
+//    ) {
+//        Box {
+//            AsyncImage(
+//                model = "https://image.tmdb.org/t/p/w500${movie.posterPath}",
+//                contentDescription = movie.title,
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier.fillMaxSize()
+//            )
+//            Box(
+//                modifier = Modifier
+//                    .align(Alignment.TopStart)
+//                    .padding(6.dp)
+//                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
+//                    .padding(horizontal = 6.dp, vertical = 2.dp)
+//            ) {
+//                Text("⭐ ${String.format("%.1f", movie.voteAverage)}", color = Color.White, fontSize = 12.sp)
+//            }
+//        }
+//    }
+//}
+
 @Composable
 fun MovieCard(movie: Movie, onClick: (Movie) -> Unit) {
     Card(
         onClick = { onClick(movie) },
         modifier = Modifier
-            .width(140.dp)
-            .aspectRatio(0.65f),
+            .width(150.dp)
+            .aspectRatio(0.70f),
         shape = RoundedCornerShape(12.dp)
     ) {
         Box {
@@ -82,6 +111,8 @@ fun MovieCard(movie: Movie, onClick: (Movie) -> Unit) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
+
+            // تقييم فوق
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -89,9 +120,27 @@ fun MovieCard(movie: Movie, onClick: (Movie) -> Unit) {
                     .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
-                Text("⭐ ${String.format("%.1f", movie.voteAverage)}", color = Color.White, fontSize = 12.sp)
+                Text(
+                    text = "⭐ ${String.format("%.1f", movie.voteAverage)}",
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+            }
+
+            // معلومات تحت
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .padding(6.dp)
+            ) {
+                Text(
+                    text = movie.title ?: movie.name ?: "Unknown",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    maxLines = 2
+                )
             }
         }
     }
 }
-

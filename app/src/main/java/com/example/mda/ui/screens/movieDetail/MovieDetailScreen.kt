@@ -1,10 +1,12 @@
 package com.example.mda.ui.screens.movieDetail
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,6 +25,8 @@ import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.repository.MovieDetailsRepository
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.navigation.TopBarState
+import com.example.mda.ui.screens.movieDetail.components.CastItem
+import com.example.mda.ui.screens.movieDetail.components.VideoThumbnail
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 
@@ -47,9 +51,18 @@ fun MovieDetailsScreen(
 
     // Load from cache first
     LaunchedEffect(id, isTvShow) {
+        Log.d("MovieDetailScreen", "📱 Loading details for ID: $id, isTvShow: $isTvShow")
         scope.launch {
             if (isTvShow) viewModel.loadTvDetails(id)
             else viewModel.loadMovieDetails(id)
+        }
+    }
+    
+    LaunchedEffect(details) {
+        details?.let {
+            Log.d("MovieDetailScreen", "✅ Details loaded: ${it.title}")
+            Log.d("MovieDetailScreen", "🎭 Cast: ${it.cast?.size ?: 0} members")
+            Log.d("MovieDetailScreen", "🎬 Videos: ${it.videos?.size ?: 0} videos")
         }
     }
     LaunchedEffect(details) {
@@ -101,7 +114,7 @@ fun MovieDetailsScreen(
                     )
 
                     details != null -> AnimatedVisibility(visible = true, enter = fadeIn()) {
-                        MovieDetailsContent(details!!)
+                        MovieDetailsContent(details!!, navController = navController)
                     }
 
                     else -> Text(
@@ -116,7 +129,7 @@ fun MovieDetailsScreen(
 
 
 @Composable
-private fun MovieDetailsContent(details: MediaEntity) {
+private fun MovieDetailsContent(details: MediaEntity, navController: NavController) {
     val scroll = rememberScrollState()
     Column(
         modifier = Modifier
@@ -149,12 +162,49 @@ private fun MovieDetailsContent(details: MediaEntity) {
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(Modifier.height(12.dp))
+        
+        // ✅ عرض معلومات إضافية (Runtime, Status, Budget, Revenue, Votes)
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            details.runtime?.let { runtime ->
+                SurfaceChip(text = "${runtime} min")
+            }
+            details.status?.let { status ->
+                SurfaceChip(text = status)
+            }
+            details.voteCount?.let { count ->
+                SurfaceChip(text = "${count} votes")
+            }
+            // 🆕 Budget & Revenue
+            details.budget?.let { b -> if (b > 0) SurfaceChip(text = "Budget: $b$") }
+            details.revenue?.let { r -> if (r > 0) SurfaceChip(text = "Revenue: $r$") }
+        }
+        
+        Spacer(Modifier.height(12.dp))
         Divider(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
             thickness = 1.dp,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(Modifier.height(12.dp))
+        
+        // Tagline
+        details.tagline?.let { tagline ->
+            if (tagline.isNotEmpty()) {
+                Text(
+                    text = "\"$tagline\"",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+        
         Text(
             text = details.overview ?: "No overview available",
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.9f),
@@ -162,6 +212,22 @@ private fun MovieDetailsContent(details: MediaEntity) {
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(Modifier.height(16.dp))
+
+        // ✅ روابط وتعريفات إضافية
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            details.imdbId?.let { imdb ->
+                SurfaceChip(text = "IMDB: $imdb")
+            }
+            details.homepage?.let { site ->
+                if (site.isNotEmpty()) SurfaceChip(text = site)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
 
         // ✅ عرض genres
         val genres = details.genres ?: emptyList()
@@ -177,6 +243,117 @@ private fun MovieDetailsContent(details: MediaEntity) {
                 }
             }
         }
+        Spacer(Modifier.height(16.dp))
+
+        // ✅ لغات وشركات ودول الإنتاج
+        val languages = details.spokenLanguages ?: emptyList()
+        val companies = details.productionCompanies ?: emptyList()
+        val countries = details.productionCountries ?: emptyList()
+        if (languages.isNotEmpty() || companies.isNotEmpty() || countries.isNotEmpty()) {
+            Text(
+                text = "Production",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(Modifier.height(8.dp))
+            if (languages.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    languages.take(6).forEach { lang -> AssistChip(onClick = {}, label = { Text(lang) }) }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+            if (companies.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    companies.take(6).forEach { comp -> AssistChip(onClick = {}, label = { Text(comp) }) }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+            if (countries.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    countries.take(6).forEach { c -> AssistChip(onClick = {}, label = { Text(c) }) }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+
+        // ✅ عرض Cast (الممثلين)
+        val cast = details.cast
+        if (!cast.isNullOrEmpty()) {
+            Text(
+                text = "Cast",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(Modifier.height(12.dp))
+            androidx.compose.foundation.lazy.LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(cast) { castMember ->
+                    CastItem(
+                        cast = castMember,
+                        onClick = { actorId ->
+                            navController.navigate("ActorDetails/$actorId")
+                        }
+                    )
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+        }
+
+        // ✅ عرض Videos (التريلرات)
+        val videos = details.videos
+        if (!videos.isNullOrEmpty()) {
+            Text(
+                text = "Videos & Trailers",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(Modifier.height(12.dp))
+            androidx.compose.foundation.lazy.LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(videos) { video ->
+                    VideoThumbnail(video)
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+        }
+
         Spacer(Modifier.height(40.dp))
+    }
+}
+
+@Composable
+private fun SurfaceChip(text: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier.padding(0.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
     }
 }

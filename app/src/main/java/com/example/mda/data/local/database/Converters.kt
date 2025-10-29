@@ -1,9 +1,11 @@
-package com.example.mda.data.local.converters
+package com.example.mda.data.local.database
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.example.mda.data.remote.model.Genre
+import com.example.mda.data.local.entities.Cast
+import com.example.mda.data.local.entities.Video
 
 class Converters {
 
@@ -25,7 +27,7 @@ class Converters {
     fun toStringList(data: String?): List<String>? =
         data?.split(",")?.map { it.trim() }
 
-    // ✅ جديد: List<Genre> <-> JSON
+    // ✅ List<Genre> <-> JSON
     @TypeConverter
     fun fromGenreList(genres: List<Genre>?): String {
         return gson.toJson(genres)
@@ -35,6 +37,32 @@ class Converters {
     fun toGenreList(json: String?): List<Genre> {
         if (json.isNullOrEmpty()) return emptyList()
         val type = object : TypeToken<List<Genre>>() {}.type
+        return gson.fromJson(json, type)
+    }
+
+    // ✅ 🆕 List<Cast> <-> JSON
+    @TypeConverter
+    fun fromCastList(cast: List<Cast>?): String? {
+        return gson.toJson(cast)
+    }
+
+    @TypeConverter
+    fun toCastList(json: String?): List<Cast>? {
+        if (json.isNullOrEmpty()) return null
+        val type = object : TypeToken<List<Cast>>() {}.type
+        return gson.fromJson(json, type)
+    }
+
+    // ✅ 🆕 List<Video> <-> JSON
+    @TypeConverter
+    fun fromVideoList(videos: List<Video>?): String? {
+        return gson.toJson(videos)
+    }
+
+    @TypeConverter
+    fun toVideoList(json: String?): List<Video>? {
+        if (json.isNullOrEmpty()) return null
+        val type = object : TypeToken<List<Video>>() {}.type
         return gson.fromJson(json, type)
     }
 }
