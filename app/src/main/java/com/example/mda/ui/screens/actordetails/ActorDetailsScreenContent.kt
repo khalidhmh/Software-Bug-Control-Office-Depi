@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.mda.data.remote.model.ActorFullDetails
 import com.example.mda.ui.screens.actordetails.widgets.*
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
 
 @Composable
 fun ActorDetailsScreenContent(
@@ -25,7 +26,8 @@ fun ActorDetailsScreenContent(
     movieCount: Int,
     tvShowCount: Int,
     age: Int?,
-    navController: NavController
+    navController: NavController,
+    favoritesViewModel: FavoritesViewModel
 ) {
     Log.i("error", "ActorDetailsScreenContent: ")
     var showAll by remember { mutableStateOf(false) }
@@ -112,12 +114,13 @@ fun ActorDetailsScreenContent(
         actor.combined_credits?.cast?.let { castList ->
             val displayed = if (showAll) castList else castList.take(4)
             items(displayed.distinctBy { it.id }, key = { it.id }) { movie ->
-                MovieCard(
-                    navController,
-                    movie.title ?: movie.name ?: "Unknown",
-                    movie.poster_path,
-                    movie.character ?: "Actor",
-                    movie
+                MovieCardWithFavorite(
+                    navController = navController,
+                    title = movie.title ?: movie.name ?: "Unknown",
+                    posterUrl = movie.poster_path,
+                    role = movie.character ?: "Actor",
+                    movie = movie,
+                    favoritesViewModel = favoritesViewModel
                 )
             }
         }

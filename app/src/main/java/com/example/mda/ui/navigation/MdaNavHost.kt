@@ -27,6 +27,8 @@ import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actors.ActorViewModel
 import com.example.mda.ui.screens.genre.GenreScreen
+import com.example.mda.ui.screens.profile.ProfileScreen
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -42,7 +44,8 @@ fun MdaNavHost(
     onTopBarStateChange: (TopBarState) -> Unit,
     GenreViewModel: GenreViewModel,
     SearchViewModel: SearchViewModel,
-    actorViewModel: ActorViewModel
+    actorViewModel: ActorViewModel,
+    favoritesViewModel: FavoritesViewModel
 ) {
     NavHost(
         navController = navController,
@@ -56,7 +59,8 @@ fun MdaNavHost(
             HomeScreen(
                 viewModel = homeViewModel,
                 navController = navController,
-                onTopBarStateChange = onTopBarStateChange
+                onTopBarStateChange = onTopBarStateChange,
+                favoritesViewModel = favoritesViewModel
             )
         }
 
@@ -77,7 +81,8 @@ fun MdaNavHost(
             SearchScreen(
                 navController = navController,
                 viewModel = SearchViewModel,
-                onTopBarStateChange = onTopBarStateChange
+                onTopBarStateChange = onTopBarStateChange,
+                favoritesViewModel = favoritesViewModel
             )
         }
 
@@ -103,7 +108,8 @@ fun MdaNavHost(
                 personId = personId,
                 navController = navController,
                 repository = actorsRepository,
-                onTopBarStateChange = onTopBarStateChange
+                onTopBarStateChange = onTopBarStateChange,
+                favoritesViewModel = favoritesViewModel
             )
         }
 
@@ -147,7 +153,8 @@ fun MdaNavHost(
             SearchScreen(
                 navController = navController,
                 viewModel = SearchViewModel,
-                onTopBarStateChange = onTopBarStateChange
+                onTopBarStateChange = onTopBarStateChange,
+                favoritesViewModel = favoritesViewModel
             )
         }
 
@@ -166,6 +173,16 @@ fun MdaNavHost(
                 isTvShow = (type == "tv"),
                 navController = navController,
                 repository = movieDetailsRepository,
+                onTopBarStateChange = onTopBarStateChange,
+                favoritesViewModel = favoritesViewModel
+            )
+        }
+
+        // 👤 Profile Screen
+        composable("profile") {
+            ProfileScreen(
+                navController = navController,
+                favoritesViewModel = favoritesViewModel,
                 onTopBarStateChange = onTopBarStateChange
             )
         }

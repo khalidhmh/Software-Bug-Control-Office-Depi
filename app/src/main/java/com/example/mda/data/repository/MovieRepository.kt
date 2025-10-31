@@ -44,7 +44,7 @@ class MoviesRepository(
                 }
 
                 // حفظ البيانات في قاعدة البيانات المحلية
-                localRepo.addOrUpdateAll(entities)
+                localRepo.addOrUpdateAllFromApi(entities)
                 Log.d("MoviesRepository", "✅ API success: ${entities.size} items loaded")
                 entities
             } else {

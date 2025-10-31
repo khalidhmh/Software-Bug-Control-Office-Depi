@@ -20,13 +20,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mda.data.remote.model.Movie
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.components.FavoriteButton
 
 @Composable
 fun TrendingSection(
     trendingMovies: List<Movie>,
     selectedWindow: String,
     onTimeWindowChange: (String) -> Unit,
-    onMovieClick: (Movie) -> Unit
+    onMovieClick: (Movie) -> Unit,
+    favoritesViewModel: FavoritesViewModel
 ) {
     Column {
         Row(
@@ -64,7 +67,17 @@ fun TrendingSection(
         } else {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(trendingMovies) { m ->
-                    MovieCard(movie = m, onClick = onMovieClick)
+                    MovieCardWithFavorite(
+                        movie = m,
+                        onClick = onMovieClick,
+                        favoriteButton = {
+                            FavoriteButton(
+                                movie = m,
+                                viewModel = favoritesViewModel,
+                                showBackground = true
+                            )
+                        }
+                    )
                 }
             }
         }

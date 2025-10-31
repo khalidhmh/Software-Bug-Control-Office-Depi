@@ -12,12 +12,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mda.data.remote.model.Movie
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.components.FavoriteButton
 
 @Composable
 fun PopularSection(
     popularMovies: List<Movie>,
     onMovieClick: (Movie) -> Unit,
-    onViewMoreClick: () -> Unit
+    onViewMoreClick: () -> Unit,
+    favoritesViewModel: FavoritesViewModel
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -44,7 +47,17 @@ fun PopularSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(popularMovies) { movie ->
-                MovieCard(movie = movie, onClick = onMovieClick)
+                MovieCardWithFavorite(
+                    movie = movie,
+                    onClick = onMovieClick,
+                    favoriteButton = {
+                        FavoriteButton(
+                            movie = movie,
+                            viewModel = favoritesViewModel,
+                            showBackground = true
+                        )
+                    }
+                )
             }
         }
     }
