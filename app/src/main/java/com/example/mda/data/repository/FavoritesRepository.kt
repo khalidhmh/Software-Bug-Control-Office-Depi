@@ -33,7 +33,7 @@ class FavoritesRepository(private val localRepo: LocalRepository) {
                 mediaType = movie.mediaType ?: "movie",
                 adult = movie.adult,
                 isFavorite = newStatus,
-                genreIds = movie.genreIds
+                genreIds = movie.genreIds,
             )
         }
         

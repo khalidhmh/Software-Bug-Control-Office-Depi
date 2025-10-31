@@ -30,10 +30,20 @@ interface TmdbApi {
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
+    @GET("discover/tv")
+    suspend fun getTvShowsByGenre(
+        @Query("with_genres") genreId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("include_adult") includeAdult: Boolean = false,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
     @GET("discover/movie")
     suspend fun getMoviesByGenre(
         @Query("with_genres") genreId: Int,
         @Query("page") page: Int = 1,
+        @Query("sort_by") sortBy: String = "popularity.desc",
         @Query("language") language: String = "en-US",
         @Query("include_adult") includeAdult: Boolean = false,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY

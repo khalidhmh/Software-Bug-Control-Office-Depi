@@ -46,13 +46,12 @@ fun HomeScreen(
     val refreshState = rememberSwipeRefreshState(isRefreshing = refreshing)
     val coroutineScope = rememberCoroutineScope()
 
-    // Update top bar (keeps previous behaviour)
     LaunchedEffect(Unit) {
         onTopBarStateChange(
             TopBarState(
                 title = "Home",
                 actions = {
-                    // place page-specific icons if needed
+
                 }
             )
         )

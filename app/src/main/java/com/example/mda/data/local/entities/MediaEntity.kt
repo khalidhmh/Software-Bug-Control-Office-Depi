@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.example.mda.data.local.converters.Converters
 
+
 @Entity(tableName = "media_items")
 @TypeConverters(Converters::class)
 data class MediaEntity(
@@ -21,7 +22,6 @@ data class MediaEntity(
     val voteAverage: Double?,
     val releaseDate: String?,
     val firstAirDate: String?,
-
     val mediaType: String?,
 
     val numberOfSeasons: Int? = null,

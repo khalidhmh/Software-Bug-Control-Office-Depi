@@ -6,11 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
@@ -21,19 +23,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.repository.MoviesRepository
+import com.example.mda.filteration.FilterDialog
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.components.MovieCardGrid
 import com.example.mda.util.GenreDetailsViewModelFactory
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -53,15 +54,11 @@ fun GenreDetailsScreen(
     val viewModel: GenreDetailsViewModel =
         viewModel(factory = GenreDetailsViewModelFactory(repository))
 
-    val movies = viewModel.movies
-    val isLoading = viewModel.isLoading
-    val error = viewModel.error
-    var refreshing by remember { mutableStateOf(false) }
-    val refreshState = rememberSwipeRefreshState(refreshing)
-    val scope = rememberCoroutineScope()
     var isGridView by remember { mutableStateOf(true) }
+    var showFilterDialog by remember { mutableStateOf(false) }
 
-    // ✅ إعداد الـ TopBar بنفس فكرة MovieDetailsScreen
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(genreName) {
         onTopBarStateChange(
             TopBarState(
@@ -81,20 +78,28 @@ fun GenreDetailsScreen(
                             contentDescription = "Toggle Layout"
                         )
                     }
+                    IconButton(onClick = { showFilterDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = "Filter"
+                        )
+                    }
                 }
             )
         )
     }
 
+    if (showFilterDialog) {
+        FilterDialog(
+            showDialog = showFilterDialog,
+            onDismiss = { showFilterDialog = false },
+            viewModel = viewModel
+        )
+    }
+
     SwipeRefresh(
-        state = refreshState,
-        onRefresh = {
-            scope.launch {
-                refreshing = true
-                viewModel.resetAndLoad(genreId)
-                refreshing = false
-            }
-        },
+        state = rememberSwipeRefreshState(isRefreshing = viewModel.isLoading),
+        onRefresh = { viewModel.resetAndLoad(genreId) },
         indicator = { s, t ->
             SwipeRefreshIndicator(
                 s,
@@ -110,15 +115,15 @@ fun GenreDetailsScreen(
                 .background(Color(0xFF101528))
         ) {
             when {
-                isLoading && movies.isEmpty() -> Box(
+                viewModel.isLoading && viewModel.movies.isEmpty() -> Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = Color.White)
                 }
 
-                error != null -> Text(
-                    text = "Error: $error",
+                viewModel.error != null -> Text(
+                    text = "Error: ${viewModel.error}",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -126,70 +131,90 @@ fun GenreDetailsScreen(
                 else -> {
                     if (isGridView) {
                         val gridState = rememberLazyGridState()
-                        LaunchedEffect(gridState, movies.size) {
-                            snapshotFlow {
-                                val total = gridState.layoutInfo.totalItemsCount
-                                val lastVisible = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                                Pair(lastVisible, total)
-                            }.collect { (last, total) ->
-                                if (last >= total - 4 && !isLoading) {
-                                    viewModel.loadMoviesByGenre(genreId)
-                                }
-                            }
+
+                        // Scroll to top whenever movies list changes
+                        LaunchedEffect(viewModel.movies) {
+                            gridState.scrollToItem(0)
                         }
 
-                        AnimatedVisibility(visible = true, enter = fadeIn()) {
-                            LazyVerticalGrid(
-                                state = gridState,
-                                columns = GridCells.Fixed(2),
-                                contentPadding = PaddingValues(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                items(movies, key = { it.id }) { movie ->
-                                    MovieCardGrid(movie = movie) {
-                                        navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
-                                    }
+                        LoadMoreListener(
+                            gridState = gridState,
+                            viewModel = viewModel,
+                            genreId = genreId
+                        )
+
+                        LazyVerticalGrid(
+                            state = gridState,
+                            columns = GridCells.Fixed(2),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(viewModel.movies, key = { it.id }) { movie ->
+                                MovieCardGrid(movie = movie) {
+                                    navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
                                 }
-                                if (isLoading) {
-                                    item(span = { GridItemSpan(2) }) {
-                                        LoadingIndicator()
-                                    }
+                            }
+                            if (viewModel.isLoading) {
+                                item(span = { GridItemSpan(2) }) {
+                                    LoadingIndicator()
                                 }
                             }
                         }
                     } else {
                         val listState = rememberLazyListState()
-                        LaunchedEffect(listState, movies.size) {
-                            snapshotFlow {
-                                val total = listState.layoutInfo.totalItemsCount
-                                val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                                Pair(lastVisible, total)
-                            }.collect { (last, total) ->
-                                if (last >= total - 4 && !isLoading) {
-                                    viewModel.loadMoviesByGenre(genreId)
-                                }
-                            }
+
+                        // Scroll to top whenever movies list changes
+                        LaunchedEffect(viewModel.movies) {
+                            listState.scrollToItem(0)
                         }
 
-                        AnimatedVisibility(visible = true, enter = fadeIn()) {
-                            LazyColumn(
-                                state = listState,
-                                contentPadding = PaddingValues(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                items(movies, key = { it.id }) { movie ->
-                                    MovieCardList(movie = movie) {
-                                        navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
-                                    }
+                        LoadMoreListener(
+                            listState = listState,
+                            viewModel = viewModel,
+                            genreId = genreId
+                        )
+
+                        LazyColumn(
+                            state = listState,
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(viewModel.movies, key = { it.id }) { movie ->
+                                MovieCardList(movie = movie) {
+                                    navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
                                 }
-                                if (isLoading) {
-                                    item { LoadingIndicator() }
-                                }
+                            }
+                            if (viewModel.isLoading) {
+                                item { LoadingIndicator() }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun LoadMoreListener(
+    gridState: LazyGridState? = null,
+    listState: LazyListState? = null,
+    viewModel: GenreDetailsViewModel,
+    genreId: Int
+) {
+    LaunchedEffect(gridState, listState, viewModel.movies.size) {
+        snapshotFlow {
+            val total =
+                gridState?.layoutInfo?.totalItemsCount ?: listState?.layoutInfo?.totalItemsCount
+                ?: 0
+            val lastVisible = gridState?.layoutInfo?.visibleItemsInfo?.lastOrNull()?.index
+                ?: listState?.layoutInfo?.visibleItemsInfo?.lastOrNull()?.index ?: 0
+            lastVisible to total
+        }.collect { (last, total) ->
+            if (last >= total - 4 && !viewModel.isLoading) {
+                viewModel.loadMoviesByGenre(genreId)
             }
         }
     }
