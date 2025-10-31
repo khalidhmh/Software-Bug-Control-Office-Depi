@@ -30,33 +30,36 @@ class MoviesRepository(
 
             if (response != null && !response.results.isNullOrEmpty()) {
                 var entities = response.results
-                    .filter { it.adult != true } // استبعاد المحتوى للكبار
+                    .filter { it.adult != true }
                     .map { it.toMediaEntity() }
 
-                // فلترة حسب النوع (movie / tv)
+                // ✅ Make sure mediaType is always set (important for filtering)
+                entities = entities.map {
+                    if (it.mediaType.isNullOrBlank() && typeFilter != null)
+                        it.copy(mediaType = typeFilter)
+                    else it
+                }
+
                 if (typeFilter != null) {
                     entities = entities.filter { it.mediaType == typeFilter }
                 }
 
-                // فلترة حسب النوع Genre ID
                 if (genreId != null) {
                     entities = entities.filter { it.genreIds?.contains(genreId) == true }
                 }
 
-                // حفظ البيانات في قاعدة البيانات المحلية
-                localRepo.addOrUpdateAll(entities)
-                Log.d("MoviesRepository", "✅ API success: ${entities.size} items loaded")
+                localRepo.addOrUpdateAllFromApi(entities)
                 entities
             } else {
-                Log.w("MoviesRepository", "⚠️ API returned empty, using fallback")
                 fallback()
             }
 
         } catch (e: Exception) {
-            Log.e("MoviesRepository", "❌ API failed: ${e.message}", e)
             fallback()
         }
     }
+
+
 
     // ---------------------- Movies ----------------------
 

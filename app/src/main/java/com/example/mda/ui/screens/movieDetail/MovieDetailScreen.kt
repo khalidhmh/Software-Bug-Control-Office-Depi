@@ -27,6 +27,9 @@ import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.movieDetail.components.CastItem
 import com.example.mda.ui.screens.movieDetail.components.VideoThumbnail
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.components.FavoriteButton
+import com.example.mda.data.remote.model.Movie
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 
@@ -37,7 +40,8 @@ fun MovieDetailsScreen(
     isTvShow: Boolean = false,
     navController: NavController,
     repository: MovieDetailsRepository,
-    onTopBarStateChange: (TopBarState) -> Unit, // ✅ الخطوة 2: استقبال دالة الاتصال
+    onTopBarStateChange: (TopBarState) -> Unit,
+    favoritesViewModel: FavoritesViewModel
 ) {
     val viewModel: MovieDetailsViewModel = viewModel(factory = MovieDetailsViewModelFactory(repository))
     val scope = rememberCoroutineScope()
@@ -114,7 +118,11 @@ fun MovieDetailsScreen(
                     )
 
                     details != null -> AnimatedVisibility(visible = true, enter = fadeIn()) {
-                        MovieDetailsContent(details!!, navController = navController)
+                        MovieDetailsContent(
+                            details = details!!,
+                            navController = navController,
+                            favoritesViewModel = favoritesViewModel
+                        )
                     }
 
                     else -> Text(
@@ -129,7 +137,11 @@ fun MovieDetailsScreen(
 
 
 @Composable
-private fun MovieDetailsContent(details: MediaEntity, navController: NavController) {
+private fun MovieDetailsContent(
+    details: MediaEntity,
+    navController: NavController,
+    favoritesViewModel: FavoritesViewModel
+) {
     val scroll = rememberScrollState()
     Column(
         modifier = Modifier
@@ -148,12 +160,46 @@ private fun MovieDetailsContent(details: MediaEntity, navController: NavControll
         )
 
         Spacer(Modifier.height(12.dp))
-        Text(
-            text = details.title ?: details.name ?: "Unknown",
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+        
+        // Title and Favorite Button Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = details.title ?: details.name ?: "Unknown",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f)
+            )
+            
+            // Convert MediaEntity to Movie for FavoriteButton
+            val movie = Movie(
+                id = details.id,
+                title = details.title,
+                name = details.name,
+                overview = details.overview,
+                posterPath = details.posterPath,
+                backdropPath = details.backdropPath,
+                releaseDate = details.releaseDate,
+                firstAirDate = details.firstAirDate,
+                voteAverage = details.voteAverage ?: 0.0,
+                mediaType = details.mediaType,
+                adult = details.adult,
+                genreIds = details.genreIds
+            )
+            
+            FavoriteButton(
+                movie = movie,
+                viewModel = favoritesViewModel,
+                showBackground = false,
+                modifier = Modifier.size(56.dp)
+            )
+        }
+        
         Spacer(Modifier.height(6.dp))
         Text(
             text = "${details.voteAverage ?: 0.0} ⭐   ${details.releaseDate ?: details.firstAirDate ?: ""}",

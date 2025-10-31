@@ -7,8 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.repository.MoviesRepository
-import kotlinx.coroutines.flow.first
+import com.example.mda.filteration.FilterType
 import kotlinx.coroutines.launch
+
 
 class GenreDetailsViewModel(private val repository: MoviesRepository) : ViewModel() {
 
@@ -21,8 +22,12 @@ class GenreDetailsViewModel(private val repository: MoviesRepository) : ViewMode
     var error by mutableStateOf<String?>(null)
         private set
 
+    var currentFilter by mutableStateOf(FilterType.ALL)
+        private set
+
     private var currentPage = 1
     private var canLoadMore = true
+    private var allMovies = mutableListOf<MediaEntity>() // keep all movies for filtering
 
     fun loadMoviesByGenre(genreId: Int) {
         if (isLoading || !canLoadMore) return
@@ -32,7 +37,11 @@ class GenreDetailsViewModel(private val repository: MoviesRepository) : ViewMode
             try {
                 val newMovies = repository.getMoviesByGenre(genreId, currentPage)
                 if (newMovies.isNotEmpty()) {
-                    movies = movies + newMovies
+                    val uniqueMovies = newMovies.filter { newMovie ->
+                        allMovies.none { it.id == newMovie.id }
+                    }
+                    allMovies.addAll(uniqueMovies)
+                    applyFilter(currentFilter)
                     currentPage++
                 } else {
                     canLoadMore = false
@@ -48,8 +57,38 @@ class GenreDetailsViewModel(private val repository: MoviesRepository) : ViewMode
 
     fun resetAndLoad(genreId: Int) {
         movies = emptyList()
+        allMovies.clear()
         currentPage = 1
         canLoadMore = true
         loadMoviesByGenre(genreId)
     }
+
+    fun setFilterType(filterType: FilterType) {
+        currentFilter = filterType
+        applyFilter(filterType)
+    }
+
+    fun applyFilter(filterType: FilterType) {
+        val filteredMovies = when (filterType) {
+            FilterType.TOP_RATED ->
+                allMovies.sortedByDescending { it.voteAverage ?: 0.0 }
+
+            FilterType.NEWEST ->
+                allMovies.sortedByDescending { it.releaseDate ?: "" }
+
+            FilterType.POPULAR ->
+                allMovies.sortedByDescending { it.voteCount ?: 0L }
+
+
+            FilterType.FAMILY_FRIENDLY ->
+                allMovies.filter { it.adult == false }
+
+            FilterType.ALL ->
+                allMovies
+        }
+
+        movies = filteredMovies
+    }
+
+
 }

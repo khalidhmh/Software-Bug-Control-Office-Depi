@@ -26,12 +26,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mda.data.remote.model.Movie
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.components.FavoriteButton
 
 @Composable
 fun ForYouSection(
     movies: List<Movie>,
     tvShows: List<Movie>,
-    onMovieClick: (Movie) -> Unit
+    onMovieClick: (Movie) -> Unit,
+    favoritesViewModel: FavoritesViewModel
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Movies", "TV Shows")
@@ -73,7 +76,17 @@ fun ForYouSection(
 
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(itemsToShow) { item ->
-                        MovieCard(movie = item, onClick = onMovieClick)
+                        MovieCardWithFavorite(
+                            movie = item,
+                            onClick = onMovieClick,
+                            favoriteButton = {
+                                FavoriteButton(
+                                    movie = item,
+                                    viewModel = favoritesViewModel,
+                                    showBackground = true
+                                )
+                            }
+                        )
                     }
                 }
             }

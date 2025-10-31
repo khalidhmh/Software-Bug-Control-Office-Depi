@@ -41,6 +41,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.room.Room
 import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.ui.navigation.TopBarState // ✅ استيراد الكلاس الجديد
+import com.example.mda.data.repository.FavoritesRepository
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.FavoritesViewModelFactory
 
 
 class MainActivity : ComponentActivity() {
@@ -50,9 +53,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var moviesRepository: MoviesRepository
     private lateinit var movieDetailsRepository: MovieDetailsRepository
     private lateinit var actorRepository: ActorsRepository
+    private lateinit var favoritesRepository: FavoritesRepository
 
     private lateinit var searchViewModel: SearchViewModel
     private lateinit var actorViewModel: ActorViewModel
+    private lateinit var favoritesViewModel: FavoritesViewModel
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -73,6 +78,7 @@ class MainActivity : ComponentActivity() {
         movieDetailsRepository = MovieDetailsRepository(RetrofitInstance.api, database.mediaDao())
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())
         actorViewModel = ActorViewModel(actorRepository)
+        favoritesRepository = FavoritesRepository(localRepository)
 
         val searchViewModelFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -105,6 +111,11 @@ class MainActivity : ComponentActivity() {
                 )
                 val searchVM: SearchViewModel = viewModel(factory = searchViewModelFactory)
                 searchViewModel = searchVM
+
+                val favoritesVM: FavoritesViewModel = viewModel(
+                    factory = FavoritesViewModelFactory(favoritesRepository)
+                )
+                favoritesViewModel = favoritesVM
 
                 val navController = rememberNavController()
 
@@ -171,7 +182,8 @@ class MainActivity : ComponentActivity() {
                                 ButtonData("home", "Home", Icons.Default.Home),
                                 ButtonData("movies", "Movies", Icons.Default.Movie),
                                 ButtonData("actors", "People", Icons.Default.People),
-                                ButtonData("search", "Search", Icons.Default.Search)
+                                ButtonData("search", "Search", Icons.Default.Search),
+                                ButtonData("profile", "Profile", Icons.Default.Person)
                             )
 
                             AnimatedNavigationBar(
@@ -207,7 +219,8 @@ class MainActivity : ComponentActivity() {
                             },
                             GenreViewModel = genreViewModel,
                             SearchViewModel = searchViewModel,
-                            actorViewModel = actorViewModel
+                            actorViewModel = actorViewModel,
+                            favoritesViewModel = favoritesViewModel
                         )
                     }
                 }

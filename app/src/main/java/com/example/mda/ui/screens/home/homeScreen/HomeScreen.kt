@@ -20,6 +20,7 @@ import com.example.mda.data.repository.mappers.toMovie
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.homeScreen.*
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -31,7 +32,8 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     viewModel: HomeViewModel,
     navController: NavController,
-    onTopBarStateChange: (TopBarState) -> Unit
+    onTopBarStateChange: (TopBarState) -> Unit,
+    favoritesViewModel: FavoritesViewModel
 ) {
     val trending = viewModel.trendingMedia.collectAsState(initial = emptyList()).value
     val movies = viewModel.popularMovies.collectAsState(initial = emptyList()).value
@@ -44,13 +46,12 @@ fun HomeScreen(
     val refreshState = rememberSwipeRefreshState(isRefreshing = refreshing)
     val coroutineScope = rememberCoroutineScope()
 
-    // Update top bar (keeps previous behaviour)
     LaunchedEffect(Unit) {
         onTopBarStateChange(
             TopBarState(
                 title = "Home",
                 actions = {
-                    // place page-specific icons if needed
+
                 }
             )
         )
@@ -106,7 +107,8 @@ fun HomeScreen(
                             tvShows = tv.map { it.toMovie() },
                             onMovieClick = { m ->
                                 navController.navigate("detail/${m.mediaType}/${m.id}")
-                            }
+                            },
+                            favoritesViewModel = favoritesViewModel
                         )
                     }
                 }
@@ -117,7 +119,8 @@ fun HomeScreen(
                         onTimeWindowChange = viewModel::loadTrending,
                         onMovieClick = { m ->
                             navController.navigate("detail/${m.mediaType}/${m.id}")
-                        }
+                        },
+                        favoritesViewModel = favoritesViewModel
                     )
                 }
                 item {
@@ -126,7 +129,8 @@ fun HomeScreen(
                         onMovieClick = { m ->
                             navController.navigate("detail/${m.mediaType}/${m.id}")
                         },
-                        onViewMoreClick = {}
+                        onViewMoreClick = {},
+                        favoritesViewModel = favoritesViewModel
                     )
                 }
             }

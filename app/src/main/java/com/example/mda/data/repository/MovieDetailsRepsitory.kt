@@ -42,9 +42,20 @@ class MovieDetailsRepository(
                 
                 val entity = body?.toMediaEntity("movie") ?: return@withContext null
                 
-                Log.d(TAG, "💾 Saving to database: Cast=${entity.cast?.size}, Videos=${entity.videos?.size}")
-                mediaDao.upsert(entity)
-                entity
+                // الحفاظ على حالة المفضلة و الـ Watchlist
+                val existingEntity = mediaDao.getByIdOnly(id)
+                val finalEntity = if (existingEntity != null) {
+                    entity.copy(
+                        isFavorite = existingEntity.isFavorite,
+                        isInWatchlist = existingEntity.isInWatchlist
+                    )
+                } else {
+                    entity
+                }
+                
+                Log.d(TAG, "💾 Saving to database: Cast=${finalEntity.cast?.size}, Videos=${finalEntity.videos?.size}, isFavorite=${finalEntity.isFavorite}")
+                mediaDao.upsert(finalEntity)
+                finalEntity
             } else {
                 Log.e(TAG, "❌ API Error: ${response.code()} - ${response.message()}")
                 throw Exception("Failed to load movie details: ${response.code()}")
@@ -72,9 +83,20 @@ class MovieDetailsRepository(
                 
                 val entity = body?.toMediaEntity("tv") ?: return@withContext null
                 
-                Log.d(TAG, "💾 Saving to database: Cast=${entity.cast?.size}, Videos=${entity.videos?.size}")
-                mediaDao.upsert(entity)
-                entity
+                // الحفاظ على حالة المفضلة و الـ Watchlist
+                val existingEntity = mediaDao.getByIdOnly(id)
+                val finalEntity = if (existingEntity != null) {
+                    entity.copy(
+                        isFavorite = existingEntity.isFavorite,
+                        isInWatchlist = existingEntity.isInWatchlist
+                    )
+                } else {
+                    entity
+                }
+                
+                Log.d(TAG, "💾 Saving to database: Cast=${finalEntity.cast?.size}, Videos=${finalEntity.videos?.size}, isFavorite=${finalEntity.isFavorite}")
+                mediaDao.upsert(finalEntity)
+                finalEntity
             } else {
                 Log.e(TAG, "❌ API Error: ${response.code()} - ${response.message()}")
                 throw Exception("Failed to load tv details: ${response.code()}")
