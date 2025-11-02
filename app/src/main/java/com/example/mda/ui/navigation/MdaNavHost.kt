@@ -14,19 +14,18 @@ import com.example.mda.data.repository.MovieDetailsRepository
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
 import com.example.mda.ui.screens.actors.ActorsScreen
-import com.example.mda.ui.screens.genre.GenreViewModel
+import com.example.mda.ui.screens.genreScreen.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
 import com.example.mda.ui.screens.moivebygenrescreen.GenreDetailsScreen
 import com.example.mda.ui.screens.movieDetail.MovieDetailsScreen
 import com.example.mda.ui.screens.search.SearchScreen
 import com.example.mda.ui.screens.search.SearchViewModel
-import com.example.mda.ui.screens.search.SearchViewModelFactory
 import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actors.ActorViewModel
-import com.example.mda.ui.screens.genre.GenreScreen
+import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.profile.ProfileScreen
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 

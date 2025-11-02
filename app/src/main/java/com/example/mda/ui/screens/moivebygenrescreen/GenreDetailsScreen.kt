@@ -104,15 +104,15 @@ fun GenreDetailsScreen(
             SwipeRefreshIndicator(
                 s,
                 t,
-                backgroundColor = Color(0xFF1A2233),
-                contentColor = Color.White
+                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurface
             )
         }
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF101528))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             when {
                 viewModel.isLoading && viewModel.movies.isEmpty() -> Box(
@@ -227,7 +227,7 @@ fun MovieCardList(movie: MediaEntity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A2233))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

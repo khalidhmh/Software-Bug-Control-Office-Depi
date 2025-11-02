@@ -1,4 +1,4 @@
-package com.example.mda.ui.screens.genre
+package com.example.mda.ui.screens.genreScreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

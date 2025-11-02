@@ -1,4 +1,4 @@
-package com.example.mda.ui.screens.genre
+package com.example.mda.ui.screens.genreScreen
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun GenreScreen(
     navController: NavController,
-    viewModel: com.example.mda.ui.screens.genre.GenreViewModel,
+    viewModel: GenreViewModel,
     onTopBarStateChange: (TopBarState) -> Unit
 ) {
     val genres by viewModel.genres.collectAsState()
@@ -81,9 +81,9 @@ fun GenreScreen(
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = { scope.launch { viewModel.refreshGenres() } },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A2233))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Retry", color = Color.White)
+                    Text("Retry", color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -115,7 +115,7 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A2233)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(
