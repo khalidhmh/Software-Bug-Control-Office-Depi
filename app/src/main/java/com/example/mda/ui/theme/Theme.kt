@@ -20,28 +20,50 @@ private val DarkColorScheme = darkColorScheme(
     primary = PrimaryBlue,
     onPrimary = Color.Black,
     secondary = AccentCyan,
+    onSecondary = Color.Black,
+    tertiary = RatingYellow,
+    onTertiary = Color.Black,
     background = DarkBackground,
     onBackground = TextPrimaryDark,
     surface = DarkSurface,
     onSurface = TextPrimaryDark,
-    tertiary = RatingYellow
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = TextSecondaryDark,
+    surfaceTint = PrimaryBlue,
+    inverseSurface = LightSurface,
+    inverseOnSurface = TextPrimaryLight,
+    error = Color(0xFFCF6679),
+    onError = Color.Black,
+    outline = IconGrayDark,
+    outlineVariant = DarkContainer
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryLightBlue,
     onPrimary = Color.White,
     secondary = AccentLightCyan,
+    onSecondary = Color.White,
+    tertiary = RatingYellowLight,
+    onTertiary = Color.Black,
     background = LightBackground,
     onBackground = TextPrimaryLight,
     surface = LightSurface,
     onSurface = TextPrimaryLight,
-    tertiary = RatingYellowLight
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = TextSecondaryLight,
+    surfaceTint = PrimaryLightBlue,
+    inverseSurface = DarkSurface,
+    inverseOnSurface = TextPrimaryDark,
+    error = Color(0xFFB00020),
+    onError = Color.White,
+    outline = IconGrayLight,
+    outlineVariant = LightContainer
 )
 
 @Composable
 fun MovieAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Disabled to use our custom theme colors
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

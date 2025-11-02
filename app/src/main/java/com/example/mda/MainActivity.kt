@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -30,14 +29,11 @@ import com.example.mda.data.remote.RetrofitInstance
 import com.example.mda.data.repository.*
 import com.example.mda.ui.navigation.*
 import com.example.mda.ui.screens.actors.ActorViewModel
-import com.example.mda.ui.screens.actors.ViewType
-import com.example.mda.ui.screens.genre.GenreViewModel
+import com.example.mda.ui.screens.genreScreen.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.theme.MovieAppTheme
-import androidx.core.content.edit
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.room.Room
 import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.ui.navigation.TopBarState // ✅ استيراد الكلاس الجديد

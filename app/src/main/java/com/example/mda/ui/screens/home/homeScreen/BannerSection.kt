@@ -82,7 +82,7 @@ fun BannerSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0x66000000))
+                .background(Color.Black.copy(alpha = 0.4f))
                 .padding(12.dp)
         ) {
             Text(

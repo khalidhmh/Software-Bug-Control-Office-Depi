@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Tab
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +43,7 @@ fun ForYouSection(
     Column {
         Text(
             text = "For You",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 22.sp
         )
@@ -52,14 +53,14 @@ fun ForYouSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF202530))
-                .padding(12.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+
         ) {
             Column {
                 TabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = Color(0xFF202530),
-                    contentColor = Color.Cyan
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.primary
                 ) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
