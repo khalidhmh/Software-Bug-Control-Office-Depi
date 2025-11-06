@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var searchViewModel: SearchViewModel
     private lateinit var actorViewModel: ActorViewModel
     private lateinit var favoritesViewModel: FavoritesViewModel
+    private lateinit var authViewModel: com.example.mda.ui.screens.auth.AuthViewModel
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -75,6 +76,11 @@ class MainActivity : ComponentActivity() {
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())
         actorViewModel = ActorViewModel(actorRepository)
         favoritesRepository = FavoritesRepository(localRepository)
+
+        // ======= Auth setup =======
+        val sessionManager = com.example.mda.data.datastore.SessionManager(applicationContext)
+        val authRepository = com.example.mda.data.repository.AuthRepository(RetrofitInstance.api, sessionManager)
+        authViewModel = com.example.mda.ui.screens.auth.AuthViewModel(authRepository)
 
         val searchViewModelFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -124,7 +130,7 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                         val hideTopBarRoutes = listOf(
-                           "ActorDetails/{personId}",
+                            "ActorDetails/{personId}",
                         )
 
                         if (currentRoute !in hideTopBarRoutes) {
@@ -164,7 +170,7 @@ class MainActivity : ComponentActivity() {
                         }
                     },
 
-                            // ================== تم التعديل هنا ==================
+                    // ================== تم التعديل هنا ==================
                     // أزلنا الـ Box الإضافي لتبسيط التركيب
                     bottomBar = {
                         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -216,7 +222,8 @@ class MainActivity : ComponentActivity() {
                             GenreViewModel = genreViewModel,
                             SearchViewModel = searchViewModel,
                             actorViewModel = actorViewModel,
-                            favoritesViewModel = favoritesViewModel
+                            favoritesViewModel = favoritesViewModel,
+                            authViewModel = authViewModel
                         )
                     }
                 }

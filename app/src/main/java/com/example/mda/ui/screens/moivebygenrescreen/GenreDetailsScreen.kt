@@ -31,6 +31,8 @@ import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.filteration.FilterDialog
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.components.MovieCardGrid
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.components.FavoriteButton
 import com.example.mda.util.GenreDetailsViewModelFactory
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
@@ -45,7 +47,8 @@ fun GenreDetailsScreen(
     repository: MoviesRepository,
     genreId: Int,
     genreNameRaw: String,
-    onTopBarStateChange: (TopBarState) -> Unit
+    onTopBarStateChange: (TopBarState) -> Unit,
+    favoritesViewModel: FavoritesViewModel // Add this parameter
 ) {
     val genreName = remember(genreNameRaw) {
         URLDecoder.decode(genreNameRaw, StandardCharsets.UTF_8.toString())
@@ -58,6 +61,15 @@ fun GenreDetailsScreen(
     var showFilterDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarMessage by favoritesViewModel.snackbarMessage.collectAsState()
+
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            favoritesViewModel.clearSnackbarMessage()
+        }
+    }
 
     LaunchedEffect(genreName) {
         onTopBarStateChange(
@@ -97,96 +109,125 @@ fun GenreDetailsScreen(
         )
     }
 
-    SwipeRefresh(
-        state = rememberSwipeRefreshState(isRefreshing = viewModel.isLoading),
-        onRefresh = { viewModel.resetAndLoad(genreId) },
-        indicator = { s, t ->
-            SwipeRefreshIndicator(
-                s,
-                t,
-                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            when {
-                viewModel.isLoading && viewModel.movies.isEmpty() -> Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color.White)
-                }
-
-                viewModel.error != null -> Text(
-                    text = "Error: ${viewModel.error}",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        SwipeRefresh(
+            state = rememberSwipeRefreshState(isRefreshing = viewModel.isLoading),
+            onRefresh = { viewModel.resetAndLoad(genreId) },
+            indicator = { s, t ->
+                SwipeRefreshIndicator(
+                    s,
+                    t,
+                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 )
+            },
+            modifier = Modifier.padding(padding)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                when {
+                    viewModel.isLoading && viewModel.movies.isEmpty() -> Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                    }
 
-                else -> {
-                    if (isGridView) {
-                        val gridState = rememberLazyGridState()
+                    viewModel.error != null -> Text(
+                        text = "Error: ${viewModel.error}",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
 
-                        // Scroll to top whenever movies list changes
-                        LaunchedEffect(viewModel.movies) {
-                            gridState.scrollToItem(0)
-                        }
+                    else -> {
+                        if (isGridView) {
+                            val gridState = rememberLazyGridState()
 
-                        LoadMoreListener(
-                            gridState = gridState,
-                            viewModel = viewModel,
-                            genreId = genreId
-                        )
+                            // Scroll to top whenever movies list changes
+                            LaunchedEffect(viewModel.movies) {
+                                gridState.scrollToItem(0)
+                            }
 
-                        LazyVerticalGrid(
-                            state = gridState,
-                            columns = GridCells.Fixed(2),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(viewModel.movies, key = { it.id }) { movie ->
-                                MovieCardGrid(movie = movie) {
-                                    navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
+                            LoadMoreListener(
+                                gridState = gridState,
+                                viewModel = viewModel,
+                                genreId = genreId
+                            )
+
+                            LazyVerticalGrid(
+                                state = gridState,
+                                columns = GridCells.Fixed(2),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(viewModel.movies, key = { it.id }) { movie ->
+                                    Box {
+                                        MovieCardGrid(movie = movie) {
+                                            navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
+                                        }
+
+                                        // Add favorite button on top
+                                        FavoriteButton(
+                                            movie = movie.toMovie(),
+                                            viewModel = favoritesViewModel,
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(8.dp),
+                                            showBackground = true
+                                        )
+                                    }
+                                }
+                                if (viewModel.isLoading) {
+                                    item(span = { GridItemSpan(2) }) {
+                                        LoadingIndicator()
+                                    }
                                 }
                             }
-                            if (viewModel.isLoading) {
-                                item(span = { GridItemSpan(2) }) {
-                                    LoadingIndicator()
-                                }
+                        } else {
+                            val listState = rememberLazyListState()
+
+                            // Scroll to top whenever movies list changes
+                            LaunchedEffect(viewModel.movies) {
+                                listState.scrollToItem(0)
                             }
-                        }
-                    } else {
-                        val listState = rememberLazyListState()
 
-                        // Scroll to top whenever movies list changes
-                        LaunchedEffect(viewModel.movies) {
-                            listState.scrollToItem(0)
-                        }
+                            LoadMoreListener(
+                                listState = listState,
+                                viewModel = viewModel,
+                                genreId = genreId
+                            )
 
-                        LoadMoreListener(
-                            listState = listState,
-                            viewModel = viewModel,
-                            genreId = genreId
-                        )
+                            LazyColumn(
+                                state = listState,
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(viewModel.movies, key = { it.id }) { movie ->
+                                    Box {
+                                        MovieCardList(movie = movie) {
+                                            navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
+                                        }
 
-                        LazyColumn(
-                            state = listState,
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(viewModel.movies, key = { it.id }) { movie ->
-                                MovieCardList(movie = movie) {
-                                    navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
+                                        // Add favorite button on top
+                                        FavoriteButton(
+                                            movie = movie.toMovie(),
+                                            viewModel = favoritesViewModel,
+                                            modifier = Modifier
+                                                .align(Alignment.TopStart)
+                                                .padding(8.dp),
+                                            showBackground = true
+                                        )
+                                    }
                                 }
-                            }
-                            if (viewModel.isLoading) {
-                                item { LoadingIndicator() }
+                                if (viewModel.isLoading) {
+                                    item { LoadingIndicator() }
+                                }
                             }
                         }
                     }
@@ -280,4 +321,22 @@ fun LoadingIndicator() {
     ) {
         CircularProgressIndicator(color = Color.White.copy(alpha = 0.8f))
     }
+}
+
+// Extension function to convert MediaEntity to Movie
+private fun MediaEntity.toMovie(): com.example.mda.data.remote.model.Movie {
+    return com.example.mda.data.remote.model.Movie(
+        id = this.id,
+        title = this.title,
+        name = this.name,
+        overview = this.overview,
+        posterPath = this.posterPath,
+        backdropPath = this.backdropPath,
+        releaseDate = this.releaseDate,
+        firstAirDate = this.firstAirDate,
+        voteAverage = this.voteAverage ?: 0.0,
+        mediaType = this.mediaType,
+        adult = this.adult,
+        genreIds = this.genreIds
+    )
 }

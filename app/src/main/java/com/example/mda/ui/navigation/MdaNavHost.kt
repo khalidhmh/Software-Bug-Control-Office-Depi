@@ -28,6 +28,10 @@ import com.example.mda.ui.screens.actors.ActorViewModel
 import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.profile.ProfileScreen
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.auth.AuthViewModel
+import com.example.mda.ui.screens.auth.LoginScreen
+import com.example.mda.ui.screens.auth.SignupScreen
+import com.example.mda.ui.screens.auth.AccountScreen
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -44,7 +48,8 @@ fun MdaNavHost(
     GenreViewModel: GenreViewModel,
     SearchViewModel: SearchViewModel,
     actorViewModel: ActorViewModel,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    authViewModel: AuthViewModel?
 ) {
     NavHost(
         navController = navController,
@@ -128,6 +133,7 @@ fun MdaNavHost(
                 genreId = genreId,
                 genreNameRaw = genreName,
                 onTopBarStateChange = onTopBarStateChange,
+                favoritesViewModel = favoritesViewModel
             )
         }
 
@@ -182,8 +188,35 @@ fun MdaNavHost(
             ProfileScreen(
                 navController = navController,
                 favoritesViewModel = favoritesViewModel,
+                authViewModel = authViewModel,
                 onTopBarStateChange = onTopBarStateChange
             )
+        }
+
+        // 🔐 Authentication Screens
+        composable("login") {
+            if (authViewModel != null) {
+                LoginScreen(
+                    navController = navController,
+                    viewModel = authViewModel
+                )
+            }
+        }
+
+        composable("signup") {
+            SignupScreen(
+                navController = navController
+            )
+        }
+
+        composable("account") {
+            if (authViewModel != null) {
+                AccountScreen(
+                    navController = navController,
+                    viewModel = authViewModel,
+                    onTopBarStateChange = onTopBarStateChange
+                )
+            }
         }
     }
 }
