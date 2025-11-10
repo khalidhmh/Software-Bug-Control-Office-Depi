@@ -7,6 +7,7 @@ package com.example.mda.data.remote.api
 
 import com.example.mda.BuildConfig
 import com.example.mda.data.remote.model.*
+import com.example.mda.data.remote.model.auth.*
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -147,6 +148,25 @@ interface TmdbApi {
         @Query("language") language: String = "en-US",
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
+
+    // ------------------ Authentication ------------------
+
+    @GET("authentication/token/new")
+    suspend fun createRequestToken(
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<TokenResponse>
+
+    @POST("authentication/session/new")
+    suspend fun createSession(
+        @Body request: SessionRequest,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<SessionResponse>
+
+    @GET("account")
+    suspend fun getAccountDetails(
+        @Query("session_id") sessionId: String,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<AccountDetails>
 }
 
 

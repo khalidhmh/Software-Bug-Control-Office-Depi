@@ -1,5 +1,3 @@
-import org.gradle.internal.impldep.org.joda.time.tz.ZoneInfoLogger.verbose
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -67,23 +65,17 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
-
-    kapt {
-        correctErrorTypes = true
-    }
 }
 
 dependencies {
-    implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
     // =============================================================
     // 🔹 CORE & LIFECYCLE
     // =============================================================
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.0")
 
     // =============================================================
     // 🔹 UI & COMPOSE
@@ -107,6 +99,7 @@ dependencies {
     // =============================================================
     // 🔹 ACCOMPANIST
     // =============================================================
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
     implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
     // =============================================================
@@ -129,9 +122,6 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
-
-    // تحديث kotlinx-metadata-jvm لتوافق Room
-// نسخة مستقرة ومتوافقة مع Room
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
 
     // =============================================================
@@ -150,6 +140,11 @@ dependencies {
     // 🔹 VOLLEY
     // =============================================================
     implementation(libs.volley)
+
+    // =============================================================
+    // 🔹 DATASTORE
+    // =============================================================
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
 
     // =============================================================
     // 🔹 TESTING
