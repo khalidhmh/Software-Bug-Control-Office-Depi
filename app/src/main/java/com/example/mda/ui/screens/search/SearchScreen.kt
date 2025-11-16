@@ -279,7 +279,7 @@ fun SearchFiltersRow(
     selectedFilter: String,
     onFilterChange: (String) -> Unit
 ) {
-    val filters = listOf("all", "movies", "tv", "people")
+    val filters = listOf("all", "movies", "tv")
     Row(
         Modifier
             .fillMaxWidth()
