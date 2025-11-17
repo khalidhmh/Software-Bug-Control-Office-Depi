@@ -32,6 +32,9 @@ import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.auth.LoginScreen
 import com.example.mda.ui.screens.auth.SignupScreen
 import com.example.mda.ui.screens.auth.AccountScreen
+import com.example.mda.ui.screens.profile.favourites.FavoritesScreen
+import com.example.mda.ui.screens.profile.history.HistoryScreen
+import com.example.mda.ui.screens.profile.history.HistoryViewModel
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -49,7 +52,8 @@ fun MdaNavHost(
     SearchViewModel: SearchViewModel,
     actorViewModel: ActorViewModel,
     favoritesViewModel: FavoritesViewModel,
-    authViewModel: AuthViewModel?
+    authViewModel: AuthViewModel?,
+    historyViewModel: HistoryViewModel
 ) {
     NavHost(
         navController = navController,
@@ -113,7 +117,8 @@ fun MdaNavHost(
                 navController = navController,
                 repository = actorsRepository,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+                historyViewModel = historyViewModel
             )
         }
 
@@ -179,7 +184,8 @@ fun MdaNavHost(
                 navController = navController,
                 repository = movieDetailsRepository,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+
             )
         }
 
@@ -189,6 +195,22 @@ fun MdaNavHost(
                 navController = navController,
                 favoritesViewModel = favoritesViewModel,
                 authViewModel = authViewModel,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        // 👤 Profile Screen
+        composable("Favprofile") {
+            FavoritesScreen(
+                navController = navController,
+                favoritesViewModel = favoritesViewModel,
+
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("HistoryScreen") {
+            HistoryScreen(
+                navController = navController,
+                viewModel = historyViewModel,
                 onTopBarStateChange = onTopBarStateChange
             )
         }

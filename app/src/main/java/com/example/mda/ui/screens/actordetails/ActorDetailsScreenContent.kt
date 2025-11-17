@@ -2,7 +2,6 @@ package com.example.mda.ui.screens.actordetails
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,9 +15,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.mda.data.local.entities.PersonEntity
 import com.example.mda.data.remote.model.ActorFullDetails
 import com.example.mda.ui.screens.actordetails.widgets.*
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.profile.history.HistoryViewModel
 
 @Composable
 fun ActorDetailsScreenContent(
@@ -26,14 +27,23 @@ fun ActorDetailsScreenContent(
     movieCount: Int,
     tvShowCount: Int,
     age: Int?,
+    historyViewModel: HistoryViewModel,
     navController: NavController,
     favoritesViewModel: FavoritesViewModel
 ) {
-    Log.i("error", "ActorDetailsScreenContent: ")
+
     var showAll by remember { mutableStateOf(false) }
-    // i want to print the actor object to know the imaage don`t appear  in the bckground
-   // Log.d("error", "Actor data: $actor")
-    Log.d("error", "images: ${actor.images}")
+
+   LaunchedEffect(actor.id) {
+       historyViewModel.saveViewedPerson(
+           PersonEntity(
+               id = actor.id,
+               name = actor.name ,
+               profilePath = actor.profile_path,
+               knownForDepartment = actor.birthday   // will modifed
+           )
+       )
+   }
 
 
     val bgGradient = Brush.verticalGradient(

@@ -29,6 +29,7 @@ import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
 import com.example.mda.ui.screens.home.homeScreen.MovieCardWithFavorite
+import com.example.mda.ui.screens.profile.favourites.HistorySection
 
 @Composable
 fun ProfileScreen(
@@ -193,119 +194,16 @@ fun ProfileScreen(
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Favorites Section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Favorites",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    if (favorites.isNotEmpty()) {
-                        Text(
-                            text = "${favorites.size} ${if (favorites.size == 1) "movie" else "movies"}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (favorites.isEmpty()) {
-                    // Empty state
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                shape = MaterialTheme.shapes.medium
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "💔",
-                                fontSize = 48.sp
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "لا توجد أفلام مفضلة بعد",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "ابدأ بإضافة أفلامك المفضلة من الصفحة الرئيسية",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                } else {
-                    // Favorites LazyRow
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(vertical = 8.dp)
-                    ) {
-                        items(favorites) { mediaEntity ->
-                            val movie = mediaEntity.toMovie()
-                            MovieCardWithFavorite(
-                                movie = movie,
-                                onClick = {
-                                    val type = mediaEntity.mediaType ?: "movie"
-                                    navController.navigate("detail/$type/${mediaEntity.id}")
-                                },
-                                favoriteButton = {
-                                    FavoriteButton(
-                                        movie = movie,
-                                        viewModel = favoritesViewModel,
-                                        showBackground = true
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
+            Spacer(modifier = Modifier.height(16.dp))
+            HistorySection(navController, "Favprofile", "Favorite Movies")
+            Spacer(modifier = Modifier.height(16.dp))
+            HistorySection(navController, "HistoryScreen", "History")
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
-// Extension function to convert MediaEntity to Movie
-private fun MediaEntity.toMovie(): Movie {
-    return Movie(
-        id = this.id,
-        title = this.title,
-        name = this.name,
-        overview = this.overview,
-        posterPath = this.posterPath,
-        backdropPath = this.backdropPath,
-        releaseDate = this.releaseDate,
-        firstAirDate = this.firstAirDate,
-        voteAverage = this.voteAverage ?: 0.0,
-        mediaType = this.mediaType,
-        adult = this.adult,
-        genreIds = this.genreIds
-    )
-}
+
+
+
+
