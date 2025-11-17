@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 @Composable
-fun HistorySection(navController: NavController,route : String , label: String  ) {
+fun HistorySectionButton(navController: NavController, route : String, label: String  ) {
     Button(
         onClick = { navController.navigate(route) },
         modifier = Modifier

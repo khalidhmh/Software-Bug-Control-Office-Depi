@@ -35,6 +35,8 @@ import com.example.mda.ui.screens.auth.AccountScreen
 import com.example.mda.ui.screens.profile.favourites.FavoritesScreen
 import com.example.mda.ui.screens.profile.history.HistoryScreen
 import com.example.mda.ui.screens.profile.history.HistoryViewModel
+import com.example.mda.ui.screens.profile.history.MoviesHistoryScreen
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -53,7 +55,8 @@ fun MdaNavHost(
     actorViewModel: ActorViewModel,
     favoritesViewModel: FavoritesViewModel,
     authViewModel: AuthViewModel?,
-    historyViewModel: HistoryViewModel
+    historyViewModel: HistoryViewModel,
+    moviesHistoryViewModel: MoviesHistoryViewModel
 ) {
     NavHost(
         navController = navController,
@@ -185,7 +188,7 @@ fun MdaNavHost(
                 repository = movieDetailsRepository,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
-
+                moviehistoryViewModel = moviesHistoryViewModel
             )
         }
 
@@ -211,6 +214,14 @@ fun MdaNavHost(
             HistoryScreen(
                 navController = navController,
                 viewModel = historyViewModel,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+
+        composable("MovieHistoryScreen") {
+            MoviesHistoryScreen(
+                navController = navController,
+                moviesHistoryViewModel = moviesHistoryViewModel,
                 onTopBarStateChange = onTopBarStateChange
             )
         }

@@ -2,8 +2,6 @@ package com.example.mda.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -14,22 +12,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.mda.data.local.entities.MediaEntity
-import com.example.mda.data.remote.model.Movie
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
-import com.example.mda.ui.screens.favorites.components.FavoriteButton
-import com.example.mda.ui.screens.home.homeScreen.MovieCardWithFavorite
-import com.example.mda.ui.screens.profile.favourites.HistorySection
+import com.example.mda.ui.screens.profile.favourites.HistorySectionButton
 
 @Composable
 fun ProfileScreen(
@@ -195,9 +186,11 @@ fun ProfileScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            HistorySection(navController, "Favprofile", "Favorite Movies")
+            HistorySectionButton(navController, "Favprofile", "Favorite Movies")
             Spacer(modifier = Modifier.height(16.dp))
-            HistorySection(navController, "HistoryScreen", "History")
+            HistorySectionButton(navController, "HistoryScreen", "Actors Viewed")
+            Spacer(modifier = Modifier.height(24.dp))
+            HistorySectionButton(navController, "MovieHistoryScreen", "Movies Viewed")
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

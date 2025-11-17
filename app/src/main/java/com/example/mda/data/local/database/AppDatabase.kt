@@ -8,10 +8,12 @@ import com.example.mda.data.local.dao.ActorDao
 import com.example.mda.data.local.dao.ActorDetailsDao
 import com.example.mda.data.local.dao.HistoryDao
 import com.example.mda.data.local.dao.MediaDao
+import com.example.mda.data.local.dao.MovieHistoryDao
 import com.example.mda.data.local.dao.SearchHistoryDao
 import com.example.mda.data.local.entities.ActorDetailsEntity
 import com.example.mda.data.local.entities.ActorEntity
 import com.example.mda.data.local.entities.MediaEntity
+import com.example.mda.data.local.entities.MoviesViewedEntitty
 import com.example.mda.data.local.entities.PersonEntity
 import com.example.mda.data.local.entities.SearchHistoryEntity
 
@@ -21,9 +23,10 @@ import com.example.mda.data.local.entities.SearchHistoryEntity
         ActorEntity::class,
         ActorDetailsEntity::class,
         SearchHistoryEntity::class,
-        PersonEntity::class
+        PersonEntity::class,
+        MoviesViewedEntitty::class
     ],
-    version = 8,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -34,4 +37,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun searchHistoryDao(): SearchHistoryDao
 
     abstract fun historyDao(): HistoryDao
+    abstract fun MoviehistoryDao(): MovieHistoryDao
 }

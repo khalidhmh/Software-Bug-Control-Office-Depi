@@ -42,6 +42,8 @@ import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModelFactory
 import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.example.mda.ui.screens.profile.history.HistoryViewModelFactory
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModelFactory
 
 
 class MainActivity : ComponentActivity() {
@@ -55,6 +57,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var searchViewModel: SearchViewModel
     private lateinit var historyViewModel: HistoryViewModel
+    private lateinit var moviehistoryViewModel: MoviesHistoryViewModel
     private lateinit var actorViewModel: ActorViewModel
     private lateinit var favoritesViewModel: FavoritesViewModel
     private lateinit var authViewModel: com.example.mda.ui.screens.auth.AuthViewModel
@@ -74,6 +77,9 @@ class MainActivity : ComponentActivity() {
         ).fallbackToDestructiveMigration().build()
 
         val historyRepository = HistoryRepository(database.historyDao())
+
+        // ======= Movies History setup =======
+        val moviesHistoryRepository = MoviesHistoryRepository(database.MoviehistoryDao())
 
         localRepository = LocalRepository(database.mediaDao())
         moviesRepository = MoviesRepository(RetrofitInstance.api, localRepository)
@@ -114,6 +120,9 @@ class MainActivity : ComponentActivity() {
                     factory = HomeViewModelFactory(moviesRepository)
                 )
 
+                val moviesHistoryVM: MoviesHistoryViewModel = viewModel(
+                    factory = MoviesHistoryViewModelFactory(moviesHistoryRepository)
+                )
                 val genreViewModel: GenreViewModel = viewModel(
                     factory = GenreViewModelFactory(moviesRepository)
                 )
@@ -220,23 +229,26 @@ class MainActivity : ComponentActivity() {
                     )
 
                     Box(modifier = Modifier.padding(adjustedPadding)) {
+                        // Assign MoviesHistoryViewModel
+                        moviehistoryViewModel = moviesHistoryVM
+
+// Pass it to NavHost
                         MdaNavHost(
                             navController = navController,
                             moviesRepository = moviesRepository,
                             actorsRepository = actorRepository,
                             movieDetailsRepository = movieDetailsRepository,
-
                             localDao = mediaDao,
-                            onTopBarStateChange = { newState ->
-                                topBarState = newState
-                            },
+                            onTopBarStateChange = { newState -> topBarState = newState },
                             GenreViewModel = genreViewModel,
                             SearchViewModel = searchViewModel,
                             actorViewModel = actorViewModel,
                             favoritesViewModel = favoritesViewModel,
-                            authViewModel = authViewModel ,
-                            historyViewModel = historyViewModel
+                            authViewModel = authViewModel,
+                            historyViewModel = historyViewModel,
+                            moviesHistoryViewModel = moviehistoryViewModel  // <-- Add this
                         )
+
                     }
                 }
 
