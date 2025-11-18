@@ -21,6 +21,7 @@ import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.actordetails.calculateAge
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 import kotlin.math.log
@@ -33,7 +34,8 @@ fun ActorDetailsScreen(
     navController: NavHostController,
     repository: ActorsRepository,
     onTopBarStateChange: (TopBarState) -> Unit,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    historyViewModel: HistoryViewModel
 ) {
     val vm: ActorViewModel = viewModel(factory = ActorViewModel.ActorViewModelFactory(repository))
     val actor by vm.actorFullDetails.collectAsState()
@@ -99,7 +101,8 @@ fun ActorDetailsScreen(
                             tvShowCount = tvShowCount,
                             age = actor?.birthday?.let { calculateAge(it) },
                             navController = navController,
-                            favoritesViewModel = favoritesViewModel
+                            favoritesViewModel = favoritesViewModel,
+                            historyViewModel = historyViewModel
                         )
                     }
 

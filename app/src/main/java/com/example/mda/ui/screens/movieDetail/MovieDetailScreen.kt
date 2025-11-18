@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.mda.data.local.entities.MediaEntity
+import com.example.mda.data.local.entities.MoviesViewedEntitty
 import com.example.mda.data.repository.MovieDetailsRepository
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.navigation.TopBarState
@@ -30,6 +31,7 @@ import com.example.mda.ui.screens.movieDetail.components.VideoThumbnail
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
 import com.example.mda.data.remote.model.Movie
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 
@@ -41,7 +43,8 @@ fun MovieDetailsScreen(
     navController: NavController,
     repository: MovieDetailsRepository,
     onTopBarStateChange: (TopBarState) -> Unit,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    moviehistoryViewModel: MoviesHistoryViewModel
 ) {
     val viewModel: MovieDetailsViewModel = viewModel(factory = MovieDetailsViewModelFactory(repository))
     val scope = rememberCoroutineScope()
@@ -55,7 +58,6 @@ fun MovieDetailsScreen(
 
     // Load from cache first
     LaunchedEffect(id, isTvShow) {
-        Log.d("MovieDetailScreen", "📱 Loading details for ID: $id, isTvShow: $isTvShow")
         scope.launch {
             if (isTvShow) viewModel.loadTvDetails(id)
             else viewModel.loadMovieDetails(id)
@@ -121,7 +123,8 @@ fun MovieDetailsScreen(
                         MovieDetailsContent(
                             details = details!!,
                             navController = navController,
-                            favoritesViewModel = favoritesViewModel
+                            favoritesViewModel = favoritesViewModel,
+                            moviehistoryViewModel = moviehistoryViewModel
                         )
                     }
 
@@ -140,8 +143,20 @@ fun MovieDetailsScreen(
 private fun MovieDetailsContent(
     details: MediaEntity,
     navController: NavController,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    moviehistoryViewModel: MoviesHistoryViewModel
 ) {
+    LaunchedEffect(details.id) {
+        moviehistoryViewModel.saveViewedMovie(
+            MoviesViewedEntitty(
+                id = details.id,
+                name = details.title,
+                posterPath = details.posterPath,
+                backdropPath = details.backdropPath,
+                mediaType = details.mediaType
+            )
+        )
+    }
     val scroll = rememberScrollState()
     Column(
         modifier = Modifier

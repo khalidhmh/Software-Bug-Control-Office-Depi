@@ -64,20 +64,7 @@ fun MovieCardWithFavorite(
                 favoriteButton()
             }
 
-            // معلومات تحت
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .background(Color.Black.copy(alpha = 0.6f))
-                    .padding(6.dp)
-            ) {
-                Text(
-                    text = movie.title ?: movie.name ?: "Unknown",
-                    color = Color.White,
-                    fontSize = 13.sp,
-                    maxLines = 2
-                )
-            }
+
         }
     }
 }

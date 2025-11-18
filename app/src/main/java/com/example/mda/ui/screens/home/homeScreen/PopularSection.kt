@@ -32,7 +32,7 @@ fun PopularSection(
         ) {
             Text(
                 text = "Popular Now",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )

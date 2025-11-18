@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -46,7 +47,7 @@ fun ActorProfile(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color(0xCC000000))
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))
                     )
                 )
         )
@@ -57,12 +58,12 @@ fun ActorProfile(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
-                .background(Color(0xFF090202), shape = CircleShape)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f), shape = CircleShape)
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -80,7 +81,7 @@ fun ActorProfile(
             )
             Text(
                 text = if (gender == 1) "Actress" else "Actor",
-                color = Color(0xFFFFC107),
+                color = MaterialTheme.colorScheme.tertiary,
                 fontSize = 18.sp
             )
         }

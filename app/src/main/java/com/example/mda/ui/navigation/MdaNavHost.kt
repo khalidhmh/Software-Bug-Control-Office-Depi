@@ -14,21 +14,29 @@ import com.example.mda.data.repository.MovieDetailsRepository
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
 import com.example.mda.ui.screens.actors.ActorsScreen
-import com.example.mda.ui.screens.genre.GenreViewModel
+import com.example.mda.ui.screens.genreScreen.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
 import com.example.mda.ui.screens.moivebygenrescreen.GenreDetailsScreen
 import com.example.mda.ui.screens.movieDetail.MovieDetailsScreen
 import com.example.mda.ui.screens.search.SearchScreen
 import com.example.mda.ui.screens.search.SearchViewModel
-import com.example.mda.ui.screens.search.SearchViewModelFactory
 import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actors.ActorViewModel
-import com.example.mda.ui.screens.genre.GenreScreen
+import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.profile.ProfileScreen
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.auth.AuthViewModel
+import com.example.mda.ui.screens.auth.LoginScreen
+import com.example.mda.ui.screens.auth.SignupScreen
+import com.example.mda.ui.screens.auth.AccountScreen
+import com.example.mda.ui.screens.profile.favourites.FavoritesScreen
+import com.example.mda.ui.screens.profile.history.HistoryScreen
+import com.example.mda.ui.screens.profile.history.HistoryViewModel
+import com.example.mda.ui.screens.profile.history.MoviesHistoryScreen
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -45,7 +53,10 @@ fun MdaNavHost(
     GenreViewModel: GenreViewModel,
     SearchViewModel: SearchViewModel,
     actorViewModel: ActorViewModel,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    authViewModel: AuthViewModel?,
+    historyViewModel: HistoryViewModel,
+    moviesHistoryViewModel: MoviesHistoryViewModel
 ) {
     NavHost(
         navController = navController,
@@ -109,7 +120,8 @@ fun MdaNavHost(
                 navController = navController,
                 repository = actorsRepository,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+                historyViewModel = historyViewModel
             )
         }
 
@@ -129,6 +141,7 @@ fun MdaNavHost(
                 genreId = genreId,
                 genreNameRaw = genreName,
                 onTopBarStateChange = onTopBarStateChange,
+                favoritesViewModel = favoritesViewModel
             )
         }
 
@@ -174,7 +187,8 @@ fun MdaNavHost(
                 navController = navController,
                 repository = movieDetailsRepository,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+                moviehistoryViewModel = moviesHistoryViewModel
             )
         }
 
@@ -183,8 +197,59 @@ fun MdaNavHost(
             ProfileScreen(
                 navController = navController,
                 favoritesViewModel = favoritesViewModel,
+                authViewModel = authViewModel,
                 onTopBarStateChange = onTopBarStateChange
             )
+        }
+        // 👤 Profile Screen
+        composable("Favprofile") {
+            FavoritesScreen(
+                navController = navController,
+                favoritesViewModel = favoritesViewModel,
+
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("HistoryScreen") {
+            HistoryScreen(
+                navController = navController,
+                viewModel = historyViewModel,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+
+        composable("MovieHistoryScreen") {
+            MoviesHistoryScreen(
+                navController = navController,
+                moviesHistoryViewModel = moviesHistoryViewModel,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+
+        // 🔐 Authentication Screens
+        composable("login") {
+            if (authViewModel != null) {
+                LoginScreen(
+                    navController = navController,
+                    viewModel = authViewModel
+                )
+            }
+        }
+
+        composable("signup") {
+            SignupScreen(
+                navController = navController
+            )
+        }
+
+        composable("account") {
+            if (authViewModel != null) {
+                AccountScreen(
+                    navController = navController,
+                    viewModel = authViewModel,
+                    onTopBarStateChange = onTopBarStateChange
+                )
+            }
         }
     }
 }

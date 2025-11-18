@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -30,20 +29,21 @@ import com.example.mda.data.remote.RetrofitInstance
 import com.example.mda.data.repository.*
 import com.example.mda.ui.navigation.*
 import com.example.mda.ui.screens.actors.ActorViewModel
-import com.example.mda.ui.screens.actors.ViewType
-import com.example.mda.ui.screens.genre.GenreViewModel
+import com.example.mda.ui.screens.genreScreen.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.theme.MovieAppTheme
-import androidx.core.content.edit
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.room.Room
 import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.ui.navigation.TopBarState // ✅ استيراد الكلاس الجديد
 import com.example.mda.data.repository.FavoritesRepository
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModelFactory
+import com.example.mda.ui.screens.profile.history.HistoryViewModel
+import com.example.mda.ui.screens.profile.history.HistoryViewModelFactory
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModelFactory
 
 
 class MainActivity : ComponentActivity() {
@@ -56,8 +56,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var favoritesRepository: FavoritesRepository
 
     private lateinit var searchViewModel: SearchViewModel
+    private lateinit var historyViewModel: HistoryViewModel
+    private lateinit var moviehistoryViewModel: MoviesHistoryViewModel
     private lateinit var actorViewModel: ActorViewModel
     private lateinit var favoritesViewModel: FavoritesViewModel
+    private lateinit var authViewModel: com.example.mda.ui.screens.auth.AuthViewModel
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -73,12 +76,22 @@ class MainActivity : ComponentActivity() {
             "mda_db"
         ).fallbackToDestructiveMigration().build()
 
+        val historyRepository = HistoryRepository(database.historyDao())
+
+        // ======= Movies History setup =======
+        val moviesHistoryRepository = MoviesHistoryRepository(database.MoviehistoryDao())
+
         localRepository = LocalRepository(database.mediaDao())
         moviesRepository = MoviesRepository(RetrofitInstance.api, localRepository)
         movieDetailsRepository = MovieDetailsRepository(RetrofitInstance.api, database.mediaDao())
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())
         actorViewModel = ActorViewModel(actorRepository)
         favoritesRepository = FavoritesRepository(localRepository)
+
+        // ======= Auth setup =======
+        val sessionManager = com.example.mda.data.datastore.SessionManager(applicationContext)
+        val authRepository = com.example.mda.data.repository.AuthRepository(RetrofitInstance.api, sessionManager)
+        authViewModel = com.example.mda.ui.screens.auth.AuthViewModel(authRepository)
 
         val searchViewModelFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -106,9 +119,17 @@ class MainActivity : ComponentActivity() {
                 val homeViewModel: HomeViewModel = viewModel(
                     factory = HomeViewModelFactory(moviesRepository)
                 )
+
+                val moviesHistoryVM: MoviesHistoryViewModel = viewModel(
+                    factory = MoviesHistoryViewModelFactory(moviesHistoryRepository)
+                )
                 val genreViewModel: GenreViewModel = viewModel(
                     factory = GenreViewModelFactory(moviesRepository)
                 )
+                val historyVM: HistoryViewModel = viewModel(
+                    factory = HistoryViewModelFactory(historyRepository)
+                )
+                historyViewModel = historyVM
                 val searchVM: SearchViewModel = viewModel(factory = searchViewModelFactory)
                 searchViewModel = searchVM
 
@@ -128,7 +149,7 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                         val hideTopBarRoutes = listOf(
-                           "ActorDetails/{personId}",
+                            "ActorDetails/{personId}",
                         )
 
                         if (currentRoute !in hideTopBarRoutes) {
@@ -142,6 +163,7 @@ class MainActivity : ComponentActivity() {
                                             "movies" -> "Movies"
                                             "actors" -> "People"
                                             "search" -> "Search"
+                                            "HistoryScreen"-> "History"
                                             else -> ""
                                         }
                                     }
@@ -168,7 +190,7 @@ class MainActivity : ComponentActivity() {
                         }
                     },
 
-                            // ================== تم التعديل هنا ==================
+                    // ================== تم التعديل هنا ==================
                     // أزلنا الـ Box الإضافي لتبسيط التركيب
                     bottomBar = {
                         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -207,21 +229,26 @@ class MainActivity : ComponentActivity() {
                     )
 
                     Box(modifier = Modifier.padding(adjustedPadding)) {
+                        // Assign MoviesHistoryViewModel
+                        moviehistoryViewModel = moviesHistoryVM
+
+// Pass it to NavHost
                         MdaNavHost(
                             navController = navController,
                             moviesRepository = moviesRepository,
                             actorsRepository = actorRepository,
                             movieDetailsRepository = movieDetailsRepository,
-
                             localDao = mediaDao,
-                            onTopBarStateChange = { newState ->
-                                topBarState = newState
-                            },
+                            onTopBarStateChange = { newState -> topBarState = newState },
                             GenreViewModel = genreViewModel,
                             SearchViewModel = searchViewModel,
                             actorViewModel = actorViewModel,
-                            favoritesViewModel = favoritesViewModel
+                            favoritesViewModel = favoritesViewModel,
+                            authViewModel = authViewModel,
+                            historyViewModel = historyViewModel,
+                            moviesHistoryViewModel = moviehistoryViewModel  // <-- Add this
                         )
+
                     }
                 }
 
