@@ -5,6 +5,7 @@ plugins {
     id("kotlin-kapt") // ✅ ضروري لـ Room
 }
 
+
 kapt {
     useBuildCache = false
     correctErrorTypes = true
@@ -115,7 +116,8 @@ dependencies {
     // =============================================================
     // 🔹 IMAGE LOADING (COIL)
     // =============================================================
-    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.palette:palette-ktx:1.0.0")
 
     // =============================================================
     // 🔹 ROOM DATABASE

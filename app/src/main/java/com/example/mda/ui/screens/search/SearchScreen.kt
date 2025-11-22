@@ -232,7 +232,8 @@ fun SearchScreen(
                     SearchResultsGrid(
                         results = state.results,
                         onItemClick = { media ->
-                            navController.navigate("detail/${media.mediaType}/${media.id}")
+                            val type = media.resolvedMediaType
+                            navController.navigate("detail/$type/${media.id}")
                         },
                         favoritesViewModel = favoritesViewModel
                     )

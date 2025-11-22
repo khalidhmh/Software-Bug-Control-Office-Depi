@@ -26,7 +26,7 @@ import com.example.mda.data.local.entities.SearchHistoryEntity
         PersonEntity::class,
         MoviesViewedEntitty::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
