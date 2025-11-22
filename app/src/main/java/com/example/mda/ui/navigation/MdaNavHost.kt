@@ -57,6 +57,7 @@ fun MdaNavHost(
     authViewModel: AuthViewModel?,
     historyViewModel: HistoryViewModel,
     moviesHistoryViewModel: MoviesHistoryViewModel
+
 ) {
     NavHost(
         navController = navController,
@@ -141,7 +142,8 @@ fun MdaNavHost(
                 genreId = genreId,
                 genreNameRaw = genreName,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+                authViewModel = authViewModel
             )
         }
 

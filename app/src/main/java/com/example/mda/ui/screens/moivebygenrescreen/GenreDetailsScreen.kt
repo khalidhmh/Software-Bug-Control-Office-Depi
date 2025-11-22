@@ -27,9 +27,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.mda.data.local.entities.MediaEntity
+import com.example.mda.data.remote.model.Movie
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.filteration.FilterDialog
 import com.example.mda.ui.navigation.TopBarState
+import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.components.MovieCardGrid
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
@@ -48,8 +50,12 @@ fun GenreDetailsScreen(
     genreId: Int,
     genreNameRaw: String,
     onTopBarStateChange: (TopBarState) -> Unit,
-    favoritesViewModel: FavoritesViewModel // Add this parameter
+    favoritesViewModel: FavoritesViewModel,
+    authViewModel: AuthViewModel,
 ) {
+
+    val authUiState by authViewModel.uiState.collectAsState()
+
     val genreName = remember(genreNameRaw) {
         URLDecoder.decode(genreNameRaw, StandardCharsets.UTF_8.toString())
     }
@@ -179,7 +185,9 @@ fun GenreDetailsScreen(
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
                                                 .padding(8.dp),
-                                            showBackground = true
+                                            showBackground = true,
+                                            isAuthenticated = authUiState.isAuthenticated,
+                                            navController = navController
                                         )
                                     }
                                 }
@@ -221,7 +229,9 @@ fun GenreDetailsScreen(
                                             modifier = Modifier
                                                 .align(Alignment.TopStart)
                                                 .padding(8.dp),
-                                            showBackground = true
+                                            showBackground = true,
+                                            navController = navController,
+                                            isAuthenticated =authUiState.isAuthenticated,
                                         )
                                     }
                                 }
@@ -324,8 +334,8 @@ fun LoadingIndicator() {
 }
 
 // Extension function to convert MediaEntity to Movie
-private fun MediaEntity.toMovie(): com.example.mda.data.remote.model.Movie {
-    return com.example.mda.data.remote.model.Movie(
+private fun MediaEntity.toMovie(): Movie {
+    return Movie(
         id = this.id,
         title = this.title,
         name = this.name,
