@@ -3,7 +3,6 @@ package com.example.mda.ui.screens.favorites.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -15,15 +14,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.mda.data.remote.model.Movie
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 
 @Composable
 fun FavoriteButton(
     movie: Movie,
+    navController: NavController,
     viewModel: FavoritesViewModel,
     modifier: Modifier = Modifier,
-    showBackground: Boolean = true
+    showBackground: Boolean = true,
+    isAuthenticated: Boolean
 ) {
     // استخدام favorites list من الـ ViewModel للحصول على reactive state
     val favorites by viewModel.favorites.collectAsState()
@@ -41,8 +43,13 @@ fun FavoriteButton(
                 } else Modifier
             )
             .clickable {
+                if (!isAuthenticated) {
+                    navController.navigate("profile")
+                }else{
+                    viewModel.toggleFavorite(movie)
+                }
+
                 viewModel.toggleFavorite(movie)
-                // لا حاجة لتحديث local state، الـ favorites list سيتحدث تلقائياً
             },
         contentAlignment = Alignment.Center
     ) {
@@ -54,3 +61,4 @@ fun FavoriteButton(
         )
     }
 }
+
