@@ -37,6 +37,8 @@ import com.example.mda.ui.screens.profile.history.HistoryScreen
 import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.example.mda.ui.screens.profile.history.MoviesHistoryScreen
 import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
+import com.example.mda.ui.kids.KidsRoot
+import com.example.mda.data.local.LocalRepository
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -49,12 +51,13 @@ fun MdaNavHost(
     actorsRepository: ActorsRepository,
     movieDetailsRepository: MovieDetailsRepository,
     localDao: MediaDao,
+    localRepository: LocalRepository,
     onTopBarStateChange: (TopBarState) -> Unit,
     GenreViewModel: GenreViewModel,
     SearchViewModel: SearchViewModel,
     actorViewModel: ActorViewModel,
     favoritesViewModel: FavoritesViewModel,
-    authViewModel: AuthViewModel?,
+    authViewModel: AuthViewModel,
     historyViewModel: HistoryViewModel,
     moviesHistoryViewModel: MoviesHistoryViewModel
 
@@ -122,7 +125,8 @@ fun MdaNavHost(
                 repository = actorsRepository,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
-                historyViewModel = historyViewModel
+                historyViewModel = historyViewModel,
+                authViewModel = authViewModel
             )
         }
 
@@ -230,12 +234,10 @@ fun MdaNavHost(
 
         // 🔐 Authentication Screens
         composable("login") {
-            if (authViewModel != null) {
-                LoginScreen(
-                    navController = navController,
-                    viewModel = authViewModel
-                )
-            }
+            LoginScreen(
+                navController = navController,
+                viewModel = authViewModel
+            )
         }
 
         composable("signup") {
@@ -245,13 +247,21 @@ fun MdaNavHost(
         }
 
         composable("account") {
-            if (authViewModel != null) {
-                AccountScreen(
-                    navController = navController,
-                    viewModel = authViewModel,
-                    onTopBarStateChange = onTopBarStateChange
-                )
-            }
+            AccountScreen(
+                navController = navController,
+                viewModel = authViewModel,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+
+        // 👶 Kids Mode (isolated sub-experience)
+        composable("kids") {
+            KidsRoot(
+                parentNavController = navController,
+                moviesRepository = moviesRepository,
+                favoritesViewModel = favoritesViewModel,
+                localRepository = localRepository
+            )
         }
     }
 }

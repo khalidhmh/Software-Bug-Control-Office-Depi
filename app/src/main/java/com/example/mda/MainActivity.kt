@@ -150,6 +150,8 @@ class MainActivity : ComponentActivity() {
                         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                         val hideTopBarRoutes = listOf(
                             "ActorDetails/{personId}",
+                            "detail/{mediaType}/{id}",
+                            "kids",
                         )
 
                         if (currentRoute !in hideTopBarRoutes) {
@@ -197,6 +199,7 @@ class MainActivity : ComponentActivity() {
                         val hideBottomBarRoutes = listOf(
                             "ActorDetails/{personId}",
                             "detail/{mediaType}/{id}",
+                            "kids",
                         )
 
                         if (currentRoute !in hideBottomBarRoutes) {
@@ -205,6 +208,7 @@ class MainActivity : ComponentActivity() {
                                 ButtonData("movies", "Movies", Icons.Default.Movie),
                                 ButtonData("actors", "People", Icons.Default.People),
                                 ButtonData("search", "Search", Icons.Default.Search),
+                                ButtonData("kids", "Kids", Icons.Default.ChildCare),
                                 ButtonData("profile", "Profile", Icons.Default.Person)
                             )
 
@@ -239,6 +243,7 @@ class MainActivity : ComponentActivity() {
                             actorsRepository = actorRepository,
                             movieDetailsRepository = movieDetailsRepository,
                             localDao = mediaDao,
+                            localRepository = localRepository,
                             onTopBarStateChange = { newState -> topBarState = newState },
                             GenreViewModel = genreViewModel,
                             SearchViewModel = searchViewModel,

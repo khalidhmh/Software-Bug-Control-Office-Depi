@@ -20,6 +20,7 @@ import com.example.mda.data.remote.model.ActorFullDetails
 import com.example.mda.ui.screens.actordetails.widgets.*
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.profile.history.HistoryViewModel
+import com.example.mda.ui.screens.auth.AuthViewModel
 
 @Composable
 fun ActorDetailsScreenContent(
@@ -29,7 +30,8 @@ fun ActorDetailsScreenContent(
     age: Int?,
     historyViewModel: HistoryViewModel,
     navController: NavController,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    authViewModel: AuthViewModel,
 ) {
 
     var showAll by remember { mutableStateOf(false) }
@@ -130,7 +132,8 @@ fun ActorDetailsScreenContent(
                     posterUrl = movie.poster_path,
                     role = movie.character ?: "Actor",
                     movie = movie,
-                    favoritesViewModel = favoritesViewModel
+                    favoritesViewModel = favoritesViewModel,
+                    authViewModel = authViewModel
                 )
             }
         }
