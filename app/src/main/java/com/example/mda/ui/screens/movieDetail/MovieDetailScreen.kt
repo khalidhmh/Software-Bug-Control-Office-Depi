@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.items
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -38,6 +40,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.zIndex
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
 import coil.compose.rememberAsyncImagePainter
@@ -375,7 +379,11 @@ fun AboutMovieCard(details: MediaEntity) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(4.dp))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         (details.productionCompanies ?: emptyList()).take(6)
                             .forEach { comp ->
                                 AssistChip(onClick = {}, label = { Text(comp) })
@@ -464,6 +472,7 @@ fun MovieDetailsContent(
         "https://image.tmdb.org/t/p/original${details.backdropPath ?: details.posterPath ?: ""}"
     val context = LocalContext.current
     var isDarkBackdrop by remember(bgUrl) { mutableStateOf<Boolean?>(null) }
+    val isDarkTheme = isSystemInDarkTheme()
     LaunchedEffect(bgUrl) {
         if (bgUrl.isNotBlank()) {
             val loader: ImageLoader = ImageLoader(context)
@@ -504,6 +513,35 @@ fun MovieDetailsContent(
                     )
                 )
         )
+        // In light theme, softly blend backdrop into white for better contrast
+        if (!isDarkTheme) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color.White.copy(alpha = 0.12f))
+            )
+        }
+
+        // Top overlay actions (back and more) matching screenshot
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 12.dp)
+                .zIndex(1f),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(shape = RoundedCornerShape(50), color = Color.Black.copy(alpha = 0.35f)) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
 
         // Foreground scrollable content
         Column(
@@ -511,7 +549,8 @@ fun MovieDetailsContent(
                 .fillMaxSize()
                 .verticalScroll(scroll)
         ) {
-            Spacer(Modifier.height(140.dp))
+            val topSpacer = if (LocalConfiguration.current.screenHeightDp < 700) 64.dp else 100.dp
+            Spacer(Modifier.height(topSpacer))
             // Title row with Poster thumbnail and Favorite button
             Row(
                 modifier = Modifier
@@ -540,10 +579,17 @@ fun MovieDetailsContent(
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
+                    val sw = LocalConfiguration.current.screenWidthDp
+                    val posterH = when {
+                        sw < 360 -> 128
+                        sw < 400 -> 160
+                        else -> 192
+                    }.dp
+                    val posterW = (posterH * 3) / 4
                     Box(
                         modifier = Modifier
-                            .height(96.dp)
-                            .width(72.dp)
+                            .height(posterH)
+                            .width(posterW)
                     ) {
                         if (thumbUrl != null) {
                             Image(
@@ -565,76 +611,66 @@ fun MovieDetailsContent(
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Spacer(Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Surface(
-                            color = chipBg,
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
+                    // Compact chips like the reference screenshot
+                    val chipBg = when (isDarkBackdrop) {
+                        true -> Color(0x40FFFFFF)
+                        false -> Color(0x40000000)
+                        else -> MaterialTheme.colorScheme.surfaceVariant
+                    }
+                    val chipFg = when (isDarkBackdrop) {
+                        true -> Color.White
+                        false -> Color.Black
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Date
+                        Surface(color = chipBg, shape = RoundedCornerShape(8.dp)) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    Icons.Outlined.CalendarToday,
-                                    contentDescription = null,
-                                    tint = chipFg,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                Icon(Icons.Outlined.CalendarToday, null, tint = chipFg, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text(
                                     text = details.releaseDate ?: details.firstAirDate ?: "-",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = chipFg
+                                    color = chipFg,
+                                    maxLines = 1
                                 )
                             }
                         }
-                        details.runtime?.let {
-                            Surface(
-                                color = chipBg,
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
+                        // Runtime
+                        details.runtime?.let { rt ->
+                            Surface(color = chipBg, shape = RoundedCornerShape(8.dp)) {
                                 Row(
-                                    modifier = Modifier.padding(
-                                        horizontal = 10.dp,
-                                        vertical = 6.dp
-                                    ), verticalAlignment = Alignment.CenterVertically
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        Icons.Default.Timer,
-                                        contentDescription = null,
-                                        tint = chipFg,
-                                        modifier = Modifier.size(16.dp)
-                                    )
+                                    Icon(Icons.Default.Timer, null, tint = chipFg, modifier = Modifier.size(16.dp))
                                     Spacer(Modifier.width(6.dp))
-                                    Text(
-                                        text = "${it} min",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = chipFg
-                                    )
+                                    Text("${rt} min", style = MaterialTheme.typography.bodySmall, color = chipFg, maxLines = 1)
                                 }
                             }
                         }
-                        Surface(
-                            color = chipBg,
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
+                        // Rating
+                        Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f), shape = RoundedCornerShape(8.dp)) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                Icon(Icons.Default.Star, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(6.dp))
                                 val avg = String.format("%.1f", details.voteAverage ?: 0.0)
-                                val count = details.voteCount?.toString() ?: "0"
+                                val cnt = details.voteCount?.toString() ?: "0"
                                 Text(
-                                    text = "$avg | $count",
+                                    text = "$avg | $cnt",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = chipFg
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    maxLines = 1
                                 )
                             }
                         }
@@ -665,70 +701,6 @@ fun MovieDetailsContent(
                 )
             }
             Spacer(Modifier.height(12.dp))
-
-            // ✅ عرض معلومات إضافية (Runtime, Status, Budget, Revenue, Votes)
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                val rt = details.runtime
-                if (rt != null) Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "${rt} min",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-                val st = details.status
-                if (st != null) Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = st,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-                val vc = details.voteCount
-                if (vc != null) Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "${vc} votes",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-                val b = details.budget
-                if (b != null && b > 0) Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "Budget: $b$",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-                val r = details.revenue
-                if (r != null && r > 0) Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "Revenue: $r$",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-            }
 
             Spacer(Modifier.height(12.dp))
             Divider(
@@ -787,21 +759,27 @@ fun MovieDetailsContent(
             }
             Spacer(Modifier.height(12.dp))
 
-            // ✅ عرض genres (مع التفاف تلقائي وتقليل العدد للهواتف)
+            // ✅ عرض genres أعلى الـ Overview
             val genres = details.genres ?: emptyList()
             if (genres.isNotEmpty()) {
-                FlowRow(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    genres.take(8).forEach { genre: String ->
-                        AssistChip(onClick = {}, label = { Text(genre) })
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text(
+                        text = "Genres",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        genres.take(8).forEach { genre: String ->
+                            AssistChip(onClick = {}, label = { Text(genre) })
+                        }
                     }
                 }
+                Spacer(Modifier.height(12.dp))
             }
-            Spacer(Modifier.height(16.dp))
 
             AboutMovieCard(details)
             Spacer(Modifier.height(16.dp))
@@ -830,11 +808,14 @@ fun MovieDetailsContent(
                         )
                         Spacer(Modifier.height(8.dp))
                         if (languages.isNotEmpty()) {
-                            Row(
+                            FlowRow(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                languages.take(6).forEach { lang: String -> AssistChip(onClick = {}, label = { Text(lang) }) }
+                                languages.take(12).forEach { lang: String ->
+                                    AssistChip(onClick = {}, label = { Text(lang, maxLines = 1) })
+                                }
                             }
                             Spacer(Modifier.height(8.dp))
                         }
@@ -843,16 +824,17 @@ fun MovieDetailsContent(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                companies.take(6).forEach { comp: String -> AssistChip(onClick = {}, label = { Text(comp) }) }
+                                companies.take(12).forEach { comp: String -> AssistChip(onClick = {}, label = { Text(comp, maxLines = 1) }) }
                             }
                             Spacer(Modifier.height(8.dp))
                         }
                         if (countries.isNotEmpty()) {
-                            Row(
+                            FlowRow(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                countries.take(6).forEach { c: String -> AssistChip(onClick = {}, label = { Text(c) }) }
+                                countries.take(12).forEach { c: String -> AssistChip(onClick = {}, label = { Text(c, maxLines = 1) }) }
                             }
                         }
                     }
@@ -882,117 +864,57 @@ fun MovieDetailsContent(
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
-                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                    OutlinedButton(
-                        onClick = { /* TODO: navigate to full cast if available */ },
-                        shape = RoundedCornerShape(24.dp)
-                    ) {
-                        Text("Full Cast & Crew")
-                    }
-                }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(16.dp))
             }
 
             // JustWatch availability with provider logos and link
             providers?.let { pg ->
-                val uri = LocalUriHandler.current
-                Surface(
-                    tonalElevation = 2.dp,
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Available on JustWatch",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            AssistChip(
-                                onClick = { pg.link?.let { uri.openUri(it) } },
-                                label = { Text("US") })
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        ProviderLogosRow(
-                            title = "Buy",
-                            logos = pg.buy,
-                            onOpen = { pg.link?.let { uri.openUri(it) } })
-                        if (pg.rent.isNotEmpty()) {
-                            Spacer(Modifier.height(8.dp))
-                            ProviderLogosRow(
-                                title = "Rent",
-                                logos = pg.rent,
-                                onOpen = { pg.link?.let { uri.openUri(it) } })
-                        }
-                        if (pg.stream.isNotEmpty()) {
-                            Spacer(Modifier.height(8.dp))
-                            ProviderLogosRow(
-                                title = "Stream",
-                                logos = pg.stream,
-                                onOpen = { pg.link?.let { uri.openUri(it) } })
-                        }
-                    }
-                }
-                Spacer(Modifier.height(16.dp))
-            }
-
-            // Release dates (show only if we have at least one date)
-            if (!details.releaseDate.isNullOrBlank() || !details.firstAirDate.isNullOrBlank()) Surface(
-                tonalElevation = 2.dp,
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "Release dates", style = MaterialTheme.typography.titleMedium)
-                        Spacer(Modifier.width(8.dp))
-                        AssistChip(onClick = {}, label = { Text("US") })
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+                val hasAny = pg.buy.isNotEmpty() || pg.rent.isNotEmpty() || pg.stream.isNotEmpty()
+                if (hasAny) {
+                    val uri = LocalUriHandler.current
+                    Surface(
+                        tonalElevation = 2.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
                     ) {
-                        DetailInfoCard(
-                            Icons.Outlined.CalendarToday,
-                            details.releaseDate ?: details.firstAirDate ?: "-",
-                            "Theatrical",
-                            Modifier.weight(1f)
-                        )
-                        DetailInfoCard(
-                            Icons.Outlined.CalendarToday,
-                            "-",
-                            "Digital",
-                            Modifier.weight(1f)
-                        )
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Available on JustWatch",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                AssistChip(
+                                    onClick = { pg.link?.let { uri.openUri(it) } },
+                                    label = { Text("US") })
+                            }
+                            Spacer(Modifier.height(12.dp))
+                            if (pg.buy.isNotEmpty()) {
+                                ProviderLogosRow(
+                                    title = "Buy",
+                                    logos = pg.buy,
+                                    onOpen = { pg.link?.let { uri.openUri(it) } })
+                            }
+                            if (pg.rent.isNotEmpty()) {
+                                Spacer(Modifier.height(8.dp))
+                                ProviderLogosRow(
+                                    title = "Rent",
+                                    logos = pg.rent,
+                                    onOpen = { pg.link?.let { uri.openUri(it) } })
+                            }
+                            if (pg.stream.isNotEmpty()) {
+                                Spacer(Modifier.height(8.dp))
+                                ProviderLogosRow(
+                                    title = "Stream",
+                                    logos = pg.stream,
+                                    onOpen = { pg.link?.let { uri.openUri(it) } })
+                            }
+                        }
                     }
-                    Spacer(Modifier.height(8.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        DetailInfoCard(
-                            Icons.Outlined.CalendarToday,
-                            "-",
-                            "Stream",
-                            Modifier.weight(1f)
-                        )
-                        DetailInfoCard(Icons.Outlined.CalendarToday, "-", "-", Modifier.weight(1f))
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(
-                            onClick = { /* TODO open more releases */ },
-                            shape = RoundedCornerShape(24.dp)
-                        ) { Text("More") }
-                    }
+                    Spacer(Modifier.height(16.dp))
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -1119,22 +1041,9 @@ fun MovieDetailsScreen(
             Log.d("MovieDetailScreen", "🎬 Videos: ${it.videos?.size ?: 0} videos")
         }
     }
-    LaunchedEffect(details) {
-        onTopBarStateChange(
-            TopBarState(
-                // العنوان هو اسم الفيلم، أو فارغ أثناء التحميل
-                title = details?.title ?: details?.name ?: "",
-                // إضافة أيقونة الرجوع
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack, // استخدام الأيقونة الموحدة
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
-        )
+    LaunchedEffect(Unit) {
+        // Hide the top app bar on the details screen immediately on entry
+        onTopBarStateChange(TopBarState())
     }
 
 

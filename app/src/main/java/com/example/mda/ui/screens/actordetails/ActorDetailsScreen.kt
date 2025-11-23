@@ -25,6 +25,7 @@ import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 import kotlin.math.log
+import com.example.mda.ui.screens.auth.AuthViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +36,8 @@ fun ActorDetailsScreen(
     repository: ActorsRepository,
     onTopBarStateChange: (TopBarState) -> Unit,
     favoritesViewModel: FavoritesViewModel,
-    historyViewModel: HistoryViewModel
+    historyViewModel: HistoryViewModel,
+    authViewModel: AuthViewModel,
 ) {
     val vm: ActorViewModel = viewModel(factory = ActorViewModel.ActorViewModelFactory(repository))
     val actor by vm.actorFullDetails.collectAsState()
@@ -102,7 +104,8 @@ fun ActorDetailsScreen(
                             age = actor?.birthday?.let { calculateAge(it) },
                             navController = navController,
                             favoritesViewModel = favoritesViewModel,
-                            historyViewModel = historyViewModel
+                            historyViewModel = historyViewModel,
+                            authViewModel = authViewModel
                         )
                     }
 

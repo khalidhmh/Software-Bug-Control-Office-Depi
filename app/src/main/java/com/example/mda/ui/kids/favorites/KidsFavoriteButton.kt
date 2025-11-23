@@ -1,4 +1,4 @@
-package com.example.mda.ui.screens.favorites.components
+package com.example.mda.ui.kids.favorites
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,27 +9,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Icon
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.mda.data.remote.model.Movie
-import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import kotlinx.coroutines.launch
 
 @Composable
-fun FavoriteButton(
-    movie: Movie,
-    viewModel: FavoritesViewModel,
+fun KidsFavoriteButton(
+    id: Int,
     modifier: Modifier = Modifier,
     showBackground: Boolean = true,
-    isAuthenticated: Boolean = true,
-    navController: NavController? = null,
 ) {
-    // استخدام favorites list من الـ ViewModel للحصول على reactive state
-    val favorites by viewModel.favorites.collectAsState()
-    val isFavorite = favorites.any { it.id == movie.id && it.isFavorite }
+    val context = LocalContext.current
+    val isFavorite by KidsFavoritesStore.isFavoriteFlow(context, id).collectAsState(initial = false)
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = modifier
@@ -42,21 +41,16 @@ fun FavoriteButton(
                     )
                 } else Modifier
             )
-            .clickable {
-                if (!isAuthenticated) {
-                    navController?.navigate("profile")
-                } else {
-                    viewModel.toggleFavorite(movie)
-                }
+            .clickable { 
+                scope.launch { KidsFavoritesStore.toggle(context, id) }
             },
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-            contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            contentDescription = if (isFavorite) "Remove from kids favorites" else "Add to kids favorites",
             tint = if (isFavorite) Color.Red else Color.Gray,
             modifier = Modifier.size(24.dp)
         )
     }
 }
-
