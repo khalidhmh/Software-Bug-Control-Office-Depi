@@ -20,7 +20,7 @@ import com.example.mda.data.local.entities.SearchHistoryEntity
         ActorDetailsEntity::class,
         SearchHistoryEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

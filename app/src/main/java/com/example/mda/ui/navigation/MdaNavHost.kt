@@ -32,10 +32,8 @@ import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.auth.LoginScreen
 import com.example.mda.ui.screens.auth.SignupScreen
 import com.example.mda.ui.screens.auth.AccountScreen
+import com.example.mda.ui.screens.settings.SettingsScreen
 
-// ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
-
-// ✅ تعديل شامل: تم تنظيف تعريف الدالة وتصحيح بنية كل الشاشات
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MdaNavHost(
@@ -217,6 +215,9 @@ fun MdaNavHost(
                     onTopBarStateChange = onTopBarStateChange
                 )
             }
+        }
+        composable("settings") {
+            SettingsScreen(navController, onTopBarStateChange,authViewModel)
         }
     }
 }

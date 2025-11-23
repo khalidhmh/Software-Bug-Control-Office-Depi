@@ -100,8 +100,6 @@ fun ActorGridItem(
             Spacer(modifier = Modifier.height(4.dp))
 
             val knownForTitles = actor.getKnownForTitles()
-
-
             if (knownForTitles.isNotBlank()) {
                 Text(
                     text = knownForTitles,

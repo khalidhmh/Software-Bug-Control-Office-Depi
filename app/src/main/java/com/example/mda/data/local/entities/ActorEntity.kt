@@ -12,6 +12,7 @@ data class ActorEntity(
     val biography: String?,
     val birthday: String?,
     val placeOfBirth: String?,
+    val knownForDepartment: String?,
     val knownFor: String? = null
 
 )

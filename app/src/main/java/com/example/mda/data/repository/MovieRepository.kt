@@ -6,6 +6,7 @@ import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.remote.api.TmdbApi
 import com.example.mda.data.remote.model.Genre
 import com.example.mda.data.remote.model.MovieResponse
+import com.example.mda.data.remote.model.getKnownForTitles
 import com.example.mda.data.repository.mappers.toMediaEntity
 import kotlinx.coroutines.flow.first
 
@@ -58,7 +59,6 @@ class MoviesRepository(
             fallback()
         }
     }
-
 
 
     // ---------------------- Movies ----------------------
@@ -153,22 +153,78 @@ class MoviesRepository(
     )
 
     /** 🔹 بحث بنوع محدد (Movie / TV / Person) */
-    suspend fun searchByType(query: String, type: String): List<MediaEntity> = safeApiCall(
-        apiCall = {
-            val res = when (type) {
-                "movie" -> api.searchMovies(query)
-                "tv" -> api.searchTvShows(query)
-                else -> api.searchMulti(query)
+    suspend fun searchByType(query: String, type: String): List<MediaEntity> {
+        return when (type.lowercase()) {
+            "movie" -> safeApiCall(
+                apiCall = {
+                    val res = api.searchMovies(query)
+                    if (res.isSuccessful) res.body() else null
+                },
+                fallback = {
+                    val local = localRepo.getAll().first()
+                    local.filter {
+                        (it.title ?: it.name ?: "").contains(query, true) && it.mediaType == "movie"
+                    }
+                },
+                typeFilter = "movie"
+            )
+
+            "tv" -> safeApiCall(
+                apiCall = {
+                    val res = api.searchTvShows(query)
+                    if (res.isSuccessful) res.body() else null
+                },
+                fallback = {
+                    val local = localRepo.getAll().first()
+                    local.filter {
+                        (it.title ?: it.name ?: "").contains(query, true) && it.mediaType == "tv"
+                    }
+                },
+                typeFilter = "tv"
+            )
+
+            "people" -> { // 🔹 [EDIT] معالجة خاصة لأن API بيرجع ActorResponse مش MovieResponse
+                try {
+                    val res = api.searchPeople(query)
+                    if (res.isSuccessful) {
+                        val body = res.body()
+                        body?.results?.map {
+                            MediaEntity(
+                                id = it.id,
+                                name = it.name,
+                                title = it.name,
+                                overview = it.getKnownForTitles(),
+                                posterPath = it.profilePath,
+                                backdropPath = null,
+                                voteAverage = null,
+                                // 🔹 القيم اللي ناقصه نمررها null هنا
+                                releaseDate = null,
+                                firstAirDate = null,
+                                mediaType = "person",
+                                adult = false,
+                                genreIds = emptyList(),
+                                isFavorite = false,
+                                isInWatchlist = false
+                            )
+                        } ?: emptyList()
+                    } else emptyList()
+                } catch (e: Exception) {
+                    emptyList()
+                }
             }
-            if (res.isSuccessful) res.body() else null
-        },
-        fallback = {
-            val localData = localRepo.getAll().first()
-            localData.filter {
-                (it.title ?: it.name ?: "").contains(query, ignoreCase = true)
-                        && (type == "all" || it.mediaType == type)
-            }
-        },
-        typeFilter = if (type == "all") null else type
-    )
+
+            else -> safeApiCall(
+                apiCall = {
+                    val res = api.searchMulti(query)
+                    if (res.isSuccessful) res.body() else null
+                },
+                fallback = {
+                    val local = localRepo.getAll().first().filter {
+                        (it.title ?: it.name ?: "").contains(query, true)
+                    }
+                    local
+                }
+            )
+        }
+    }
 }
