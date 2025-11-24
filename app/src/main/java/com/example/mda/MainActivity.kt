@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -29,12 +30,17 @@ import com.example.mda.data.remote.RetrofitInstance
 import com.example.mda.data.repository.*
 import com.example.mda.ui.navigation.*
 import com.example.mda.ui.screens.actors.ActorViewModel
+import com.example.mda.ui.screens.actors.ActorViewModelFactory
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModelFactory
 import com.example.mda.ui.screens.genreScreen.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
 import com.example.mda.ui.screens.onboarding.OnboardingScreen
+import com.example.mda.ui.screens.profile.history.HistoryViewModel
+import com.example.mda.ui.screens.profile.history.HistoryViewModelFactory
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModelFactory
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.theme.AppTopBarColors
@@ -72,7 +78,7 @@ class MainActivity : ComponentActivity() {
             "mda_db"
         ).fallbackToDestructiveMigration().build()
 
-        localRepository = LocalRepository(database.mediaDao())
+        localRepository = LocalRepository(database.mediaDao(),database.searchHistoryDao())
         moviesRepository = MoviesRepository(RetrofitInstance.api, localRepository)
         movieDetailsRepository = MovieDetailsRepository(RetrofitInstance.api, database.mediaDao())
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())
@@ -159,10 +165,14 @@ class MainActivity : ComponentActivity() {
                             historyViewModel = historyVM
 
                             val moviesHistoryVM: MoviesHistoryViewModel =
-                                viewModel(factory = MoviesHistoryViewModelFactory(moviesHistoryRepository))
+                                viewModel(factory = MoviesHistoryViewModelFactory(
+                                    moviesHistoryRepository
+                                )
+                                )
                             moviesHistoryViewModel = moviesHistoryVM
+                            val actorvm : ActorViewModel = viewModel(factory = ActorViewModelFactory(actorRepository))
 
-                            actorViewModel = ActorViewModel(actorRepository)
+                            actorViewModel = actorvm
 
                             var topBarState by remember { mutableStateOf(TopBarState()) }
 
@@ -255,13 +265,14 @@ class MainActivity : ComponentActivity() {
                                         localDao = mediaDao,
                                         localRepository = localRepository,
                                         onTopBarStateChange = { newState -> topBarState = newState },
-                                        GenreViewModel = genreViewModel,
-                                        SearchViewModel = searchViewModel,
+                                        genreViewModel = genreViewModel,
+                                        searchViewModel = searchViewModel,
                                         actorViewModel = actorViewModel,
                                         favoritesViewModel = favoritesViewModel,
                                         authViewModel = authViewModel,
                                         historyViewModel = historyViewModel,
-                                        moviesHistoryViewModel = moviesHistoryViewModel
+                                        moviesHistoryViewModel = moviesHistoryViewModel,
+                                        authRepository = authRepository,
                                     )
                                 }
                             }
