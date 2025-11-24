@@ -8,11 +8,10 @@ import com.example.mda.data.remote.model.MovieDetailsResponse
 
 /**
  * Mapper لتحويل Movie (من API / Trending / Popular) إلى MediaEntity.
- * defaultType: مرر "movie" أو "tv" من الـ Repository لما يكون معروف مسبقًا.
- * لو الـ API رجع media_type هنستخدمه، وإلا هنستنتج من الحقول.
  */
-fun Movie.toMediaEntity(defaultType: String? = this.mediaType): MediaEntity {
-    val realType = this.mediaType ?: defaultType ?: if (!this.name.isNullOrEmpty() && this.title.isNullOrEmpty()) "tv" else "movie"
+fun Movie.toMediaEntity(defaultType: String? = this.mediaType ?: "movie"): MediaEntity {
+    val realType = this.mediaType ?: defaultType ?:
+    if (!this.name.isNullOrEmpty() && this.title.isNullOrEmpty()) "tv" else "movie"
 
     return MediaEntity(
         id = this.id,
@@ -30,7 +29,6 @@ fun Movie.toMediaEntity(defaultType: String? = this.mediaType): MediaEntity {
         genres = emptyList()
     )
 }
-
 
 /**
  * 🆕 Mapper محدث لتحويل MovieDetailsResponse إلى MediaEntity مع كل التفاصيل
@@ -70,33 +68,23 @@ fun MovieDetailsResponse.toMediaEntity(type: String = "movie"): MediaEntity {
     // استخراج أسماء الدول المنتجة
     val countries = this.productionCountries?.mapNotNull { it.name }
 
-    val isTv = type == "tv"
-    val mappedTitle = if (isTv) (this.name ?: this.title) else (this.title ?: this.name)
-    val mappedRelease = if (isTv) null else this.releaseDate
-    val mappedFirstAir = if (isTv) (this.firstAirDate) else null
-    val mappedRuntime = if (isTv) this.episodeRunTime?.firstOrNull() else this.runtime
-
-    // extract image paths
-    val posters = this.images?.posters?.mapNotNull { it.filePath }
-    val backdrops = this.images?.backdrops?.mapNotNull { it.filePath }
-
     return MediaEntity(
         id = this.id,
-        title = if (isTv) mappedTitle else (this.title ?: mappedTitle ?: ""),
-        name = if (isTv) (mappedTitle ?: "") else (this.title ?: mappedTitle ?: ""),
+        title = this.title ?: "",
+        name = this.title ?: "",
         overview = this.overview ?: "",
         posterPath = this.posterPath,
         backdropPath = this.backdropPath,
         voteAverage = this.voteAverage ?: 0.0,
-        releaseDate = mappedRelease ?: "",
-        firstAirDate = mappedFirstAir,
+        releaseDate = this.releaseDate ?: "",
+        firstAirDate = null,
         mediaType = type,
         adult = this.adult ?: false,
         genreIds = genreIds,
         genres = genreNames,
         
         // ========== 🆕 الحقول الجديدة ==========
-        runtime = mappedRuntime,
+        runtime = this.runtime,
         tagline = this.tagline,
         status = this.status,
         voteCount = this.voteCount,
@@ -108,8 +96,6 @@ fun MovieDetailsResponse.toMediaEntity(type: String = "movie"): MediaEntity {
         productionCompanies = companies,
         productionCountries = countries,
         cast = castList,
-        videos = videosList,
-        posters = posters,
-        backdrops = backdrops
+        videos = videosList
     )
 }

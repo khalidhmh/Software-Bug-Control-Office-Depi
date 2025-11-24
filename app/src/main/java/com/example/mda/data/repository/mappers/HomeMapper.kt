@@ -4,11 +4,6 @@ import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.remote.model.Movie
 
 fun MediaEntity.toMovie(): Movie {
-    val inferredType = when {
-        !this.mediaType.isNullOrBlank() -> this.mediaType
-        this.firstAirDate != null || (this.title == null && this.name != null) -> "tv"
-        else -> "movie"
-    }
     return Movie(
         id = this.id,
         title = this.title,
@@ -19,7 +14,7 @@ fun MediaEntity.toMovie(): Movie {
         voteAverage = this.voteAverage ?: 0.0,
         releaseDate = this.releaseDate,
         firstAirDate = this.firstAirDate,
-        mediaType = inferredType,
+        mediaType = this.mediaType ?: "movie",
         adult = this.adult,
         genreIds = this.genreIds
     )

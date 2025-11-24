@@ -85,7 +85,6 @@ fun ActorsView(
                     ActorListItem(actor = actor, navController = navController)
                 }
             }
-            item { Box(modifier = Modifier.height(66.dp)) }
         }
     }
 }

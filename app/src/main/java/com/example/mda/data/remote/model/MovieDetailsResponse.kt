@@ -21,10 +21,6 @@ data class MovieDetailsResponse(
     @SerializedName("production_companies") val productionCompanies: List<ProductionCompany>? = emptyList(),
     @SerializedName("production_countries") val productionCountries: List<ProductionCountry>? = emptyList(),
     @SerializedName("release_date") val releaseDate: String? = null,
-    // TV specific fields
-    @SerializedName("name") val name: String? = null,
-    @SerializedName("first_air_date") val firstAirDate: String? = null,
-    @SerializedName("episode_run_time") val episodeRunTime: List<Int>? = emptyList(),
     @SerializedName("revenue") val revenue: Long = 0L,
     @SerializedName("runtime") val runtime: Int? = null,
     @SerializedName("spoken_languages") val spokenLanguages: List<SpokenLanguage>? = emptyList(),
@@ -34,7 +30,6 @@ data class MovieDetailsResponse(
     @SerializedName("video") val video: Boolean = false,
     @SerializedName("vote_average") val voteAverage: Double = 0.0,
     @SerializedName("vote_count") val voteCount: Long = 0L,
-    @SerializedName("images") val images: ImagesResponse? = null,
 ) {
 
     data class GenreResponse(
@@ -55,17 +50,6 @@ data class MovieDetailsResponse(
 
     data class VideosResponse(
         val results: List<VideoResponse>? = emptyList()
-    )
-
-    data class ImagesResponse(
-        val posters: List<ImageItem>? = emptyList(),
-        val backdrops: List<ImageItem>? = emptyList()
-    )
-
-    data class ImageItem(
-        @SerializedName("file_path") val filePath: String? = null,
-        val width: Int? = null,
-        val height: Int? = null
     )
 
     data class VideoResponse(

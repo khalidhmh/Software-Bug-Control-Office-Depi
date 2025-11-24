@@ -21,12 +21,9 @@ import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.actordetails.calculateAge
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
-import com.example.mda.ui.theme.AppBackgroundGradient
-import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 import kotlin.math.log
-import com.example.mda.ui.screens.auth.AuthViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,9 +33,7 @@ fun ActorDetailsScreen(
     navController: NavHostController,
     repository: ActorsRepository,
     onTopBarStateChange: (TopBarState) -> Unit,
-    favoritesViewModel: FavoritesViewModel,
-    historyViewModel: HistoryViewModel,
-    authViewModel: AuthViewModel,
+    favoritesViewModel: FavoritesViewModel
 ) {
     val vm: ActorViewModel = viewModel(factory = ActorViewModel.ActorViewModelFactory(repository))
     val actor by vm.actorFullDetails.collectAsState()
@@ -80,7 +75,7 @@ fun ActorDetailsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(AppBackgroundGradient())
+                    .background(MaterialTheme.colorScheme.background)
 
             ) {
                 when {
@@ -104,9 +99,7 @@ fun ActorDetailsScreen(
                             tvShowCount = tvShowCount,
                             age = actor?.birthday?.let { calculateAge(it) },
                             navController = navController,
-                            favoritesViewModel = favoritesViewModel,
-                            historyViewModel = historyViewModel,
-                            authViewModel = authViewModel
+                            favoritesViewModel = favoritesViewModel
                         )
                     }
 

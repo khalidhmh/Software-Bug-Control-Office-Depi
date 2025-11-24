@@ -94,13 +94,14 @@ fun ActorGridItem(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Start,
-                minLines = 2,
-                color = MaterialTheme.colorScheme.onBackground
+                minLines = 2
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
             val knownForTitles = actor.getKnownForTitles()
+
+
             if (knownForTitles.isNotBlank()) {
                 Text(
                     text = knownForTitles,

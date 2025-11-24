@@ -1,20 +1,15 @@
 package com.example.mda.ui.screens.actors
 
-import ActorSearchBar
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mda.data.repository.ActorsRepository
@@ -22,15 +17,7 @@ import com.example.mda.ui.navigation.TopBarState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+
 
 @Composable
 fun ActorsScreen(
@@ -64,66 +51,52 @@ fun ActorsScreen(
             onTopBarStateChange(TopBarState())
         }
     }
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    var searchText by rememberSaveable { mutableStateOf(searchQuery) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // --- Search bar ---
-        // Search bar
-        ActorSearchBar(
-            searchText = searchText,
-            onSearchChange = {
-                searchText = it
-                viewModel.updateSearchQuery(it) // updates state instantly
+
+    val refreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
+
+    SwipeRefresh(
+        state = refreshState,
+        onRefresh = { viewModel.loadActors() },
+        indicator = { s, t ->
+            SwipeRefreshIndicator(
+                state = s,
+                refreshTriggerDistance = t,
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
+            )
+        }
+    ) {
+        when (val state = uiState) {
+            is ActorUiState.Loading -> if (!isRefreshing) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
             }
-        )
-        val refreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
 
-        SwipeRefresh(
-            state = refreshState,
-            onRefresh = { viewModel.loadActors(forceRefresh = true) },
-            indicator = { s, t ->
-                SwipeRefreshIndicator(
-                    state = s,
-                    refreshTriggerDistance = t,
-                    backgroundColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
-            },
-            modifier = Modifier.fillMaxSize()
-        ) {
-            when (val state = uiState) {
-                is ActorUiState.Loading -> if (!isRefreshing) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-
-                is ActorUiState.Success -> {
-                    AnimatedVisibility(visible = state.actors.isNotEmpty(), enter = fadeIn()) {
-                        ActorsView(
-                            actors = state.actors,
-                            viewModel = viewModel,
-                            viewType = viewType,
-                            navController = navController,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-
-                is ActorUiState.Error -> {
-                    ActorErrorScreen(
-                        errorType = state.type,
-                        onRetry = { viewModel.loadMoreActors() }
+            is ActorUiState.Success -> {
+                AnimatedVisibility(visible = state.actors.isNotEmpty(), enter = fadeIn()) {
+                    ActorsView(
+                        actors = state.actors,
+                        viewModel = viewModel,
+                        viewType = viewType,
+                        navController = navController,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
+            }
+
+            is ActorUiState.Error -> {
+                ActorErrorScreen(
+                    errorType = state.type,
+                    onRetry = { viewModel.loadMoreActors() }
+                )
             }
         }
     }
 }
-
 
 
