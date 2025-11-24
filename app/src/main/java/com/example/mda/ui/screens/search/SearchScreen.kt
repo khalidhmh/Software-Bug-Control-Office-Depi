@@ -29,6 +29,9 @@ import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.actors.ActorGridItem
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 
+/**
+ * شاشة البحث – محسّنة مع دعم التوب بار الديناميكي
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(

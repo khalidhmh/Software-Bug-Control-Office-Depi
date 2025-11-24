@@ -4,14 +4,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mda.data.remote.model.Actor
+import com.example.mda.data.remote.model.KnownFor
 import com.example.mda.data.repository.ActorsRepository
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.example.mda.data.remote.model.KnownFor
 
 enum class ViewType { GRID, LIST }
 
@@ -26,28 +26,33 @@ enum class SortType {
 data class ActorFilters(
     val mediaType: MediaTypeFilter = MediaTypeFilter.ALL,
     val sort: SortType = SortType.NONE,
-    val minWorks: Int = 0 ,// الفلتر الجديد: أقل عدد أعمال
+    val minWorks: Int = 0,
     val firstWorkYear: Int? = null
 )
 
 class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
 
     private val _state = MutableStateFlow<ActorUiState>(ActorUiState.Loading)
-    val state: StateFlow<ActorUiState> = _state
+    val state: StateFlow<ActorUiState> = _state.asStateFlow()
 
     private val _viewType = MutableStateFlow(ViewType.GRID)
-    val viewType: StateFlow<ViewType> = _viewType
+    val viewType: StateFlow<ViewType> = _viewType.asStateFlow()
 
     private val _filters = MutableStateFlow(ActorFilters())
     val filters: StateFlow<ActorFilters> = _filters.asStateFlow()
 
-    val gson = Gson()
-    val type = object : TypeToken<List<KnownFor>>() {}.type
-
     private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
-    // Pagination variables
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val gson = Gson()
+    private val type = object : TypeToken<List<KnownFor>>() {}.type
+
+    // Master list to hold all actors
+    private var _allActors: List<Actor> = emptyList()
+
     private var currentPage = 1
     private var isLastPage = false
     private var isLoading = false
@@ -60,6 +65,43 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
         _viewType.value = if (_viewType.value == ViewType.GRID) ViewType.LIST else ViewType.GRID
     }
 
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+        applySearch()
+    }
+
+    private fun applySearch() {
+        val query = _searchQuery.value
+        val filtered = if (query.isBlank()) {
+            _allActors
+        } else {
+            _allActors.filter { actor ->
+                actor.name.contains(query, ignoreCase = true)
+            }
+        }
+
+        // Apply filters on the search results
+        val filters = _filters.value
+        val finalList = filtered
+            .filter { actor ->
+                when (filters.mediaType) {
+                    MediaTypeFilter.ALL -> true
+                    MediaTypeFilter.MOVIE -> actor.knownFor?.any { it.mediaType == "movie" } == true
+                    MediaTypeFilter.TV -> actor.knownFor?.any { it.mediaType == "tv" } == true
+                }
+            }
+            .filter { actor -> (actor.knownFor?.size ?: 0) >= filters.minWorks }
+            .let { list ->
+                when (filters.sort) {
+                    SortType.NONE -> list
+                    SortType.AZ -> list.sortedBy { it.name }
+                    SortType.ZA -> list.sortedByDescending { it.name }
+                }
+            }
+
+        _state.value = ActorUiState.Success(finalList)
+    }
+
     fun loadActors(forceRefresh: Boolean = false) {
         if (isLoading && !forceRefresh) return
         if (forceRefresh) {
@@ -67,6 +109,7 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
             isLastPage = false
         }
 
+        Log.d("ActorVM", "loadActors called, forceRefresh=$forceRefresh, currentPage=$currentPage")
         viewModelScope.launch {
             isLoading = true
             if (forceRefresh) _isRefreshing.value = true
@@ -77,6 +120,7 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
 
             try {
                 val newEntities = repository.getPopularActorsWithCache(page = currentPage)
+                Log.d("ActorVM", "Fetched ${newEntities.size} actors from repository")
 
                 if (newEntities.isEmpty() && currentPage == 1) {
                     _state.value = ActorUiState.Error("No actors found", ErrorType.NetworkError)
@@ -110,16 +154,18 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
                             )
                         }).distinctBy { it.id }
 
-                    _state.value = ActorUiState.Success(updatedList)
+                    // Update master list
+                    _allActors = updatedList
 
-                    // ⭐ تطبيق الفلاتر بعد تحميل البيانات ⭐
-                    applyFilters()
+                    // Apply search + filters
+                    applySearch()
 
                     currentPage++
                     if (newEntities.isEmpty()) isLastPage = true
                 }
+
             } catch (e: Exception) {
-                if ((_state.value as? ActorUiState.Success)?.actors.orEmpty().isEmpty()) {
+                if (_allActors.isEmpty()) {
                     _state.value = ActorUiState.Error(e.message ?: "Unknown error", ErrorType.NetworkError)
                 }
             } finally {
@@ -130,7 +176,8 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
     }
 
     fun loadMoreActors() {
-        if (!isLoading && !isLastPage) loadActors()
+        if (isLoading || isLastPage) return
+        loadActors(forceRefresh = false)
     }
 
     fun retry() {
@@ -143,45 +190,16 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
 
     fun updateMediaType(type: MediaTypeFilter) {
         _filters.value = _filters.value.copy(mediaType = type)
-        applyFilters()
+        applySearch()
     }
 
     fun updateSort(sort: SortType) {
         _filters.value = _filters.value.copy(sort = sort)
-        applyFilters()
+        applySearch()
     }
 
     fun updateMinWorks(min: Int) {
         _filters.value = _filters.value.copy(minWorks = min)
-        applyFilters()
-    }
-
-    private fun applyFilters() {
-        val currentState = _state.value
-        if (currentState !is ActorUiState.Success) return
-
-        val original = currentState.actors
-        val filters = _filters.value
-
-        val filtered = original
-            .filter { actor ->
-                // Filter by media type
-                when (filters.mediaType) {
-                    MediaTypeFilter.ALL -> true
-                    MediaTypeFilter.MOVIE -> actor.knownFor?.any { it.mediaType == "movie" } == true
-                    MediaTypeFilter.TV -> actor.knownFor?.any { it.mediaType == "tv" } == true
-                }
-            }
-            // Filter by minimum number of works
-            .filter { actor -> (actor.knownFor?.size ?: 0) >= filters.minWorks }
-            .let { list ->
-                when (filters.sort) {
-                    SortType.NONE -> list
-                    SortType.AZ -> list.sortedBy { it.name }
-                    SortType.ZA -> list.sortedByDescending { it.name }
-                }
-            }
-
-        _state.value = ActorUiState.Success(filtered)
+        applySearch()
     }
 }

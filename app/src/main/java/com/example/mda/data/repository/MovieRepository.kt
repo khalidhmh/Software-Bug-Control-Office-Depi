@@ -32,7 +32,7 @@ class MoviesRepository(
             if (response != null && !response.results.isNullOrEmpty()) {
                 var entities = response.results
                     .filter { it.adult != true }
-                    .map { it.toMediaEntity() }
+                    .map { it.toMediaEntity(typeFilter) }
 
                 // ✅ Make sure mediaType is always set (important for filtering)
                 entities = entities.map {
@@ -117,11 +117,8 @@ class MoviesRepository(
             if (res.isSuccessful) res.body() else null
         },
         fallback = { localRepo.getAll().first().filter { it.mediaType == "tv" } },
-        typeFilter = null // ❌ شيل الفلتر مؤقتًا عشان مايحذفش الداتا
-    ).map { entity ->
-        // ✅ بعد ما ترجع البيانات، لو مفيش mediaType خليها "tv"
-        if (entity.mediaType.isNullOrBlank()) entity.copy(mediaType = "tv") else entity
-    }.also { Log.d("MoviesRepository", "✅ TV Shows fetched: ${it.size}") }
+        typeFilter = "tv"
+    ).also { Log.d("MoviesRepository", "✅ TV Shows fetched: ${it.size}") }
 
     // ---------------------- Trending ----------------------
 
