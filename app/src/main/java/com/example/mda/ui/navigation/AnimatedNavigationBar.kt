@@ -80,6 +80,7 @@ fun AnimatedNavigationBar(
     val barShape = remember(cutoutOffset) {
         BarShape(offset = cutoutOffset, circleRadius = circleRadius, cornerRadius = 25.dp)
     }
+    val barOverlayColor = barColor.copy(alpha = 0.6f)
 
     Box {
         Circle(
@@ -100,7 +101,7 @@ fun AnimatedNavigationBar(
                     clip = true
                 }
                 .fillMaxWidth()
-                .background(barColor)
+                .background(barOverlayColor)
                 .padding(vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
@@ -206,12 +207,18 @@ private fun Circle(
     button: ButtonData,
     iconColor: Color,
 ) {
+    val gradient = Brush.verticalGradient(
+        colors = listOf(
+            color.copy(alpha = 0.95f),
+            color.copy(alpha = 0.7f)
+        )
+    )
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(radius * 2)
             .clip(CircleShape)
-            .background(color),
+            .background(brush = gradient),
     ) {
         AnimatedContent(targetState = button.icon, label = "Bottom bar circle icon") { targetIcon ->
             Icon(targetIcon, button.text, tint = iconColor)

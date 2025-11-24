@@ -15,5 +15,6 @@ interface ActorDao {
     @Query("SELECT * FROM actors")
     suspend fun getAllActors(): List<ActorEntity>
 
+
     // Khalid: DAO for caching actor info and retrieving details
 }

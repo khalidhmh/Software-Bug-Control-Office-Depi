@@ -1,6 +1,7 @@
 package com.example.mda.ui.screens.actordetails.widgets
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,9 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,6 +25,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.mda.data.remote.model.Credit
 import com.example.mda.data.remote.model.Movie
+import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
 
@@ -32,8 +36,13 @@ fun MovieCardWithFavorite(
     posterUrl: String?,
     role: String,
     movie: Credit,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    authViewModel: AuthViewModel
 ) {
+    val  barColor = colorScheme.surface.copy(alpha = 0.8f)
+    val barOverlayColor = barColor.copy(alpha = 0.45f)
+    val authUiState by authViewModel.uiState.collectAsState()
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -45,6 +54,7 @@ fun MovieCardWithFavorite(
                 onClick = {
                     navController.navigate("detail/${movie.media_type ?: "movie"}/${movie.id}")
                 })
+            .background(barOverlayColor)
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -108,7 +118,9 @@ fun MovieCardWithFavorite(
                 FavoriteButton(
                     movie = movieData,
                     viewModel = favoritesViewModel,
-                    showBackground = false
+                    navController = navController,
+                    isAuthenticated = authUiState.isAuthenticated,
+                    showBackground = false,
                 )
             }
         }

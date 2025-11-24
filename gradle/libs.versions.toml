@@ -1,5 +1,5 @@
 [versions]
-agp = "8.12.3"
+agp = "8.12.0"
 hiltAndroidGradlePlugin = "2.57.2"
 kotlin = "2.2.20"
 coreKtx = "1.17.0"
@@ -15,6 +15,8 @@ runtime = "1.9.3"
 volley = "1.2.1"
 uiGraphics = "1.9.3"
 navigationRuntimeKtx = "2.9.5"
+foundation = "1.9.4"
+runtimeLivedata = "1.9.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,6 +39,8 @@ androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
