@@ -1,6 +1,5 @@
 package com.example.mda.ui.screens.actordetails.widgets
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +12,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,8 +20,6 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun InfoCard(title: String, value: String, subtitle: String) {
-    val  barColor = colorScheme.surface.copy(alpha = 0.8f)
-    val barOverlayColor = barColor.copy(alpha = 0.45f)
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -34,8 +30,7 @@ fun InfoCard(title: String, value: String, subtitle: String) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp)
-                .background(barOverlayColor),
+                .padding(12.dp),
             verticalArrangement = Arrangement.Center
         ) {
             Text(text = title, color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)

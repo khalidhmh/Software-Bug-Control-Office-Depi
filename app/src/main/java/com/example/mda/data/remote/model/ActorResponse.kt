@@ -17,10 +17,7 @@ data class Actor(
     val profilePath: String?,
     val biography: String?,
     val birthday: String?,
-    @SerializedName("place_of_birth")
     val placeOfBirth: String?,
-    @SerializedName("known_for_department")
-    val knownForDepartment: String?,
     @SerializedName("known_for")
     val knownFor: List<KnownFor>?
 )

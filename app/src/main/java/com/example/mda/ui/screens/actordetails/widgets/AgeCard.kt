@@ -1,6 +1,5 @@
 package com.example.mda.ui.screens.actordetails.widgets
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -17,13 +16,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 
 @Composable
 fun BirthCard(
@@ -32,8 +29,6 @@ fun BirthCard(
     placeOfBirth: String,
     modifier: Modifier = Modifier
 ) {
-    val  barColor = colorScheme.surface.copy(alpha = 0.8f)
-    val barOverlayColor = barColor.copy(alpha = 0.45f)
     Card(
         modifier = modifier
             .fillMaxHeight()
@@ -44,8 +39,7 @@ fun BirthCard(
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxHeight()
-                .background(barOverlayColor),
+                .fillMaxHeight(),
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(

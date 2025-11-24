@@ -1,8 +1,5 @@
 package com.example.mda.util
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
-
 
 object Constants {
     const val BASE_URL = "https://api.themoviedb.org/3/"

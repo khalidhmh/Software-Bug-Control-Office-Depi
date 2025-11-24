@@ -37,82 +37,73 @@ fun ActorListItem(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 3.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             .clickable {
                 navController.navigate("actorDetails/${actor.id}")
             }
-            .padding(1.dp)
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 16.dp), // ✅ شلنا الـ clickable المكرر هنا
-            verticalAlignment = Alignment.CenterVertically
+
+        Box(
+            modifier = Modifier
+                .width(80.dp)
+                .aspectRatio(0.7f)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
+            AsyncImage(
+                model = "https://image.tmdb.org/t/p/w500${actor.profilePath}",
+                contentDescription = actor.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize(),
+                error = painterResource(id = R.drawable.person_placeholder)
+            )
 
-            // صورة الممثل
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .aspectRatio(0.7f)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                AsyncImage(
-                    model = "https://image.tmdb.org/t/p/w500${actor.profilePath}",
-                    contentDescription = actor.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize(),
-                    error = painterResource(id = R.drawable.person_placeholder)
-                )
+            if (actor.profilePath.isNullOrBlank()) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(MaterialTheme.colorScheme.inverseOnSurface),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.person_placeholder),
+                        contentDescription = "Placeholder",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             }
+        }
 
-            Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
-            // النصوص
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = actor.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            val knownForTitles = actor.getKnownForTitles()
+
+            if (knownForTitles.isNotEmpty()) {
                 Text(
-                    text = actor.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    text = knownForTitles,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-
-                Spacer(modifier = Modifier.height(2.dp)) // ✅ قللنا المسافة من 4dp → 2dp
-
-
-                val department = actor.knownForDepartment ?: "Acting"
-                val infoLine = department
-
-                Text(
-                    text = infoLine,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(2.dp)) // ✅ نزّلنا ده كمان بدل 4dp
-
-                val knownForTitles = actor.getKnownForTitles()
-
-                if (knownForTitles.isNotEmpty()) {
-                    Text(
-                        text = knownForTitles,
-                        style = MaterialTheme.typography.bodySmall, // ✅ bodySmall بدل bodyMedium
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
             }
         }
     }
