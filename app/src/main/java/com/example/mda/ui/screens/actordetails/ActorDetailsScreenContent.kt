@@ -19,6 +19,7 @@ import com.example.mda.data.local.entities.PersonEntity
 import com.example.mda.data.remote.model.ActorFullDetails
 import com.example.mda.ui.screens.actordetails.widgets.*
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.example.mda.ui.screens.auth.AuthViewModel
 
@@ -58,7 +59,7 @@ fun ActorDetailsScreenContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgGradient),
+            .background(AppBackgroundGradient()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {

@@ -1,5 +1,6 @@
 package com.example.mda.ui.screens.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -28,6 +30,10 @@ import com.example.mda.data.remote.model.Actor
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.actors.ActorGridItem
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.components.FavoriteButton
+import com.example.mda.data.remote.model.Movie
+import com.example.mda.ui.theme.AppBackgroundGradient
+import kotlinx.coroutines.launch
 
 /**
  * شاشة البحث – محسّنة مع دعم التوب بار الديناميكي
@@ -51,10 +57,21 @@ fun SearchScreen(
         onTopBarStateChange(TopBarState(title = "Discover"))
     }
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
+    Scaffold(
+        topBar = {TopAppBar(
+            title = {""},
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent // ✅ هنا نخلي اللون اللي في الـ Pair
+                        )
+            )
+                 },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(AppBackgroundGradient())
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {

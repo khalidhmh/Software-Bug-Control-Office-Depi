@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -21,6 +22,9 @@ import coil.compose.AsyncImage
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.favorites.components.FavoriteButton
+import com.example.mda.ui.screens.home.homeScreen.MovieCardWithFavorite
+import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.screens.profile.favourites.HistorySectionButton
 
 @Composable
@@ -66,14 +70,15 @@ fun ProfileScreen(
     }
 
     Scaffold(
+        modifier= Modifier.padding(0.dp),
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(0.dp)
                 .verticalScroll(rememberScrollState())
-                .background(MaterialTheme.colorScheme.background)
+                .background(AppBackgroundGradient())
         ) {
             // Profile Header
             Column(

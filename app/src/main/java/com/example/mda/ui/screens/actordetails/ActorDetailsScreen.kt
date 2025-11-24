@@ -21,6 +21,7 @@ import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.actordetails.calculateAge
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
@@ -79,7 +80,7 @@ fun ActorDetailsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(AppBackgroundGradient())
 
             ) {
                 when {
