@@ -53,10 +53,53 @@ interface TmdbApi {
     @GET("movie/{movie_id}")
     suspend fun getMovieDetails(
         @Path("movie_id") movieId: Int,
-        @Query("append_to_response") appendToResponse: String = "videos,credits",
+        @Query("append_to_response") appendToResponse: String = "videos,credits,images",
+        @Query("include_image_language") includeImageLanguage: String = "en,null",
         @Query("language") language: String = "en-US",
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieDetailsResponse>
+
+    @GET("movie/{movie_id}/similar")
+    suspend fun getSimilarMovies(
+        @Path("movie_id") movieId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("movie/{movie_id}/recommendations")
+    suspend fun getRecommendedMovies(
+        @Path("movie_id") movieId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("movie/{movie_id}/release_dates")
+    suspend fun getMovieReleaseDates(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<ReleaseDatesResponse>
+
+    @GET("movie/{movie_id}/watch/providers")
+    suspend fun getMovieWatchProviders(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<WatchProvidersResponse>
+
+    @GET("movie/{movie_id}/reviews")
+    suspend fun getMovieReviews(
+        @Path("movie_id") movieId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<ReviewsResponse>
+
+    @GET("movie/{movie_id}/keywords")
+    suspend fun getMovieKeywords(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<KeywordsResponse>
 
     // ------------------ TV Shows ------------------
 
@@ -70,10 +113,47 @@ interface TmdbApi {
     @GET("tv/{tv_id}")
     suspend fun getTvDetails(
         @Path("tv_id") tvId: Int,
-        @Query("append_to_response") appendToResponse: String = "videos,credits",
+        @Query("append_to_response") appendToResponse: String = "videos,credits,images",
+        @Query("include_image_language") includeImageLanguage: String = "en,null",
         @Query("language") language: String = "en-US",
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieDetailsResponse>
+
+    @GET("tv/{tv_id}/similar")
+    suspend fun getSimilarTvShows(
+        @Path("tv_id") tvId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("tv/{tv_id}/recommendations")
+    suspend fun getRecommendedTvShows(
+        @Path("tv_id") tvId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("tv/{tv_id}/watch/providers")
+    suspend fun getTvWatchProviders(
+        @Path("tv_id") tvId: Int,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<WatchProvidersResponse>
+
+    @GET("tv/{tv_id}/reviews")
+    suspend fun getTvReviews(
+        @Path("tv_id") tvId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<ReviewsResponse>
+
+    @GET("tv/{tv_id}/keywords")
+    suspend fun getTvKeywords(
+        @Path("tv_id") tvId: Int,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<KeywordsResponse>
 
     // ------------------ Trending ------------------
 

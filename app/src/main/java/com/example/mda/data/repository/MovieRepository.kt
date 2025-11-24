@@ -7,6 +7,7 @@ import com.example.mda.data.remote.api.TmdbApi
 import com.example.mda.data.remote.model.Genre
 import com.example.mda.data.remote.model.Movie
 import com.example.mda.data.remote.model.MovieResponse
+import com.example.mda.data.remote.model.getKnownForTitles
 import com.example.mda.data.repository.mappers.toMediaEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -30,7 +31,7 @@ class MoviesRepository(
             if (response != null && !response.results.isNullOrEmpty()) {
                 var entities = response.results
                     .filter { it.adult != true }
-                    .map { it.toMediaEntity() }
+                    .map { it.toMediaEntity(typeFilter) }
 
                 // إجبار الـ mediaType لو ناقص
                 entities = entities.map {
@@ -56,9 +57,7 @@ class MoviesRepository(
         }
     }
 
-    /** ---------------------------------------------------------------------
-     *  MOVIES
-     *  --------------------------------------------------------------------*/
+    // ---------------------- Movies ----------------------
     suspend fun getPopularMovies(): List<MediaEntity> = safeApiCall(
         apiCall = {
             val res = api.getPopularMovies()
@@ -101,9 +100,7 @@ class MoviesRepository(
         }
     }
 
-    /** ---------------------------------------------------------------------
-     *  TV SHOWS
-     *  --------------------------------------------------------------------*/
+    // ---------------------- TV Shows ----------------------
     suspend fun getPopularTvShows(): List<MediaEntity> = safeApiCall(
         apiCall = {
             val res = api.getPopularTvShows()
@@ -111,13 +108,9 @@ class MoviesRepository(
         },
         fallback = { localRepo.getAll().first().filter { it.mediaType == "tv" } },
         typeFilter = "tv"
-    ).map {
-        if (it.mediaType.isNullOrBlank()) it.copy(mediaType = "tv") else it
-    }
+    ).also { Log.d("MoviesRepository", "✅ TV Shows fetched: ${it.size}") }
 
-    /** ---------------------------------------------------------------------
-     *  TRENDING
-     *  --------------------------------------------------------------------*/
+    // ---------------------- Trending ----------------------
     suspend fun getTrendingMedia(
         mediaType: String = "all",
         timeWindow: String = "day"
@@ -129,9 +122,7 @@ class MoviesRepository(
         fallback = { localRepo.getAll().first() }
     )
 
-    /** ---------------------------------------------------------------------
-     *  SEARCH
-     *  --------------------------------------------------------------------*/
+    // ---------------------- Search ----------------------
     suspend fun searchMulti(query: String): List<MediaEntity> = safeApiCall(
         apiCall = {
             val res = api.searchMulti(query = query)
@@ -143,49 +134,98 @@ class MoviesRepository(
         }
     )
 
-    suspend fun searchByType(query: String, type: String): List<MediaEntity> = safeApiCall(
-        apiCall = {
-            val res = when (type) {
-                "movie" -> api.searchMovies(query)
-                "tv" -> api.searchTvShows(query)
-                else -> api.searchMulti(query)
-            }
-            if (res.isSuccessful) res.body() else null
-        },
-        fallback = {
-            val list = localRepo.getAll().first()
-            list.filter {
-                (it.title ?: it.name ?: "").contains(query, ignoreCase = true) &&
-                        (type == "all" || it.mediaType == type)
-            }
-        },
-        typeFilter = if (type == "all") null else type
-    )
+    /** 🔹 بحث بنوع محدد (Movie / TV / Person) */
+    suspend fun searchByType(query: String, type: String): List<MediaEntity> {
+        return when (type.lowercase()) {
+            "movie" -> safeApiCall(
+                apiCall = {
+                    val res = api.searchMovies(query)
+                    if (res.isSuccessful) res.body() else null
+                },
+                fallback = {
+                    val local = localRepo.getAll().first()
+                    local.filter {
+                        (it.title ?: it.name ?: "").contains(query, true) && it.mediaType == "movie"
+                    }
+                },
+                typeFilter = "movie"
+            )
 
-    /** ---------------------------------------------------------------------
-     *  SMART RECOMMENDATIONS  (دمج القديمة + الذكية)
-     *  --------------------------------------------------------------------*/
-    suspend fun getSmartRecommendations(
-        accountId: Int,
-        sessionId: String
-    ): List<MediaEntity> = try {
+            "tv" -> safeApiCall(
+                apiCall = {
+                    val res = api.searchTvShows(query)
+                    if (res.isSuccessful) res.body() else null
+                },
+                fallback = {
+                    val local = localRepo.getAll().first()
+                    local.filter {
+                        (it.title ?: it.name ?: "").contains(query, true) && it.mediaType == "tv"
+                    }
+                },
+                typeFilter = "tv"
+            )
+
+            "people" -> {
+                try {
+                    val res = api.searchPeople(query)
+                    if (res.isSuccessful) {
+                        val body = res.body()
+                        body?.results?.map {
+                            MediaEntity(
+                                id = it.id,
+                                name = it.name,
+                                title = it.name,
+                                overview = it.getKnownForTitles(),
+                                posterPath = it.profilePath,
+                                backdropPath = null,
+                                voteAverage = null,
+                                releaseDate = null,
+                                firstAirDate = null,
+                                mediaType = "person",
+                                adult = false,
+                                genreIds = emptyList(),
+                                isFavorite = false,
+                                isInWatchlist = false
+                            )
+                        } ?: emptyList()
+                    } else emptyList()
+                } catch (e: Exception) {
+                    emptyList()
+                }
+            }
+
+            else -> safeApiCall(
+                apiCall = {
+                    val res = api.searchMulti(query)
+                    if (res.isSuccessful) res.body() else null
+                },
+                fallback = {
+                    localRepo.getAll().first().filter {
+                        (it.title ?: it.name ?: "").contains(query, true)
+                    }
+                }
+            )
+        }
+    }
+
+    // ---------------------- Smart Recommendations ----------------------
+    suspend fun getSmartRecommendations(accountId: Int, sessionId: String): List<MediaEntity> = try {
 
         val collected = mutableListOf<Movie>()
 
-        // 1️⃣  حساب الـ Rated Movies & TV Shows (لكن مش هنرجعهم نفسهم)
+        // 1️⃣ Rated Movies & TV Shows
         val ratedMoviesRes = api.getRatedMovies(accountId, sessionId)
         val ratedTvRes = api.getRatedTvShows(accountId, sessionId)
 
         val ratedMovies = ratedMoviesRes.body()?.results.orEmpty()
         val ratedTv = ratedTvRes.body()?.results.orEmpty()
 
-        // 🧠 هانجيب الـ related (recommendations) بس، مش الـ rated
         ratedMovies.take(3).forEach { rated ->
             val rec = api.getMovieRecommendations(rated.id)
             if (rec.isSuccessful) {
                 val related = rec.body()?.results.orEmpty()
-                    .filterNot { r -> r.id == rated.id }              // استبعاد الفيلم نفسه
-                    .map { m -> m.copy(mediaType = "movie") }         // ✅ تأكيد النوع
+                    .filterNot { r -> r.id == rated.id }
+                    .map { m -> m.copy(mediaType = "movie") }
                 collected += related
             }
         }
@@ -194,36 +234,22 @@ class MoviesRepository(
             val rec = api.getTvRecommendations(rated.id)
             if (rec.isSuccessful) {
                 val related = rec.body()?.results.orEmpty()
-                    .filterNot { r -> r.id == rated.id }              // استبعاد المسلسل نفسه
-                    .map { m -> m.copy(mediaType = "tv") }            // ✅ تأكيد النوع
+                    .filterNot { r -> r.id == rated.id }
+                    .map { m -> m.copy(mediaType = "tv") }
                 collected += related
             }
         }
 
-        // 2️⃣  HISTORY داخل التطبيق (TODO لما تكمّل شغلك)
-        // -----------------------------------------------------------------
-        // TODO: بعد ما تكمّل الـ DAO بتاع History، اربطه هنا 👇
-        // val viewedItems = localRepo.getViewHistory().firstOrNull().orEmpty()
-        // viewedItems.take(5).forEach { history ->
-        //     val rec = api.getMovieRecommendations(history.mediaId)
-        //     if (rec.isSuccessful)
-        //         collected += rec.body()?.results.orEmpty()
-        //             .filterNot { r -> r.id == history.mediaId }
-        // }
-        // -----------------------------------------------------------------
-
-        // 3️⃣  Search History (استعمال فعلي)
-        // 3️⃣  Search History (أفضل استخدام)
-        val searchHistory = localRepo.getSearchHistoryOnce()   // ✅ استخدم الدالة الجديدة المباشرة
+        // 2️⃣ Search History
+        val searchHistory = localRepo.getSearchHistoryOnce()
         if (searchHistory.isNotEmpty()) {
             for (item in searchHistory.take(5)) {
                 val response = api.searchMulti(item.query)
                 if (response.isSuccessful) {
                     val results = response.body()?.results.orEmpty()
-                        .filter { it.mediaType == "movie" || it.mediaType == "tv" }   // ✅ فلترة دقيقة
+                        .filter { it.mediaType == "movie" || it.mediaType == "tv" }
                         .take(5)
                         .map {
-                            // ✅ نحدد mediaType لو ناقص
                             if (it.mediaType.isNullOrBlank()) it.copy(mediaType = "movie") else it
                         }
                     collected += results
@@ -231,25 +257,19 @@ class MoviesRepository(
             }
         }
 
-        // 4️⃣  في حالة فشل كل دا — fallback ذكي (Movies + TV)
-        if (collected.isEmpty()) {
-            Log.d("MoviesRepo", "⚠️ No user data — fallback to general smart mix.")
-            getGeneralFallback()
-        } else {
-            collected.distinctBy { it.id }
-                .sortedByDescending { it.voteAverage ?: 0.0 }
-                .map { it.toMediaEntity() }
-        }
+        // 3️⃣ Fallback
+        if (collected.isEmpty()) getGeneralFallback()
+        else collected.distinctBy { it.id }
+            .sortedByDescending { it.voteAverage ?: 0.0 }
+            .map { it.toMediaEntity() }
+
     } catch (e: Exception) {
         e.printStackTrace()
         getGeneralFallback()
     }
 
-    /** ---------------------------------------------------------------------
-     *  FALLBACK
-     *  --------------------------------------------------------------------*/
+    // ---------------------- Fallback ----------------------
     private suspend fun getGeneralFallback(): List<MediaEntity> {
-
         return try {
             val trendingMovies = api.getTrendingMedia("movie", "day")
                 .body()?.results.orEmpty()
@@ -265,7 +285,7 @@ class MoviesRepository(
 
             val topTv = api.getPopularTvShows()
                 .body()?.results.orEmpty()
-                .map { it.copy(mediaType = "tv") } // ✅ خليها "tv"
+                .map { it.copy(mediaType = "tv") }
 
             val popularMovies = api.getPopularMovies()
                 .body()?.results.orEmpty()
@@ -273,12 +293,10 @@ class MoviesRepository(
 
             val allList = trendingMovies + trendingTv + topMovies + topTv + popularMovies
 
-            val finalList = allList
-                .distinctBy { it.id }
+            allList.distinctBy { it.id }
                 .sortedByDescending { it.voteAverage ?: 0.0 }
                 .take(25)
-
-            finalList.map { it.toMediaEntity() }
+                .map { it.toMediaEntity() }
 
         } catch (e: Exception) {
             e.printStackTrace()

@@ -17,14 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.example.mda.data.datastore.IntroDataStore
-import com.example.mda.data.datastore.introDataStore
 import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.local.database.AppDatabase
 import com.example.mda.data.remote.RetrofitInstance
@@ -46,6 +44,7 @@ import com.example.mda.util.GenreViewModelFactory
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
 
+    // ======= Database & Repository =======
     private lateinit var database: AppDatabase
     private lateinit var localRepository: LocalRepository
     private lateinit var moviesRepository: MoviesRepository
@@ -53,7 +52,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var actorRepository: ActorsRepository
     private lateinit var favoritesRepository: FavoritesRepository
 
+    // ======= ViewModels =======
     private lateinit var searchViewModel: SearchViewModel
+    private lateinit var historyViewModel: HistoryViewModel
+    private lateinit var moviesHistoryViewModel: MoviesHistoryViewModel
     private lateinit var actorViewModel: ActorViewModel
     private lateinit var favoritesViewModel: FavoritesViewModel
     private lateinit var authViewModel: com.example.mda.ui.screens.auth.AuthViewModel
@@ -63,27 +65,29 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // ======= Database & Repository Setup =======
+        // ======= Room Database Setup =======
         database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
             "mda_db"
         ).fallbackToDestructiveMigration().build()
 
-        localRepository = LocalRepository(database.mediaDao(), searchHistoryDao =database.searchHistoryDao() )
+        localRepository = LocalRepository(database.mediaDao())
         moviesRepository = MoviesRepository(RetrofitInstance.api, localRepository)
         movieDetailsRepository = MovieDetailsRepository(RetrofitInstance.api, database.mediaDao())
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())
-        actorViewModel = ActorViewModel(actorRepository)
         favoritesRepository = FavoritesRepository(localRepository)
 
-        // ======= Auth setup =======
-        val sessionManager =
-            com.example.mda.data.datastore.SessionManager(applicationContext)
-        val authRepository =
-            com.example.mda.data.repository.AuthRepository(RetrofitInstance.api, sessionManager)
+        // ======= History & MoviesHistory =======
+        val historyRepository = HistoryRepository(database.historyDao())
+        val moviesHistoryRepository = MoviesHistoryRepository(database.MoviehistoryDao())
+
+        // ======= Auth Setup =======
+        val sessionManager = com.example.mda.data.datastore.SessionManager(applicationContext)
+        val authRepository = com.example.mda.data.repository.AuthRepository(RetrofitInstance.api, sessionManager)
         authViewModel = com.example.mda.ui.screens.auth.AuthViewModel(authRepository)
 
+        // ======= SearchViewModel Factory =======
         val searchViewModelFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val savedStateHandle = SavedStateHandle()
@@ -102,103 +106,94 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var darkTheme by remember { mutableStateOf(savedTheme) }
-
             val context = this
             val introDataStore = remember { IntroDataStore(context) }
-
-// نستخدم rememberCoroutineScope علشان نحط override مؤقت
-            val scope = rememberCoroutineScope()
-            var forceShowIntro by remember { mutableStateOf(false) }
-
-// ✅ بنخلي هو اللي يطبع كل حاجة في اللوج
             val isIntroShownFlow = introDataStore.isIntroShown
             val isIntroShown by isIntroShownFlow.collectAsState(initial = null)
 
-// اطبع القيمة الفعلية
             LaunchedEffect(isIntroShown) {
-                println("🔥🔥 IntroDataStore value = $isIntroShown")
+                println("🔥 IntroDataStore value = $isIntroShown")
             }
 
             val navController = rememberNavController()
-
             MovieAppTheme(darkTheme = darkTheme) {
 
-                // 🌈 خلفية التدرّج العامة لكل الشاشات
+                // 🌈 Gradient Background
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(AppBackgroundGradient(darkTheme))
                 ) {
                     when (isIntroShown) {
-
                         null -> {
-                            // ⏳ شاشة انتظار أثناء التحميل من DataStore
+                            // ⏳ Loading
                             Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(32.dp),
+                                modifier = Modifier.fillMaxSize().padding(32.dp),
                                 contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
+                            ) { CircularProgressIndicator() }
                         }
 
                         false -> {
-                            // ✳️ أول مرة — شاشة الإنترو
+                            // ✳️ Onboarding Screen
                             OnboardingScreen(navController)
                         }
 
                         true -> {
-                            // ✳️ التطبيق الرئيسي بعد شاشة الإنترو
+                            // ✳️ Main App
                             val mediaDao = remember { database.mediaDao() }
 
+                            // ViewModels
                             val homeViewModel: HomeViewModel =
-                                viewModel(factory = HomeViewModelFactory(moviesRepository,authRepository))
+                                viewModel(factory = HomeViewModelFactory(moviesRepository, authRepository))
                             val genreViewModel: GenreViewModel =
                                 viewModel(factory = GenreViewModelFactory(moviesRepository))
-                            val searchVM: SearchViewModel =
-                                viewModel(factory = searchViewModelFactory)
+                            val searchVM: SearchViewModel = viewModel(factory = searchViewModelFactory)
                             searchViewModel = searchVM
 
                             val favoritesVM: FavoritesViewModel =
                                 viewModel(factory = FavoritesViewModelFactory(favoritesRepository))
                             favoritesViewModel = favoritesVM
 
+                            val historyVM: HistoryViewModel =
+                                viewModel(factory = HistoryViewModelFactory(historyRepository))
+                            historyViewModel = historyVM
+
+                            val moviesHistoryVM: MoviesHistoryViewModel =
+                                viewModel(factory = MoviesHistoryViewModelFactory(moviesHistoryRepository))
+                            moviesHistoryViewModel = moviesHistoryVM
+
+                            actorViewModel = ActorViewModel(actorRepository)
+
                             var topBarState by remember { mutableStateOf(TopBarState()) }
 
                             Scaffold(
                                 contentWindowInsets = WindowInsets(0),
-                                containerColor = Color.Transparent, // ✅ حتى يظهر التدرّج
+                                containerColor = Color.Transparent,
                                 topBar = {
-                                    val  barColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
-                                    val barOverlayColor = barColor.copy(alpha = 0.6f)
                                     val currentRoute =
                                         navController.currentBackStackEntryAsState().value?.destination?.route
-                                    val hideTopBarRoutes =
-                                        listOf("ActorDetails/{personId}", "onboarding")
-
+                                    val hideTopBarRoutes = listOf(
+                                        "ActorDetails/{personId}",
+                                        "detail/{mediaType}/{id}",
+                                        "onboarding"
+                                    )
                                     if (currentRoute !in hideTopBarRoutes) {
                                         val (topBarBg, topBarText) = AppTopBarColors(darkTheme = darkTheme)
                                         TopAppBar(
                                             title = {
-                                                val titleToShow = if (topBarState.title.isNotEmpty()) {
+                                                val titleToShow = if (topBarState.title.isNotEmpty())
                                                     topBarState.title
-                                                } else {
-                                                    when (currentRoute) {
-                                                        "home" -> "Home"
-                                                        "movies" -> "Movies"
-                                                        "actors" -> "People"
-                                                        "search" -> "Search"
-                                                        else -> ""
-                                                    }
+                                                else when (currentRoute) {
+                                                    "home" -> "Home"
+                                                    "movies" -> "Movies"
+                                                    "actors" -> "People"
+                                                    "search" -> "Search"
+                                                    "HistoryScreen" -> "History"
+                                                    else -> ""
                                                 }
                                                 Text(titleToShow, color = topBarText)
-
                                             },
-                                            colors = TopAppBarDefaults.topAppBarColors(
-                                                containerColor = Color.Transparent // ✅ هنا نخلي اللون اللي في الـ Pair
-                                            ),
-//                                            modifier = Modifier.background(AppTopBarColors(darkTheme = darkTheme)),
+                                            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                                             navigationIcon = { topBarState.navigationIcon?.invoke() },
                                             actions = {
                                                 topBarState.actions(this)
@@ -207,9 +202,7 @@ class MainActivity : ComponentActivity() {
                                                     prefs.edit { putBoolean("dark_mode", darkTheme) }
                                                 }) {
                                                     Icon(
-                                                        imageVector = if (darkTheme)
-                                                            Icons.Default.LightMode
-                                                        else Icons.Default.DarkMode,
+                                                        imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
                                                         contentDescription = "Toggle Theme",
                                                         tint = topBarText
                                                     )
@@ -223,8 +216,7 @@ class MainActivity : ComponentActivity() {
                                         navController.currentBackStackEntryAsState().value?.destination?.route
                                     val hideBottomBarRoutes = listOf(
                                         "ActorDetails/{personId}",
-                                        "detail/{mediaType}/{id}",
-                                        "onboarding"
+                                        "detail/{mediaType}/{id}"
                                     )
                                     if (currentRoute !in hideBottomBarRoutes) {
                                         val buttons = listOf(
@@ -232,6 +224,7 @@ class MainActivity : ComponentActivity() {
                                             ButtonData("movies", "Movies", Icons.Default.Movie),
                                             ButtonData("actors", "People", Icons.Default.People),
                                             ButtonData("search", "Search", Icons.Default.Search),
+                                            ButtonData("kids", "Kids", Icons.Default.ChildCare),
                                             ButtonData("profile", "Profile", Icons.Default.Person)
                                         )
 
@@ -241,9 +234,7 @@ class MainActivity : ComponentActivity() {
                                             barColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
                                             circleColor = MaterialTheme.colorScheme.background,
                                             selectedColor = MaterialTheme.colorScheme.primary,
-                                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                alpha = 0.55f
-                                            )
+                                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
                                         )
                                     }
                                 }
@@ -255,24 +246,22 @@ class MainActivity : ComponentActivity() {
                                     end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
                                 )
 
-                                Box(
-                                    modifier = Modifier
-                                        .padding(adjustedPadding)
-                                        .background(Color.Transparent) // ✅ خليه شفاف عشان التدرّج يبان
-                                ) {
+                                Box(modifier = Modifier.padding(adjustedPadding)) {
                                     MdaNavHost(
                                         navController = navController,
                                         moviesRepository = moviesRepository,
                                         actorsRepository = actorRepository,
                                         movieDetailsRepository = movieDetailsRepository,
-                                        localDao = database.mediaDao(),
+                                        localDao = mediaDao,
+                                        localRepository = localRepository,
                                         onTopBarStateChange = { newState -> topBarState = newState },
                                         GenreViewModel = genreViewModel,
                                         SearchViewModel = searchViewModel,
                                         actorViewModel = actorViewModel,
                                         favoritesViewModel = favoritesViewModel,
                                         authViewModel = authViewModel,
-                                        authRepository = authRepository
+                                        historyViewModel = historyViewModel,
+                                        moviesHistoryViewModel = moviesHistoryViewModel
                                     )
                                 }
                             }
