@@ -9,6 +9,7 @@ import com.example.mda.data.remote.model.MovieDetailsResponse
 /**
  * Mapper لتحويل Movie (من API / Trending / Popular) إلى MediaEntity.
  */
+
 fun Movie.toMediaEntity(defaultType: String? = this.mediaType ?: "movie"): MediaEntity {
     val realType = this.mediaType ?: defaultType ?:
     if (!this.name.isNullOrEmpty() && this.title.isNullOrEmpty()) "tv" else "movie"
@@ -29,6 +30,7 @@ fun Movie.toMediaEntity(defaultType: String? = this.mediaType ?: "movie"): Media
         genres = emptyList()
     )
 }
+
 
 /**
  * 🆕 Mapper محدث لتحويل MovieDetailsResponse إلى MediaEntity مع كل التفاصيل

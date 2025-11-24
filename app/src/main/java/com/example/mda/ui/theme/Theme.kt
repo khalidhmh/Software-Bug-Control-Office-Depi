@@ -66,6 +66,7 @@ fun MovieAppTheme(
     dynamicColor: Boolean = false, // Disabled to use our custom theme colors
     content: @Composable () -> Unit
 ) {
+    val backgroundGradient = AppBackgroundGradient(darkTheme)
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

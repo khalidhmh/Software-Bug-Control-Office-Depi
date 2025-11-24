@@ -1,6 +1,7 @@
 package com.example.mda.ui.screens.actordetails.widgets
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -34,6 +36,8 @@ fun MovieCardWithFavorite(
     movie: Credit,
     favoritesViewModel: FavoritesViewModel
 ) {
+    val  barColor = colorScheme.surface.copy(alpha = 0.8f)
+    val barOverlayColor = barColor.copy(alpha = 0.45f)
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -45,6 +49,7 @@ fun MovieCardWithFavorite(
                 onClick = {
                     navController.navigate("detail/${movie.media_type ?: "movie"}/${movie.id}")
                 })
+            .background(barOverlayColor)
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),

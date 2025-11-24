@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import com.example.mda.data.remote.model.ActorFullDetails
 import com.example.mda.ui.screens.actordetails.widgets.*
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.theme.AppBackgroundGradient
 
 @Composable
 fun ActorDetailsScreenContent(
@@ -46,7 +47,7 @@ fun ActorDetailsScreenContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgGradient),
+            .background(AppBackgroundGradient()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {

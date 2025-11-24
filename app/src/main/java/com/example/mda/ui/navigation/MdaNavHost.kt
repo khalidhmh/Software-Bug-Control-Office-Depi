@@ -23,6 +23,7 @@ import com.example.mda.ui.screens.search.SearchScreen
 import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.data.repository.ActorsRepository
+import com.example.mda.data.repository.AuthRepository
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actors.ActorViewModel
 import com.example.mda.ui.screens.genreScreen.GenreScreen
@@ -32,6 +33,8 @@ import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.auth.LoginScreen
 import com.example.mda.ui.screens.auth.SignupScreen
 import com.example.mda.ui.screens.auth.AccountScreen
+import com.example.mda.ui.screens.onboarding.OnboardingScreen
+import com.example.mda.ui.screens.splash.SplashScreen
 
 // ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
 
@@ -49,23 +52,31 @@ fun MdaNavHost(
     SearchViewModel: SearchViewModel,
     actorViewModel: ActorViewModel,
     favoritesViewModel: FavoritesViewModel,
-    authViewModel: AuthViewModel?
+    authViewModel: AuthViewModel?,
+    authRepository: AuthRepository
 ) {
     NavHost(
         navController = navController,
-        startDestination = "home"
-    ) {
+        startDestination = "splash"
+    ){
+        composable("splash") {
+            SplashScreen(navController = navController)
+        }
 
         // 🏠 Home
         composable("home") {
             // ✅ صحيح: الشاشة تنشئ الـ ViewModel الخاص بها
-            val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(moviesRepository))
+            val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(moviesRepository, authRepository))
             HomeScreen(
                 viewModel = homeViewModel,
                 navController = navController,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel
             )
+        }
+        // 👇 نضيفها هنا داخل NavHost في MdaNavHost.kt
+        composable("onboarding") {
+            OnboardingScreen(navController = navController)
         }
 
         // 🌟 Actors List (People)
@@ -170,12 +181,13 @@ fun MdaNavHost(
                 navArgument("mediaType") { type = NavType.StringType },
                 navArgument("id") { type = NavType.IntType }
             )
-        ) {
-            val type = it.arguments?.getString("mediaType") ?: "movie"
-            val id = it.arguments?.getInt("id") ?: 0
+        ) {backStackEntry ->
+            val mediaType = backStackEntry.arguments?.getString("mediaType") ?: "movie"
+            val id = backStackEntry.arguments?.getInt("id") ?: 0
+            val isTvShow = mediaType == "tv"
             MovieDetailsScreen(
                 id = id,
-                isTvShow = (type == "tv"),
+                isTvShow = isTvShow,
                 navController = navController,
                 repository = movieDetailsRepository,
                 onTopBarStateChange = onTopBarStateChange,

@@ -167,6 +167,39 @@ interface TmdbApi {
         @Query("session_id") sessionId: String,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<AccountDetails>
+
+
+// -------- Recommendations for Movies & TV --------
+
+    @GET("movie/{movie_id}/recommendations")
+    suspend fun getMovieRecommendations(
+        @Path("movie_id") movieId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("tv/{tv_id}/recommendations")
+    suspend fun getTvRecommendations(
+        @Path("tv_id") tvId: Int,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US",
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("account/{account_id}/rated/movies")
+    suspend fun getRatedMovies(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
+
+    @GET("account/{account_id}/rated/tv")
+    suspend fun getRatedTvShows(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<MovieResponse>
 }
 
 

@@ -1,5 +1,6 @@
 package com.example.mda.ui.screens.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -21,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +36,7 @@ import com.example.mda.ui.screens.components.MovieCardGridWithFavorite
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
 import com.example.mda.data.remote.model.Movie
+import com.example.mda.ui.theme.AppBackgroundGradient
 import kotlinx.coroutines.launch
 
 /**
@@ -73,12 +76,20 @@ fun SearchScreen(
     }
 
     Scaffold(
+        topBar = {TopAppBar(
+            title = {""},
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent // ✅ هنا نخلي اللون اللي في الـ Pair
+                        )
+            )
+                 },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
 
         Column(
             Modifier
                 .fillMaxSize()
+                .background(AppBackgroundGradient())
                 .padding(padding)
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {

@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.mda.data.local.dao.MediaDao
 import com.example.mda.data.local.dao.SearchHistoryDao
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.local.entities.SearchHistoryEntity

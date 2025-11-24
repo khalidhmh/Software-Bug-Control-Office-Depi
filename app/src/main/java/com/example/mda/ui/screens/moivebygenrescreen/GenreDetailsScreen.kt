@@ -109,9 +109,6 @@ fun GenreDetailsScreen(
         )
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
         SwipeRefresh(
             state = rememberSwipeRefreshState(isRefreshing = viewModel.isLoading),
             onRefresh = { viewModel.resetAndLoad(genreId) },
@@ -123,12 +120,12 @@ fun GenreDetailsScreen(
                     contentColor = MaterialTheme.colorScheme.onSurface
                 )
             },
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(8.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(Color.Transparent)
             ) {
                 when {
                     viewModel.isLoading && viewModel.movies.isEmpty() -> Box(
@@ -234,7 +231,6 @@ fun GenreDetailsScreen(
                 }
             }
         }
-    }
 }
 
 
