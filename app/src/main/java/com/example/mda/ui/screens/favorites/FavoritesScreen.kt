@@ -80,7 +80,7 @@ fun FavoritesScreen(
                         MovieCard(
                             movie = movie,
                             onClick = {
-                                val type = mediaEntity.mediaType ?: "movie"
+                                val type = mediaEntity.resolvedMediaType
                                 navController.navigate("detail/$type/${mediaEntity.id}")
                             }
                         )

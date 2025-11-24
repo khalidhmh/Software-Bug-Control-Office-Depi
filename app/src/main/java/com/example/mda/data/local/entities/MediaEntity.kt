@@ -51,6 +51,10 @@ data class MediaEntity(
     val cast: List<Cast>? = null,
     val videos: List<Video>? = null,
 
+    // Images
+    val posters: List<String>? = null,
+    val backdrops: List<String>? = null,
+
     val timestamp: Long = System.currentTimeMillis()
 ) {
     val displayTitle: String
@@ -58,6 +62,9 @@ data class MediaEntity(
 
     val year: String?
         get() = releaseDate?.take(4) ?: firstAirDate?.take(4)
+
+    val resolvedMediaType: String
+        get() = mediaType ?: if (!firstAirDate.isNullOrEmpty() || (title.isNullOrEmpty() && !name.isNullOrEmpty())) "tv" else "movie"
 
     fun getFullPosterUrl(): String? {
         return posterPath?.let { "https://image.tmdb.org/t/p/w500$it" }

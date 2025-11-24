@@ -110,12 +110,14 @@ fun GenreScreen(
 
 @Composable
 fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit) {
+    val  barColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+    val barOverlayColor = barColor.copy(alpha = 0.45f)
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = barOverlayColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(
@@ -138,7 +140,7 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.25f)),
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.15f)),
                                 startY = 0f,
                                 endY = 1000f
                             )

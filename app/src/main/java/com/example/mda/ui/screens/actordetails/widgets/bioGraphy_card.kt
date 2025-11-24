@@ -1,5 +1,6 @@
 package com.example.mda.ui.screens.actordetails.widgets
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,6 +33,8 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun BiographyCard(text: String, minimizedMaxLines: Int = 3) {
+    val  barColor = colorScheme.surface.copy(alpha = 0.8f)
+    val barOverlayColor = barColor.copy(alpha = 0.45f)
     var expanded by remember { mutableStateOf(false) }
 
     Card(
@@ -38,7 +42,7 @@ fun BiographyCard(text: String, minimizedMaxLines: Int = 3) {
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp).background(barOverlayColor)) {
             Text(
                 text = "Biography",
                 color = MaterialTheme.colorScheme.primary,
