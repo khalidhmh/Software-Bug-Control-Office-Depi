@@ -51,6 +51,8 @@ fun SearchScreen(
     val selectedFilter by viewModel.selectedFilter.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val gridScrollState = rememberLazyGridState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
 
     //  تهيئة التوب بار
     LaunchedEffect(Unit) {
