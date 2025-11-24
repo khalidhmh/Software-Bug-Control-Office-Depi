@@ -39,10 +39,8 @@ import com.example.mda.ui.screens.profile.history.MoviesHistoryScreen
 import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
 import com.example.mda.ui.kids.KidsRoot
 import com.example.mda.data.local.LocalRepository
+import com.example.mda.ui.screens.settings.SettingsScreen
 
-// ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
-
-// ✅ تعديل شامل: تم تنظيف تعريف الدالة وتصحيح بنية كل الشاشات
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MdaNavHost(
@@ -262,6 +260,9 @@ fun MdaNavHost(
                 favoritesViewModel = favoritesViewModel,
                 localRepository = localRepository
             )
+        }
+        composable("settings") {
+            SettingsScreen(navController, onTopBarStateChange,authViewModel)
         }
     }
 }

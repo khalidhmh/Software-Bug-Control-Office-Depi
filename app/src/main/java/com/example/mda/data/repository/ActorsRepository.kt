@@ -59,6 +59,7 @@ class ActorsRepository(
                             biography = actor.biography,
                             birthday = actor.birthday,
                             placeOfBirth = actor.placeOfBirth,
+                            knownForDepartment = actor.knownForDepartment,
                             knownFor = Gson().toJson(actor.knownFor ?: emptyList<KnownFor>())
                         )
                     }
@@ -96,6 +97,7 @@ class ActorsRepository(
                 biography = actor.biography,
                 birthday = actor.birthday,
                 placeOfBirth = actor.placeOfBirth,
+                knownForDepartment = actor.knownForDepartment,
                 knownFor = knownForJson
             )
             actorDao.upsert(entity)
@@ -142,7 +144,9 @@ class ActorsRepository(
                                 profilePath = it.profile_path,
                                 biography = it.biography,
                                 birthday = it.birthday,
-                                placeOfBirth = it.place_of_birth
+                                placeOfBirth = it.place_of_birth,
+                                knownForDepartment = null,
+                                knownFor = null
                             )
                         )
                         Log.d("ActorsRepo", "Actor details cached")
