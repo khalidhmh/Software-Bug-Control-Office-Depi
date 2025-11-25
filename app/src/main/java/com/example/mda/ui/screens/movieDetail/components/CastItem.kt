@@ -1,24 +1,23 @@
 package com.example.mda.ui.screens.movieDetail.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.mda.data.local.entities.Cast
 
-/**
- * عنصر عرض الممثل (Cast Item)
- */
+
 @Composable
 fun CastItem(
     cast: Cast,
@@ -27,52 +26,54 @@ fun CastItem(
 ) {
     Column(
         modifier = modifier
-            .width(100.dp)
-            .clickable { onClick(cast.id) },
-        horizontalAlignment = Alignment.CenterHorizontally
+            .width(120.dp)
+            .clickable { onClick(cast.id) }
     ) {
-        // صورة الممثل
-        Box(
+        // صورة الممثل داخل Surface
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
+                .height(160.dp)
+                .fillMaxWidth()
         ) {
             if (cast.profilePath != null) {
-                AsyncImage(
-                    model = cast.getProfileImageUrl(),
+                Image(
+                    painter = rememberAsyncImagePainter(cast.getProfileImageUrl()),
                     contentDescription = cast.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                // Placeholder بالأحرف الأولى
-                Text(
-                    text = cast.getInitials(),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = cast.getInitials(),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
-        
+
         Spacer(Modifier.height(8.dp))
-        
-        // اسم الممثل
+
         Text(
             text = cast.name,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 2,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        
-        // الدور
+
         Text(
             text = cast.character,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-            maxLines = 2,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }
