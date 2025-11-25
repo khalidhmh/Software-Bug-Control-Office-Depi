@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.mda.data.repository.mappers.toMovie
 import com.example.mda.ui.navigation.TopBarState
+import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.homeScreen.*
@@ -30,7 +31,8 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     navController: NavController,
     onTopBarStateChange: (TopBarState) -> Unit,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    authViewModel: AuthViewModel
 ) {
     val trending = viewModel.trendingMedia.collectAsState(initial = emptyList()).value
     val movies = viewModel.popularMovies.collectAsState(initial = emptyList()).value
@@ -43,6 +45,7 @@ fun HomeScreen(
     var refreshing by remember { mutableStateOf(false) }
     val refreshState = rememberSwipeRefreshState(isRefreshing = refreshing)
     val coroutineScope = rememberCoroutineScope()
+    val authUiState by authViewModel.uiState.collectAsState()
 
     // 🔹 أول ما الصفحة تفتح، حدّث التوصيات حسب نشاط المستخدم
     LaunchedEffect(Unit) {
@@ -112,7 +115,9 @@ fun HomeScreen(
                         onMovieClick = { m ->
                             navController.navigate("detail/${m.mediaType}/${m.id}")
                         },
-                        favoritesViewModel = favoritesViewModel
+                        favoritesViewModel = favoritesViewModel,
+                        navController = navController,
+                        isAuthenticated = authUiState.isAuthenticated
                     )
                 }
             }
@@ -126,7 +131,9 @@ fun HomeScreen(
                     onMovieClick = { m ->
                         navController.navigate("detail/${m.mediaType}/${m.id}")
                     },
-                    favoritesViewModel = favoritesViewModel
+                    favoritesViewModel = favoritesViewModel,
+                    navController = navController,
+                    isAuthenticated = authUiState.isAuthenticated
                 )
             }
 
@@ -138,7 +145,9 @@ fun HomeScreen(
                         navController.navigate("detail/${m.mediaType}/${m.id}")
                     },
                     onViewMoreClick = {},
-                    favoritesViewModel = favoritesViewModel
+                    favoritesViewModel = favoritesViewModel,
+                    navController = navController,
+                    isAuthenticated = authUiState.isAuthenticated
                 )
             }
         }

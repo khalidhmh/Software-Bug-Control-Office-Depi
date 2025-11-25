@@ -17,7 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -30,10 +29,7 @@ import com.example.mda.data.remote.model.Actor
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.actors.ActorGridItem
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
-import com.example.mda.ui.screens.favorites.components.FavoriteButton
-import com.example.mda.data.remote.model.Movie
-import com.example.mda.ui.theme.AppBackgroundGradient
-import kotlinx.coroutines.launch
+import com.example.mda.ui.screens.auth.AuthViewModel
 
 /**
  * شاشة البحث – محسّنة مع دعم التوب بار الديناميكي
@@ -44,7 +40,8 @@ fun SearchScreen(
     navController: NavHostController,
     viewModel: SearchViewModel,
     onTopBarStateChange: (TopBarState) -> Unit,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    authViewModel: AuthViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
@@ -52,51 +49,78 @@ fun SearchScreen(
     val focusManager = LocalFocusManager.current
     val gridScrollState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val authUiState by authViewModel.uiState.collectAsState()
 
-
-    //  تهيئة التوب بار
+    // تهيئة التوب بار
     LaunchedEffect(Unit) {
         onTopBarStateChange(TopBarState(title = "Discover"))
     }
 
     Scaffold(
-        topBar = {TopAppBar(
-            title = {""},
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent // ✅ هنا نخلي اللون اللي في الـ Pair
-                        )
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = { },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
-                 },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
     ) { padding ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppBackgroundGradient())
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
 
+            // Search TextField
             OutlinedTextField(
                 value = query,
                 onValueChange = { viewModel.onQueryChange(it) },
-                placeholder = { Text("Search movies, shows, people...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                placeholder = {
+                    Text(
+                        "Search movies, shows, people...",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
                 trailingIcon = {
                     if (query.isNotEmpty()) {
                         IconButton(onClick = { viewModel.onQueryChange("") }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            Icon(
+                                Icons.Default.Clear,
+                                contentDescription = "Clear",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 },
                 shape = RoundedCornerShape(30.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedBorderColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.onSurface,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
@@ -147,7 +171,9 @@ fun SearchScreen(
                             onItemClick = {
                                 navController.navigate("detail/${it.mediaType}/${it.id}")
                             },
-                            favoritesViewModel = favoritesViewModel
+                            favoritesViewModel = favoritesViewModel,
+                            navController = navController,
+                            isAuthenticated = authUiState.isAuthenticated
                         )
                     }
                 }
@@ -155,30 +181,38 @@ fun SearchScreen(
                 is UiState.History -> {
                     if (state.items.isNotEmpty()) {
                         RecentSearchesList(state.items, viewModel)
-                    } else {
-
                     }
                 }
 
                 UiState.Empty -> Box(
                     Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
-                ) { Text("No results found") }
+                ) {
+                    Text(
+                        "No results found",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 is UiState.Error -> Box(
                     Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
-                ) { Text("Error: ${state.message}") }
+                ) {
+                    Text(
+                        "Error: ${state.message}",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
 
                 else -> {
-                    //  LatestMoviesSection(navController, viewModel, favoritesViewModel)
+                    // LatestMoviesSection(navController, viewModel, favoritesViewModel)
                 }
             }
         }
     }
 }
 
-//  تحويل MediaEntity لـ Actor Model بسيط
+// تحويل MediaEntity لـ Actor Model بسيط
 private fun MediaEntity.toActorModel() =
     Actor(
         id = id,
@@ -204,20 +238,25 @@ fun RecentSearchesList(
     ) {
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 "Recent Searches",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
             )
             TextButton(onClick = { viewModel.clearHistory() }) {
                 Text("Clear all", color = MaterialTheme.colorScheme.error)
             }
         }
 
-        Divider()
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        )
+
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.padding(top = 8.dp)
         ) {
             items(items) { record ->
@@ -227,15 +266,26 @@ fun RecentSearchesList(
                         .clickable {
                             viewModel.onQueryChange(record.query)
                             viewModel.submitSearch()
-                        },
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        }
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(record.query)
+                    Text(
+                        record.query,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     IconButton(onClick = { viewModel.deleteOne(record.query) }) {
-                        Icon(Icons.Default.Delete, null)
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
             }
         }
     }

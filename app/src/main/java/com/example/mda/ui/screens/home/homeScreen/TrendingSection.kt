@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.mda.data.remote.model.Movie
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
@@ -30,7 +31,9 @@ fun TrendingSection(
     selectedWindow: String,
     onTimeWindowChange: (String) -> Unit,
     onMovieClick: (Movie) -> Unit,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    navController: NavController,
+    isAuthenticated: Boolean
 ) {
     Column {
         Row(
@@ -75,7 +78,9 @@ fun TrendingSection(
                             FavoriteButton(
                                 movie = m,
                                 viewModel = favoritesViewModel,
-                                showBackground = true
+                                showBackground = true,
+                                isAuthenticated = isAuthenticated,
+                                onLoginRequired = { navController.navigate("profile") }
                             )
                         }
                     )

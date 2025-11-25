@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterList
@@ -53,7 +54,6 @@ fun GenreDetailsScreen(
     favoritesViewModel: FavoritesViewModel,
     authViewModel: AuthViewModel,
 ) {
-
     val authUiState by authViewModel.uiState.collectAsState()
 
     val genreName = remember(genreNameRaw) {
@@ -115,6 +115,19 @@ fun GenreDetailsScreen(
         )
     }
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Transparent)
+    ) {
+        // Media Type Filter Row (Movies / TV Shows)
+        MediaTypeFilterRow(
+            selectedFilter = viewModel.mediaTypeFilter,
+            onFilterChange = { filter ->
+                viewModel.setMediaTypeFilter(filter, genreId)
+            }
+        )
+
         SwipeRefresh(
             state = rememberSwipeRefreshState(isRefreshing = viewModel.isLoading),
             onRefresh = { viewModel.resetAndLoad(genreId) },
@@ -126,7 +139,7 @@ fun GenreDetailsScreen(
                     contentColor = MaterialTheme.colorScheme.onSurface
                 )
             },
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.weight(1f)
         ) {
             Box(
                 modifier = Modifier
@@ -138,7 +151,7 @@ fun GenreDetailsScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
 
                     viewModel.error != null -> Text(
@@ -151,7 +164,6 @@ fun GenreDetailsScreen(
                         if (isGridView) {
                             val gridState = rememberLazyGridState()
 
-                            // Scroll to top whenever movies list changes
                             LaunchedEffect(viewModel.movies) {
                                 gridState.scrollToItem(0)
                             }
@@ -172,10 +184,10 @@ fun GenreDetailsScreen(
                                 items(viewModel.movies, key = { it.id }) { movie ->
                                     Box {
                                         MovieCardGrid(movie = movie) {
-                                            navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
+                                            val mediaType = if (viewModel.mediaTypeFilter == MediaTypeFilter.TV_SHOWS) "tv" else "movie"
+                                            navController.navigate("detail/$mediaType/${movie.id}")
                                         }
 
-                                        // Add favorite button on top
                                         FavoriteButton(
                                             movie = movie.toMovie(),
                                             viewModel = favoritesViewModel,
@@ -184,7 +196,7 @@ fun GenreDetailsScreen(
                                                 .padding(8.dp),
                                             showBackground = true,
                                             isAuthenticated = authUiState.isAuthenticated,
-                                            navController = navController
+                                            onLoginRequired = { navController.navigate("profile") }
                                         )
                                     }
                                 }
@@ -197,7 +209,6 @@ fun GenreDetailsScreen(
                         } else {
                             val listState = rememberLazyListState()
 
-                            // Scroll to top whenever movies list changes
                             LaunchedEffect(viewModel.movies) {
                                 listState.scrollToItem(0)
                             }
@@ -216,10 +227,10 @@ fun GenreDetailsScreen(
                                 items(viewModel.movies, key = { it.id }) { movie ->
                                     Box {
                                         MovieCardList(movie = movie) {
-                                            navController.navigate("detail/${movie.mediaType ?: "movie"}/${movie.id}")
+                                            val mediaType = if (viewModel.mediaTypeFilter == MediaTypeFilter.TV_SHOWS) "tv" else "movie"
+                                            navController.navigate("detail/$mediaType/${movie.id}")
                                         }
 
-                                        // Add favorite button on top
                                         FavoriteButton(
                                             movie = movie.toMovie(),
                                             viewModel = favoritesViewModel,
@@ -227,8 +238,7 @@ fun GenreDetailsScreen(
                                                 .align(Alignment.TopStart)
                                                 .padding(8.dp),
                                             showBackground = true,
-                                            navController = navController,
-                                            isAuthenticated =authUiState.isAuthenticated,
+                                            onLoginRequired = { navController.navigate("profile") }
                                         )
                                     }
                                 }
@@ -241,8 +251,72 @@ fun GenreDetailsScreen(
                 }
             }
         }
+    }
 }
 
+@Composable
+fun MediaTypeFilterRow(
+    selectedFilter: MediaTypeFilter,
+    onFilterChange: (MediaTypeFilter) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        MediaTypeFilterChip(
+            text = "Movies",
+            selected = selectedFilter == MediaTypeFilter.MOVIES,
+            onClick = { onFilterChange(MediaTypeFilter.MOVIES) },
+            modifier = Modifier.weight(1f)
+        )
+        MediaTypeFilterChip(
+            text = "TV Shows",
+            selected = selectedFilter == MediaTypeFilter.TV_SHOWS,
+            onClick = { onFilterChange(MediaTypeFilter.TV_SHOWS) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun MediaTypeFilterChip(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .height(40.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        color = if (selected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        },
+        border = if (!selected) {
+            ButtonDefaults.outlinedButtonBorder
+        } else null
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                color = if (selected) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+    }
+}
 
 @Composable
 fun LoadMoreListener(
@@ -274,7 +348,9 @@ fun MovieCardList(movie: MediaEntity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+        )
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -282,7 +358,7 @@ fun MovieCardList(movie: MediaEntity, onClick: () -> Unit) {
         ) {
             AsyncImage(
                 model = "https://image.tmdb.org/t/p/w300${movie.posterPath}",
-                contentDescription = movie.title,
+                contentDescription = movie.title ?: movie.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .width(120.dp)
@@ -292,23 +368,23 @@ fun MovieCardList(movie: MediaEntity, onClick: () -> Unit) {
 
             Column(modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)) {
                 Text(
-                    text = movie.title ?: "No Title",
+                    text = movie.title ?: movie.name ?: "No Title",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = movie.releaseDate ?: "",
+                    text = movie.releaseDate ?: movie.firstAirDate ?: "",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = movie.overview ?: "",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -325,7 +401,7 @@ fun LoadingIndicator() {
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = Color.White.copy(alpha = 0.8f))
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
 

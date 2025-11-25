@@ -20,13 +20,16 @@ import androidx.compose.ui.unit.sp
 import com.example.mda.data.remote.model.Movie
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
+import androidx.navigation.NavController
 
 @Composable
 fun ForYouSection(
     recommendedMovies: List<Movie>,   // 🔹 توصيات أفلام
     recommendedTvShows: List<Movie>,  // 🔹 توصيات مسلسلات
     onMovieClick: (Movie) -> Unit,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    navController: NavController,
+    isAuthenticated: Boolean
 ) {
     val barColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
     val barOverlayColor = barColor.copy(alpha = 0.6f)
@@ -85,7 +88,9 @@ fun ForYouSection(
                                     FavoriteButton(
                                         movie = item,
                                         viewModel = favoritesViewModel,
-                                        showBackground = true
+                                        showBackground = true,
+                                        isAuthenticated = isAuthenticated,
+                                        onLoginRequired = { navController.navigate("profile") }
                                     )
                                 }
                             )

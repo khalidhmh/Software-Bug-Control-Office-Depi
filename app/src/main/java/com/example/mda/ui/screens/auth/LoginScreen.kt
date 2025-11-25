@@ -7,10 +7,13 @@ import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
@@ -22,26 +25,59 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: AuthViewModel
+    viewModel: AuthViewModel,
+    darkTheme: Boolean = false,
+    onToggleTheme: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
     var hasCompletedAuth by remember { mutableStateOf(false) }
+    var hasNavigated by remember { mutableStateOf(false) }  // ✅ Add this flag
+
+    // Theme colors matching MainActivity
+    val topBarText = if (darkTheme) Color.White else Color.Black
 
     LaunchedEffect(Unit) {
         // Start the authentication flow
         viewModel.startAuthentication()
     }
 
+    // ✅ Handle navigation separately with a flag to prevent double navigation
+    LaunchedEffect(uiState.isAuthenticated) {
+        if (uiState.isAuthenticated && !hasNavigated) {
+            hasNavigated = true
+            navController.navigate("account") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
+
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Login with TMDb") },
+                title = { Text("Login with TMDb", color = topBarText) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = topBarText
+                        )
                     }
-                }
+                },
+                actions = {
+                    IconButton(onClick = onToggleTheme) {
+                        Icon(
+                            imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = "Toggle Theme",
+                            tint = topBarText
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
         }
     ) { padding ->
@@ -56,11 +92,14 @@ fun LoginScreen(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Authenticating...",
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -80,19 +119,26 @@ fun LoginScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Please make sure you approved the authentication in your browser.",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = {
-                            hasCompletedAuth = false
-                            viewModel.startAuthentication()
-                        }) {
+                        Button(
+                            onClick = {
+                                hasCompletedAuth = false
+                                hasNavigated = false  // ✅ Reset navigation flag
+                                viewModel.startAuthentication()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
                             Text("Retry")
                         }
                     }
                 }
-                uiState.authUrl != null && !hasCompletedAuth -> {
+                uiState.authUrl != null && !hasCompletedAuth && !uiState.isAuthenticated -> {
+                    // ✅ Added !uiState.isAuthenticated check
                     TMDbWebView(
                         url = uiState.authUrl!!,
                         onAuthComplete = { approved ->
@@ -110,14 +156,7 @@ fun LoginScreen(
                         }
                     )
                 }
-                uiState.isAuthenticated -> {
-                    // Navigate to account screen after successful login
-                    LaunchedEffect(Unit) {
-                        navController.navigate("account") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    }
-                }
+                // ✅ Removed the isAuthenticated case here - it's handled by LaunchedEffect above
             }
         }
     }

@@ -5,6 +5,7 @@ import com.example.mda.data.local.dao.SearchHistoryDao
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.local.entities.SearchHistoryEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 class LocalRepository(
     private val mediaDao: MediaDao,
@@ -65,6 +66,38 @@ class LocalRepository(
     suspend fun removeFromFavorites(id: Int) = mediaDao.updateFavoriteStatus(id, false)
     suspend fun isFavorite(id: Int): Boolean = mediaDao.isFavorite(id) ?: false
     suspend fun getById(id: Int): MediaEntity? = mediaDao.getByIdOnly(id)
+
+    // ---------------- NEW: helpers for sync (TMDb <> local) ----------------
+
+    /**
+     * Clear all favorites flag locally.
+     * Implementation: read current favorites then set their flag to false
+     * using existing DAO updateFavoriteStatus(id, false).
+     */
+    suspend fun clearAllFavorites() {
+        val currentFavorites = mediaDao.getFavorites().first()
+        currentFavorites.forEach { entity ->
+            mediaDao.updateFavoriteStatus(entity.id, false)
+        }
+    }
+
+    /**
+     * Mark a single media item as favorite (or remove favorite).
+     * Uses the existing DAO updateFavoriteStatus.
+     */
+    suspend fun setFavorite(id: Int, isFavorite: Boolean) {
+        mediaDao.updateFavoriteStatus(id, isFavorite)
+    }
+
+    /**
+     * Mark many ids as favorite. Items that don't exist in DB will be ignored.
+     * If you want to insert missing items you can use addOrUpdate(...) before calling this.
+     */
+    suspend fun setFavorites(ids: List<Int>) {
+        ids.forEach { id ->
+            mediaDao.updateFavoriteStatus(id, true)
+        }
+    }
 
     // ---------------- SEARCH HISTORY ----------------
     fun getSearchHistory(): Flow<List<SearchHistoryEntity>> = searchHistoryDao.getRecentHistory()

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -13,8 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -22,9 +23,6 @@ import coil.compose.AsyncImage
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
-import com.example.mda.ui.screens.favorites.components.FavoriteButton
-import com.example.mda.ui.screens.home.homeScreen.MovieCardWithFavorite
-import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.screens.profile.favourites.HistorySectionButton
 
 @Composable
@@ -43,8 +41,15 @@ fun ProfileScreen(
 
     // Fetch account details when authenticated
     LaunchedEffect(authState?.isAuthenticated) {
-        if (authState?.isAuthenticated == true && authViewModel != null && authState.accountDetails == null) {
+        if (authState?.isAuthenticated == true && authViewModel != null) {
+            // 1) Fetch TMDB account info (avatar, username, etc.)
             authViewModel.fetchAccountDetails()
+
+            // 2) Sync FAVORITES from TMDB → Local database
+            favoritesViewModel.syncFavoritesFromTmdb()
+        } else if (authState?.isAuthenticated == false) {
+            // 3) Clear local favorites when user LOGS OUT
+            favoritesViewModel.clearLocalFavorites()
         }
     }
 
@@ -55,7 +60,11 @@ fun ProfileScreen(
                 navigationIcon = null,
                 actions = {
                     IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 }
             )
@@ -70,15 +79,22 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        modifier= Modifier.padding(0.dp),
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        containerColor = Color.Transparent,
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(0.dp)
+                .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .background(AppBackgroundGradient())
         ) {
             // Profile Header
             Column(
@@ -140,30 +156,44 @@ fun ProfileScreen(
                         "Movie enthusiast"
                     },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 // Authentication buttons
                 if (authViewModel != null) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     if (authState?.isAuthenticated == true) {
                         // Show "View Account" button if logged in
                         Button(
                             onClick = { navController.navigate("account") },
-                            modifier = Modifier.fillMaxWidth(0.7f)
+                            modifier = Modifier.fillMaxWidth(0.7f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text("View TMDb Account")
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         // Logout button
                         OutlinedButton(
                             onClick = {
                                 authViewModel.logout()
                             },
-                            modifier = Modifier.fillMaxWidth(0.7f)
+                            modifier = Modifier.fillMaxWidth(0.7f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            border = ButtonDefaults.outlinedButtonBorder.copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(
+                                    MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text("Logout")
                         }
@@ -171,17 +201,31 @@ fun ProfileScreen(
                         // Show Login and Signup buttons if not logged in
                         Row(
                             modifier = Modifier.fillMaxWidth(0.9f),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Button(
                                 onClick = { navController.navigate("login") },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text("Login")
                             }
                             OutlinedButton(
                                 onClick = { navController.navigate("signup") },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                ),
+                                border = ButtonDefaults.outlinedButtonBorder.copy(
+                                    brush = androidx.compose.ui.graphics.SolidColor(
+                                        MaterialTheme.colorScheme.primary
+                                    )
+                                ),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text("Sign Up")
                             }
@@ -191,22 +235,24 @@ fun ProfileScreen(
             }
 
             HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
+                modifier = Modifier.padding(horizontal = 24.dp),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                thickness = 1.dp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-            HistorySectionButton(navController, "Favprofile", "Favorite Movies")
-            Spacer(modifier = Modifier.height(16.dp))
-            HistorySectionButton(navController, "HistoryScreen", "Actors Viewed")
             Spacer(modifier = Modifier.height(24.dp))
-            HistorySectionButton(navController, "MovieHistoryScreen", "Movies Viewed")
-            Spacer(modifier = Modifier.height(24.dp))
+
+            // Section Buttons
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                HistorySectionButton(navController, "Favprofile", "Favorite Movies")
+                HistorySectionButton(navController, "HistoryScreen", "Actors Viewed")
+                HistorySectionButton(navController, "MovieHistoryScreen", "Movies Viewed")
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
-
-
-
-
-
