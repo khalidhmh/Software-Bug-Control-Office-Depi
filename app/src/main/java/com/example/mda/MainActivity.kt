@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -23,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
+import com.example.mda.data.SettingsDataStore
 import com.example.mda.data.datastore.IntroDataStore
 import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.local.database.AppDatabase
@@ -46,6 +48,7 @@ import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.theme.AppTopBarColors
 import com.example.mda.ui.theme.MovieAppTheme
 import com.example.mda.util.GenreViewModelFactory
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -115,16 +118,20 @@ class MainActivity : ComponentActivity() {
         }
 
         // ======= Theme Preferences =======
-        val prefs = getSharedPreferences("theme_prefs", MODE_PRIVATE)
-        val savedTheme = prefs.getBoolean("dark_mode", true)
-
         setContent {
-            var darkTheme by remember { mutableStateOf(savedTheme) }
+            val dataStore = SettingsDataStore(applicationContext)
+            val themeMode by dataStore.themeModeFlow.collectAsState(initial = 0)
+
+            val darkTheme = when (themeMode) {
+                2 -> true
+                1 -> false
+                else -> isSystemInDarkTheme()
+            }
             val context = this
             val introDataStore = remember { IntroDataStore(context) }
             val isIntroShownFlow = introDataStore.isIntroShown
             val isIntroShown by isIntroShownFlow.collectAsState(initial = null)
-
+            val scope = rememberCoroutineScope()
             LaunchedEffect(isIntroShown) {
                 println("🔥 IntroDataStore value = $isIntroShown")
             }
@@ -212,35 +219,29 @@ class MainActivity : ComponentActivity() {
                                             AppTopBarColors(darkTheme = darkTheme)
                                         TopAppBar(
                                             title = {
-                                                val titleToShow =
-                                                    if (topBarState.title.isNotEmpty())
-                                                        topBarState.title
-                                                    else when (currentRoute) {
-                                                        "home" -> "Home"
-                                                        "movies" -> "Movies"
-                                                        "actors" -> "People"
-                                                        "search" -> "Search"
-                                                        "HistoryScreen" -> "History"
-                                                        else -> ""
-                                                    }
+                                                val titleToShow = if (topBarState.title.isNotEmpty())
+                                                    topBarState.title
+                                                else when (currentRoute) {
+                                                    "home" -> "Home"
+                                                    "movies" -> "Movies"
+                                                    "actors" -> "People"
+                                                    "search" -> "Search"
+                                                    "HistoryScreen" -> "History"
+                                                    "about_app" -> "About"
+                                                    else -> ""
+                                                }
                                                 Text(titleToShow, color = topBarText)
                                             },
                                             colors = TopAppBarDefaults.topAppBarColors(
-                                                containerColor = Color.Transparent
+                                                containerColor = topBarBg,
+                                                titleContentColor = topBarText,
+                                                navigationIconContentColor = topBarText,
+                                                actionIconContentColor = topBarText
                                             ),
                                             navigationIcon = { topBarState.navigationIcon?.invoke() },
                                             actions = {
                                                 topBarState.actions(this)
-                                                IconButton(onClick = {
-                                                    darkTheme = !darkTheme
-                                                    prefs.edit { putBoolean("dark_mode", darkTheme) }
-                                                }) {
-                                                    Icon(
-                                                        imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                                                        contentDescription = "Toggle Theme",
-                                                        tint = topBarText
-                                                    )
-                                                }
+
                                             }
                                         )
                                     }
@@ -265,8 +266,7 @@ class MainActivity : ComponentActivity() {
                                             ButtonData("movies", "Movies", Icons.Default.Movie),
                                             ButtonData("actors", "People", Icons.Default.People),
                                             ButtonData("search", "Search", Icons.Default.Search),
-                                            ButtonData("kids", "Kids", Icons.Default.ChildCare),
-                                            ButtonData("profile", "Profile", Icons.Default.Person)
+                                            ButtonData("settings", "Settings", Icons.Default.Settings)
                                         )
 
                                         AnimatedNavigationBar(
@@ -313,10 +313,7 @@ class MainActivity : ComponentActivity() {
                                         moviesHistoryViewModel = moviesHistoryViewModel,
                                         authRepository = authRepository,
                                         darkTheme = darkTheme,
-                                        onToggleTheme = {
-                                            darkTheme = !darkTheme
-                                            prefs.edit { putBoolean("dark_mode", darkTheme) }
-                                        }
+
                                     )
                                 }
                             }

@@ -93,13 +93,19 @@ fun SettingsScreen(
         }
 
         SettingsGroupCard {
-            SettingsItem(Icons.Default.Language, "Language") { navController.navigate("language_settings")}
+            SettingsItem(Icons.Default.Language, "Language") { navController.navigate("language_settings") }
             Divider()
-            SettingsItem(Icons.Default.Security, "Privacy Settings") { navController.navigate("privacy_settings")}
+            SettingsItem(
+                icon = Icons.Default.ChildCare,
+                title = "Kids Mode"
+            ) { navController.navigate("kids") }
             Divider()
-            SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq")}
+             SettingsItem(Icons.Default.Security, "Privacy Settings") { navController.navigate("privacy_settings") }
+
             Divider()
-            SettingsItem(Icons.Default.Info, "About") {   navController.navigate("about_app")}
+            SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq") }
+            Divider()
+            SettingsItem(Icons.Default.Info, "About") { navController.navigate("about_app") }
         }
 
         SettingsGroupCard {

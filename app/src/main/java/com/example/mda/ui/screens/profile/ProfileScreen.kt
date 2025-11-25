@@ -57,16 +57,8 @@ fun ProfileScreen(
         onTopBarStateChange(
             TopBarState(
                 title = "Profile",
-                navigationIcon = null,
-                actions = {
-                    IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                }
+                navigationIcon = null
+
             )
         )
     }
