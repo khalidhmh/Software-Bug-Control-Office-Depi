@@ -12,6 +12,8 @@ import androidx.navigation.navArgument
 import com.example.mda.data.local.dao.MediaDao
 import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.repository.*
+import com.example.mda.ui.Settings.AboutScreen
+import com.example.mda.ui.Settings.Help.HelpScreen
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
 import com.example.mda.ui.screens.actors.ActorsScreen
@@ -247,6 +249,15 @@ fun MdaNavHost(
                 onTopBarStateChange = onTopBarStateChange,
                 authViewModel = authViewModel
             )
+        }
+        composable("about_app") {
+            AboutScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        // ✅ Help / FAQ Screen
+        composable("help_faq") {
+            HelpScreen()
         }
     }
 }

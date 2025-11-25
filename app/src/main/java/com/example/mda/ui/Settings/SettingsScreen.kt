@@ -100,6 +100,7 @@ fun SettingsScreen(
             SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq")}
             Divider()
             SettingsItem(Icons.Default.Info, "About") {   navController.navigate("about_app")}
+            SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq") }
         }
 
         SettingsGroupCard {
