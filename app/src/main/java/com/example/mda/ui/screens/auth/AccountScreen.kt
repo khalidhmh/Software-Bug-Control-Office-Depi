@@ -7,44 +7,67 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.mda.ui.navigation.TopBarState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountScreen(
     navController: NavController,
     viewModel: AuthViewModel,
-    onTopBarStateChange: (TopBarState) -> Unit
+    darkTheme: Boolean = false,
+    onToggleTheme: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // Theme colors matching MainActivity
+    val topBarText = if (darkTheme) Color.White else Color.Black
+
     LaunchedEffect(Unit) {
-        onTopBarStateChange(
-            TopBarState(
-                title = "My Account",
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {}
-            )
-        )
         viewModel.fetchAccountDetails()
     }
 
-    Scaffold { padding ->
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = { Text("My Account", color = topBarText) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = topBarText
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onToggleTheme) {
+                        Icon(
+                            imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = "Toggle Theme",
+                            tint = topBarText
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
+        }
+    ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -53,7 +76,8 @@ fun AccountScreen(
             when {
                 uiState.isLoading -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
                 uiState.error != null -> {
@@ -70,7 +94,12 @@ fun AccountScreen(
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { viewModel.fetchAccountDetails() }) {
+                        Button(
+                            onClick = { viewModel.fetchAccountDetails() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
                             Text("Retry")
                         }
                     }
@@ -120,7 +149,8 @@ fun AccountScreen(
                         Text(
                             text = account.name.ifEmpty { account.username },
                             style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -129,7 +159,7 @@ fun AccountScreen(
                         Text(
                             text = "@${account.username}",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -138,8 +168,9 @@ fun AccountScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                            ),
+                            shape = MaterialTheme.shapes.large
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp)
@@ -147,14 +178,27 @@ fun AccountScreen(
                                 Text(
                                     text = "Account Information",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                AccountInfoRow("Account ID", account.id.toString())
-                                AccountInfoRow("Language", account.iso6391.uppercase())
-                                AccountInfoRow("Country", account.iso31661.uppercase())
+                                AccountInfoRow(
+                                    label = "Account ID",
+                                    value = account.id.toString(),
+                                    darkTheme = darkTheme
+                                )
+                                AccountInfoRow(
+                                    label = "Language",
+                                    value = account.iso6391.uppercase(),
+                                    darkTheme = darkTheme
+                                )
+                                AccountInfoRow(
+                                    label = "Country",
+                                    value = account.iso31661.uppercase(),
+                                    darkTheme = darkTheme
+                                )
                             }
                         }
 
@@ -168,7 +212,13 @@ fun AccountScreen(
                                     popUpTo("account") { inclusive = true }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            border = ButtonDefaults.outlinedButtonBorder.copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.error)
+                            )
                         ) {
                             Text("Logout")
                         }
@@ -182,7 +232,11 @@ fun AccountScreen(
 }
 
 @Composable
-fun AccountInfoRow(label: String, value: String) {
+fun AccountInfoRow(
+    label: String,
+    value: String,
+    darkTheme: Boolean = false
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -192,12 +246,13 @@ fun AccountInfoRow(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

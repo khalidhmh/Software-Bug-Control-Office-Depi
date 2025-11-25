@@ -46,9 +46,11 @@ import com.example.mda.ui.screens.profile.history.emptyScreen
 fun FavoritesScreen(
     navController: NavController,
     favoritesViewModel: FavoritesViewModel,
-    onTopBarStateChange: (TopBarState) -> Unit
+    onTopBarStateChange: (TopBarState) -> Unit,
+    authViewModel: AuthViewModel
 ) {
     val favorites by favoritesViewModel.favorites.collectAsState()
+    val authUiState by authViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         onTopBarStateChange(
@@ -136,7 +138,9 @@ fun FavoritesScreen(
                             FavoriteButton(
                                 movie = movie,
                                 viewModel = favoritesViewModel,
-                                showBackground = true
+                                showBackground = true,
+                                isAuthenticated = authUiState.isAuthenticated,
+                                onLoginRequired = { navController.navigate("profile") }
                             )
                         }
                     )

@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.mda.data.remote.model.Movie
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
@@ -20,7 +21,9 @@ fun PopularSection(
     popularMovies: List<Movie>,
     onMovieClick: (Movie) -> Unit,
     onViewMoreClick: () -> Unit,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    navController: NavController,
+    isAuthenticated: Boolean
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -54,7 +57,9 @@ fun PopularSection(
                         FavoriteButton(
                             movie = movie,
                             viewModel = favoritesViewModel,
-                            showBackground = true
+                            showBackground = true,
+                            isAuthenticated = isAuthenticated,
+                            onLoginRequired = { navController.navigate("profile") }
                         )
                     }
                 )

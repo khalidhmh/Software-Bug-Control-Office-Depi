@@ -1,13 +1,19 @@
 package com.example.mda.ui.navigation
 
 import android.os.Build
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.mda.data.local.dao.MediaDao
 import com.example.mda.data.local.LocalRepository
@@ -57,7 +63,9 @@ fun MdaNavHost(
     authViewModel: AuthViewModel,
     authRepository: AuthRepository,
     historyViewModel: HistoryViewModel,
-    moviesHistoryViewModel: MoviesHistoryViewModel
+    moviesHistoryViewModel: MoviesHistoryViewModel,
+    darkTheme: Boolean,
+    onToggleTheme: () -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -82,7 +90,8 @@ fun MdaNavHost(
                 viewModel = homeViewModel,
                 navController = navController,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+                authViewModel = authViewModel!!
             )
         }
 
@@ -102,7 +111,8 @@ fun MdaNavHost(
                 navController = navController,
                 viewModel = searchViewModel,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+                authViewModel = authViewModel!!
             )
         }
 
@@ -128,7 +138,7 @@ fun MdaNavHost(
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
                 historyViewModel = historyViewModel,
-                authViewModel = authViewModel
+                authViewModel = authViewModel!!
             )
         }
 
@@ -171,7 +181,8 @@ fun MdaNavHost(
                 repository = movieDetailsRepository,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
-                moviehistoryViewModel = moviesHistoryViewModel
+                moviehistoryViewModel = moviesHistoryViewModel,
+                authViewModel = authViewModel!!
             )
         }
 
@@ -190,7 +201,8 @@ fun MdaNavHost(
             FavoritesScreen(
                 navController = navController,
                 favoritesViewModel = favoritesViewModel,
-                onTopBarStateChange = onTopBarStateChange
+                onTopBarStateChange = onTopBarStateChange,
+                authViewModel = authViewModel!!
             )
         }
 
@@ -212,23 +224,29 @@ fun MdaNavHost(
             )
         }
 
-        // Authentication
+        // Authentication - Updated with theme parameters
         composable("login") {
             LoginScreen(
                 navController = navController,
-                viewModel = authViewModel
+                viewModel = authViewModel,
+                darkTheme = darkTheme,
+                onToggleTheme = onToggleTheme
             )
         }
 
         composable("signup") {
-            SignupScreen(navController = navController)
+            SignupScreen(
+                navController = navController,
+                darkTheme = darkTheme,
+                onToggleTheme = onToggleTheme
+            )
         }
 
         composable("account") {
             AccountScreen(
                 navController = navController,
                 viewModel = authViewModel,
-                onTopBarStateChange = onTopBarStateChange
+                onToggleTheme = onToggleTheme
             )
         }
 

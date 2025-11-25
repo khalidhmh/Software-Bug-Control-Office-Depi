@@ -25,7 +25,8 @@ import com.example.mda.ui.screens.favorites.components.FavoriteButton
 fun ExampleSectionWithFavorites(
     movies: List<Movie>,
     navController: NavController,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    isAuthenticated: Boolean
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -43,7 +44,9 @@ fun ExampleSectionWithFavorites(
                     FavoriteButton(
                         movie = movie,
                         viewModel = favoritesViewModel,
-                        showBackground = true
+                        showBackground = true,
+                        isAuthenticated = isAuthenticated,
+                        onLoginRequired = { navController.navigate("profile") }
                     )
                 }
             )
@@ -58,7 +61,8 @@ fun ExampleSectionWithFavorites(
 fun ExampleGridWithFavorites(
     movies: List<Movie>,
     navController: NavController,
-    favoritesViewModel: FavoritesViewModel
+    favoritesViewModel: FavoritesViewModel,
+    isAuthenticated: Boolean
 ) {
     androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
         columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(2),
@@ -78,7 +82,9 @@ fun ExampleGridWithFavorites(
                     FavoriteButton(
                         movie = movie,
                         viewModel = favoritesViewModel,
-                        showBackground = true
+                        showBackground = true,
+                        isAuthenticated = isAuthenticated,
+                        onLoginRequired = { navController.navigate("profile") }
                     )
                 }
             )

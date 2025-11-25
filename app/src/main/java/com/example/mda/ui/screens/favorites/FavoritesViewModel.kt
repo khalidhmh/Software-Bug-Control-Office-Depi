@@ -51,4 +51,20 @@ class FavoritesViewModel(private val repository: FavoritesRepository) : ViewMode
     fun clearSnackbarMessage() {
         _snackbarMessage.value = null
     }
+    fun clearLocalFavorites() {
+        viewModelScope.launch {
+            repository.clearAllLocalFavorites()
+        }
+    }
+
+    fun syncFavoritesFromTmdb() {
+        viewModelScope.launch {
+            repository.syncFavoritesFromTmdb()
+        }
+    }
+
+
+
+
+
 }

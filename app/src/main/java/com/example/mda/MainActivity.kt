@@ -81,19 +81,27 @@ class MainActivity : ComponentActivity() {
             "mda_db"
         ).fallbackToDestructiveMigration().build()
 
-        localRepository = LocalRepository(database.mediaDao(),database.searchHistoryDao())
+        localRepository = LocalRepository(database.mediaDao(), database.searchHistoryDao())
         moviesRepository = MoviesRepository(RetrofitInstance.api, localRepository)
         movieDetailsRepository = MovieDetailsRepository(RetrofitInstance.api, database.mediaDao())
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())
-        favoritesRepository = FavoritesRepository(localRepository)
 
-        // ======= History & MoviesHistory =======
+        // ======= Session & Favorites & Auth =======
+        val sessionManager = com.example.mda.data.datastore.SessionManager(applicationContext)
+
+        favoritesRepository = FavoritesRepository(
+            localRepo = localRepository,
+            api = RetrofitInstance.api,
+            sessionManager = sessionManager
+        )
+
         val historyRepository = HistoryRepository(database.historyDao())
         val moviesHistoryRepository = MoviesHistoryRepository(database.MoviehistoryDao())
 
-        // ======= Auth Setup =======
-        val sessionManager = com.example.mda.data.datastore.SessionManager(applicationContext)
-        val authRepository = com.example.mda.data.repository.AuthRepository(RetrofitInstance.api, sessionManager)
+        val authRepository = AuthRepository(
+            RetrofitInstance.api,
+            sessionManager
+        )
         authViewModel = com.example.mda.ui.screens.auth.AuthViewModel(authRepository)
 
         // ======= SearchViewModel Factory =======
@@ -141,7 +149,9 @@ class MainActivity : ComponentActivity() {
                         null -> {
                             // ⏳ Loading
                             Box(
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(32.dp),
                                 contentAlignment = Alignment.Center
                             ) { CircularProgressIndicator() }
                         }
@@ -172,12 +182,15 @@ class MainActivity : ComponentActivity() {
                             historyViewModel = historyVM
 
                             val moviesHistoryVM: MoviesHistoryViewModel =
-                                viewModel(factory = MoviesHistoryViewModelFactory(
-                                    moviesHistoryRepository
-                                )
+                                viewModel(
+                                    factory = MoviesHistoryViewModelFactory(
+                                        moviesHistoryRepository
+                                    )
                                 )
                             moviesHistoryViewModel = moviesHistoryVM
-                            val actorvm : ActorViewModel = viewModel(factory = ActorViewModelFactory(actorRepository))
+
+                            val actorvm: ActorViewModel =
+                                viewModel(factory = ActorViewModelFactory(actorRepository))
 
                             actorViewModel = actorvm
 
@@ -189,13 +202,21 @@ class MainActivity : ComponentActivity() {
                                 topBar = {
                                     val currentRoute =
                                         navController.currentBackStackEntryAsState().value?.destination?.route
+
+                                    // ✅ Hide TopAppBar for these routes
                                     val hideTopBarRoutes = listOf(
                                         "ActorDetails/{personId}",
                                         "detail/{mediaType}/{id}",
-                                        "onboarding"
+                                        "onboarding",
+                                        "login",
+                                        "signup",
+                                        "account",
+                                        "kids"  // ✅ Added kids route
                                     )
+
                                     if (currentRoute !in hideTopBarRoutes) {
-                                        val (topBarBg, topBarText) = AppTopBarColors(darkTheme = darkTheme)
+                                        val (topBarBg, topBarText) =
+                                            AppTopBarColors(darkTheme = darkTheme)
                                         TopAppBar(
                                             title = {
                                                 val titleToShow = if (topBarState.title.isNotEmpty())
@@ -237,10 +258,17 @@ class MainActivity : ComponentActivity() {
                                 bottomBar = {
                                     val currentRoute =
                                         navController.currentBackStackEntryAsState().value?.destination?.route
+
+                                    // ✅ Hide BottomBar for these routes
                                     val hideBottomBarRoutes = listOf(
                                         "ActorDetails/{personId}",
-                                        "detail/{mediaType}/{id}"
+                                        "detail/{mediaType}/{id}",
+                                        "login",
+                                        "signup",
+                                        "account",
+                                        "kids"  // ✅ Added kids route
                                     )
+
                                     if (currentRoute !in hideBottomBarRoutes) {
                                         val buttons = listOf(
                                             ButtonData("home", "Home", Icons.Default.Home),
@@ -262,12 +290,20 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             ) { innerPadding ->
-                                val adjustedPadding = PaddingValues(
-                                    top = innerPadding.calculateTopPadding(),
-                                    bottom = 0.dp,
-                                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                                    end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
-                                )
+                                val currentRoute =
+                                    navController.currentBackStackEntryAsState().value?.destination?.route
+
+                                // ✅ Don't apply padding for kids route (it has its own Scaffold)
+                                val adjustedPadding = if (currentRoute == "kids") {
+                                    PaddingValues(0.dp)
+                                } else {
+                                    PaddingValues(
+                                        top = innerPadding.calculateTopPadding(),
+                                        bottom = 0.dp,
+                                        start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                                        end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
+                                    )
+                                }
 
                                 Box(modifier = Modifier.padding(adjustedPadding)) {
                                     MdaNavHost(
@@ -286,6 +322,11 @@ class MainActivity : ComponentActivity() {
                                         historyViewModel = historyViewModel,
                                         moviesHistoryViewModel = moviesHistoryViewModel,
                                         authRepository = authRepository,
+                                        darkTheme = darkTheme,
+                                        onToggleTheme = {
+                                            darkTheme = !darkTheme
+                                            prefs.edit { putBoolean("dark_mode", darkTheme) }
+                                        }
                                     )
                                 }
                             }
