@@ -64,8 +64,7 @@ fun MdaNavHost(
     authRepository: AuthRepository,
     historyViewModel: HistoryViewModel,
     moviesHistoryViewModel: MoviesHistoryViewModel,
-    darkTheme: Boolean,
-    onToggleTheme: () -> Unit
+    darkTheme: Boolean
 ) {
     NavHost(
         navController = navController,
@@ -230,7 +229,6 @@ fun MdaNavHost(
                 navController = navController,
                 viewModel = authViewModel,
                 darkTheme = darkTheme,
-                onToggleTheme = onToggleTheme
             )
         }
 
@@ -238,15 +236,13 @@ fun MdaNavHost(
             SignupScreen(
                 navController = navController,
                 darkTheme = darkTheme,
-                onToggleTheme = onToggleTheme
             )
         }
 
         composable("account") {
             AccountScreen(
                 navController = navController,
-                viewModel = authViewModel,
-                onToggleTheme = onToggleTheme
+                viewModel = authViewModel
             )
         }
 

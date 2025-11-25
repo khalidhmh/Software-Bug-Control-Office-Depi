@@ -241,16 +241,7 @@ class MainActivity : ComponentActivity() {
                                             navigationIcon = { topBarState.navigationIcon?.invoke() },
                                             actions = {
                                                 topBarState.actions(this)
-                                                IconButton(onClick = {
-                                                    scope.launch {
-                                                        dataStore.setThemeMode(if (!darkTheme) 2 else 1)}
-                                                }) {
-                                                    Icon(
-                                                        imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                                                        contentDescription = "Toggle Theme",
-                                                        tint = topBarText
-                                                    )
-                                                }
+
                                             }
                                         )
                                     }
@@ -275,8 +266,7 @@ class MainActivity : ComponentActivity() {
                                             ButtonData("movies", "Movies", Icons.Default.Movie),
                                             ButtonData("actors", "People", Icons.Default.People),
                                             ButtonData("search", "Search", Icons.Default.Search),
-                                            ButtonData("kids", "Kids", Icons.Default.ChildCare),
-                                            ButtonData("profile", "Profile", Icons.Default.Person)
+                                            ButtonData("settings", "Settings", Icons.Default.Settings)
                                         )
 
                                         AnimatedNavigationBar(
@@ -323,10 +313,7 @@ class MainActivity : ComponentActivity() {
                                         moviesHistoryViewModel = moviesHistoryViewModel,
                                         authRepository = authRepository,
                                         darkTheme = darkTheme,
-                                        onToggleTheme = {
-                                            darkTheme = !darkTheme
-                                            prefs.edit { putBoolean("dark_mode", darkTheme) }
-                                        }
+
                                     )
                                 }
                             }
