@@ -1,6 +1,6 @@
 package com.example.mda.ui.screens.actors
 
-import ActorSearchBar
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.*
@@ -64,19 +64,8 @@ fun ActorsScreen(
             onTopBarStateChange(TopBarState())
         }
     }
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    var searchText by rememberSaveable { mutableStateOf(searchQuery) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // --- Search bar ---
-        // Search bar
-        ActorSearchBar(
-            searchText = searchText,
-            onSearchChange = {
-                searchText = it
-                viewModel.updateSearchQuery(it) // updates state instantly
-            }
-        )
         val refreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
 
         SwipeRefresh(

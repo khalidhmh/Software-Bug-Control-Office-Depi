@@ -67,15 +67,50 @@ fun SettingsScreen(
             isLoggedIn = isLoggedIn,
             userName = account?.name ?: account?.username,
             userEmail = account?.id?.toString(),
-            onClick = { navController.navigate("profile") },
+            onClick = {navController.navigate("account") },
             onLoginClick = { navController.navigate("login") }
         )
         Text("Other settings", style = MaterialTheme.typography.labelLarge)
 
         SettingsGroupCard {
-            SettingsItem(Icons.Default.Person, "Profile details") { navController.navigate("profile_details")}
+
+            SettingsItem(
+                Icons.Default.Favorite,
+                "Favorite Movies",
+                onClick = {
+                    navController.navigate("Favprofile")
+                }
+            )
             Divider()
-            SettingsItem(Icons.Default.Lock, "Password") { navController.navigate("change_password")}
+
+            SettingsItem(
+                Icons.Default.Person,
+                "Actors Viewed",
+                onClick = {
+                    navController.navigate("HistoryScreen")
+                }
+            )
+            Divider()
+
+            SettingsItem(
+                Icons.Default.Movie,
+                "Movies Viewed",
+                onClick = {
+                    navController.navigate("MovieHistoryScreen")
+                }
+            )
+        }
+        SettingsGroupCard {
+            SettingsItem(Icons.Default.Person, "Profile details") {
+
+                navController.navigate("account")
+            }
+            Divider()
+            SettingsItem(Icons.Default.Lock, "Password") {
+
+                // not implemented yet
+                // navController.navigate("change_password")
+            }
             Divider()
             SettingsItem(
                 Icons.Default.Notifications, "Notifications",
@@ -93,19 +128,17 @@ fun SettingsScreen(
         }
 
         SettingsGroupCard {
-            SettingsItem(Icons.Default.Language, "Language") { navController.navigate("language_settings") }
-            Divider()
-            SettingsItem(
-                icon = Icons.Default.ChildCare,
-                title = "Kids Mode"
-            ) { navController.navigate("kids") }
-            Divider()
-             SettingsItem(Icons.Default.Security, "Privacy Settings") { navController.navigate("privacy_settings") }
+            SettingsItem(Icons.Default.Language, "Language") {
+                // not implemented yet
+                // navController.navigate("language_settings")
 
+            }
             Divider()
-            SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq") }
+            SettingsItem(Icons.Default.Security, "Privacy Settings") { navController.navigate("privacy_settings")}
             Divider()
-            SettingsItem(Icons.Default.Info, "About") { navController.navigate("about_app") }
+            SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq")}
+            Divider()
+            SettingsItem(Icons.Default.Info, "About") {   navController.navigate("about_app")}
         }
 
         SettingsGroupCard {
@@ -114,9 +147,9 @@ fun SettingsScreen(
                 Icons.Default.Logout,
                 "Log out",
                 textColor = MaterialTheme.colorScheme.error,
-                iconColor = MaterialTheme.colorScheme.error
-            ) {
-                 }
+                iconColor = MaterialTheme.colorScheme.error,
+                onClick = { authViewModel?.logout() }
+            )
         }
 
         Spacer(Modifier.height(80.dp))
