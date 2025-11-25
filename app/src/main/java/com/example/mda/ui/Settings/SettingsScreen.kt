@@ -39,7 +39,8 @@ fun SettingsScreen(
 
     val theme by viewModel.themeMode.collectAsState()
     val notifications by viewModel.notificationsEnabled.collectAsState()
-    val uiState by authViewModel?.uiState?.collectAsState() ?: remember { mutableStateOf(AuthUiState()) }
+    val uiState by authViewModel?.uiState?.collectAsState()
+        ?: remember { mutableStateOf(AuthUiState()) }
 
     val isLoggedIn = uiState.isAuthenticated
     val account = uiState.accountDetails
@@ -67,7 +68,7 @@ fun SettingsScreen(
             isLoggedIn = isLoggedIn,
             userName = account?.name ?: account?.username,
             userEmail = account?.id?.toString(),
-            onClick = {navController.navigate("account") },
+            onClick = { navController.navigate("account") },
             onLoginClick = { navController.navigate("login") }
         )
         Text("Other settings", style = MaterialTheme.typography.labelLarge)
@@ -102,178 +103,189 @@ fun SettingsScreen(
         }
         SettingsGroupCard {
             SettingsItem(Icons.Default.Person, "Profile details") {
+                if (isLoggedIn) {
+                    navController.navigate("account")
+                } else {
+                    navController.navigate("login")
 
-                navController.navigate("account")
+                }
             }
-            Divider()
-            SettingsItem(Icons.Default.Lock, "Password") {
+                Divider()
+                SettingsItem(Icons.Default.Lock, "Password") {
 
-                // not implemented yet
-                // navController.navigate("change_password")
+                    // not implemented yet
+                    // navController.navigate("change_password")
+                }
+                Divider()
+                SettingsItem(
+                    Icons.Default.Notifications, "Notifications",
+                    isToggle = true,
+                    toggleState = notifications,
+                    onToggleChange = { viewModel.updateNotifications(it) }
+                )
+                Divider()
+                SettingsItem(
+                    Icons.Default.DarkMode, "Dark Mode",
+                    isToggle = true,
+                    toggleState = theme == 2,
+                    onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
+                )
             }
-            Divider()
-            SettingsItem(
-                Icons.Default.Notifications, "Notifications",
-                isToggle = true,
-                toggleState = notifications,
-                onToggleChange = { viewModel.updateNotifications(it) }
-            )
-            Divider()
-            SettingsItem(
-                Icons.Default.DarkMode, "Dark Mode",
-                isToggle = true,
-                toggleState = theme == 2,
-                onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
-            )
-        }
 
-        SettingsGroupCard {
-            SettingsItem(Icons.Default.Language, "Language") {
-                // not implemented yet
-                // navController.navigate("language_settings")
+            SettingsGroupCard {
+                SettingsItem(Icons.Default.Language, "Language") {
+                    // not implemented yet
+                    // navController.navigate("language_settings")
 
+                }
+                Divider()
+                SettingsItem(
+                    Icons.Default.Security,
+                    "Privacy Settings"
+                ) { navController.navigate("privacy_settings") }
+                Divider()
+                SettingsItem(
+                    Icons.Default.Help,
+                    "Help / FAQ"
+                ) { navController.navigate("help_faq") }
+                Divider()
+                SettingsItem(Icons.Default.Info, "About") { navController.navigate("about_app") }
             }
-            Divider()
-            SettingsItem(Icons.Default.Security, "Privacy Settings") { navController.navigate("privacy_settings")}
-            Divider()
-            SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq")}
-            Divider()
-            SettingsItem(Icons.Default.Info, "About") {   navController.navigate("about_app")}
-        }
 
-        SettingsGroupCard {
-            Divider()
-            SettingsItem(
-                Icons.Default.Logout,
-                "Log out",
-                textColor = MaterialTheme.colorScheme.error,
-                iconColor = MaterialTheme.colorScheme.error,
-                onClick = { authViewModel?.logout() }
-            )
-        }
+            SettingsGroupCard {
+                Divider()
+                SettingsItem(
+                    Icons.Default.Logout,
+                    "Log out",
+                    textColor = MaterialTheme.colorScheme.error,
+                    iconColor = MaterialTheme.colorScheme.error,
+                    onClick = { authViewModel?.logout() }
+                )
+            }
 
-        Spacer(Modifier.height(80.dp))
+            Spacer(Modifier.height(80.dp))
 
-    }
-}
-
-@Composable
-fun SettingsGroupCard(content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(content = content)
-    }
-}
-
-@Composable
-fun SettingsItem(
-    icon: ImageVector,
-    title: String,
-    textColor: Color = MaterialTheme.colorScheme.onSurface,
-    iconColor: Color = MaterialTheme.colorScheme.onSurface,
-    isToggle: Boolean = false,
-    toggleState: Boolean = false,
-    onToggleChange: ((Boolean) -> Unit)? = null,
-    onClick: (() -> Unit)? = null
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = onClick != null && !isToggle) { onClick?.invoke() }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = title, tint = iconColor)
-        Spacer(Modifier.width(16.dp))
-        Text(title, color = textColor, modifier = Modifier.weight(1f))
-        if (isToggle && onToggleChange != null) {
-            Switch(checked = toggleState, onCheckedChange = onToggleChange)
-        } else {
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = Color.Gray
-            )
         }
     }
-}
-@Composable
-fun ProfileCard(
-    isLoggedIn: Boolean,
-    userName: String?,
-    userEmail: String?,
-    onClick: () -> Unit,
-    onLoginClick: () -> Unit
-) {
 
-    Card(
-        onClick = {
-            if (isLoggedIn) onClick() else onLoginClick()
-        },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+    @Composable
+    fun SettingsGroupCard(content: @Composable ColumnScope.() -> Unit) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(2.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(content = content)
+        }
+    }
+
+    @Composable
+    fun SettingsItem(
+        icon: ImageVector,
+        title: String,
+        textColor: Color = MaterialTheme.colorScheme.onSurface,
+        iconColor: Color = MaterialTheme.colorScheme.onSurface,
+        isToggle: Boolean = false,
+        toggleState: Boolean = false,
+        onToggleChange: ((Boolean) -> Unit)? = null,
+        onClick: (() -> Unit)? = null
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .clickable(enabled = onClick != null && !isToggle) { onClick?.invoke() }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                modifier = Modifier.size(60.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary
-            ) {
+            Icon(icon, contentDescription = title, tint = iconColor)
+            Spacer(Modifier.width(16.dp))
+            Text(title, color = textColor, modifier = Modifier.weight(1f))
+            if (isToggle && onToggleChange != null) {
+                Switch(checked = toggleState, onCheckedChange = onToggleChange)
+            } else {
                 Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-            if (isLoggedIn) {
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = userName ?: "User",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = userEmail ?: "",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                }
-
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
                     tint = Color.Gray
                 )
+            }
+        }
+    }
 
-            } else {
-                Column {
-                    Text(
-                        text = "Login or Sign up",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+    @Composable
+    fun ProfileCard(
+        isLoggedIn: Boolean,
+        userName: String?,
+        userEmail: String?,
+        onClick: () -> Unit,
+        onLoginClick: () -> Unit
+    ) {
+
+        Card(
+            onClick = {
+                if (isLoggedIn) onClick() else onLoginClick()
+            },
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    modifier = Modifier.size(60.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.padding(12.dp)
                     )
-                    Text(
-                        text = "Access your account to sync settings",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+                if (isLoggedIn) {
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = userName ?: "User",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = userEmail ?: "",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = Color.Gray
                     )
+
+                } else {
+                    Column {
+                        Text(
+                            text = "Login or Sign up",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Access your account to sync settings",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
                 }
             }
         }
     }
-}
