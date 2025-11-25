@@ -22,10 +22,7 @@ import coil.compose.AsyncImage
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
-import com.example.mda.ui.screens.favorites.components.FavoriteButton
-import com.example.mda.ui.screens.home.homeScreen.MovieCardWithFavorite
 import com.example.mda.ui.theme.AppBackgroundGradient
-import com.example.mda.ui.screens.profile.favourites.HistorySectionButton
 
 @Composable
 fun ProfileScreen(
