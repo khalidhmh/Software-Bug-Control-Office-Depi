@@ -62,6 +62,7 @@ class AuthRepository(
 
     /**
      * Get account details using the saved session ID
+     * Also saves account_id locally in SessionManager.
      */
     suspend fun getAccountDetails(): Result<AccountDetails> {
         return try {
@@ -71,15 +72,24 @@ class AuthRepository(
             }
 
             val response = api.getAccountDetails(sessionId)
+
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val details = response.body()!!
+
+                // Save account id
+                sessionManager.saveAccountId(details.id)
+
+                return Result.success(details)
+
             } else {
                 Result.failure(Exception("Failed to get account details: ${response.message()}"))
             }
+
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
 
     /**
      * Check if user is logged in
@@ -100,6 +110,13 @@ class AuthRepository(
      */
     fun getRequestToken(): Flow<String?> {
         return sessionManager.requestToken
+    }
+
+    /**
+     * Get the saved account ID
+     */
+    fun getAccountId(): Flow<Int?> {
+        return sessionManager.accountId
     }
 
     /**

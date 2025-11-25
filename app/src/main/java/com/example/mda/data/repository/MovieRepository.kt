@@ -33,7 +33,7 @@ class MoviesRepository(
                     .filter { it.adult != true }
                     .map { it.toMediaEntity(typeFilter) }
 
-                // إجبار الـ mediaType لو ناقص
+                // إجبار الـ mediaType لو ناقص
                 entities = entities.map {
                     if (it.mediaType.isNullOrBlank() && typeFilter != null)
                         it.copy(mediaType = typeFilter)
@@ -99,6 +99,20 @@ class MoviesRepository(
             emptyList()
         }
     }
+
+    // ✅ Fixed: Using safeApiCall instead of manual API call
+    suspend fun getTvShowsByGenre(genreId: Int, page: Int = 1): List<MediaEntity> = safeApiCall(
+        apiCall = {
+            val res = api.getTvShowsByGenre(genreId, page)
+            if (res.isSuccessful) res.body() else null
+        },
+        fallback = {
+            localRepo.getAll().first()
+                .filter { it.mediaType == "tv" && it.genreIds?.contains(genreId) == true }
+        },
+        typeFilter = "tv",
+        genreId = genreId
+    )
 
     // ---------------------- TV Shows ----------------------
     suspend fun getPopularTvShows(): List<MediaEntity> = safeApiCall(

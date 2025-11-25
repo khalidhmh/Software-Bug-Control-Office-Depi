@@ -118,8 +118,8 @@ fun MovieCardWithFavorite(
                 FavoriteButton(
                     movie = movieData,
                     viewModel = favoritesViewModel,
-                    navController = navController,
                     isAuthenticated = authUiState.isAuthenticated,
+                    onLoginRequired = { navController.navigate("profile") },
                     showBackground = false,
                 )
             }

@@ -280,7 +280,28 @@ interface TmdbApi {
         @Query("session_id") sessionId: String,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
+
+    @POST("account/{account_id}/favorite")
+    suspend fun markFavorite(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Body body: Map<String, @JvmSuppressWildcards Any>,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<Unit>
+
+    @GET("account/{account_id}/favorite/movies")
+    suspend fun getFavoriteMovies(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<FavoriteMoviesResponse>
+
+
+
+
 }
+
+
 
 
 //// Khaled Edit: Updated HomeViewModel to use offline cached data via MediaEntity

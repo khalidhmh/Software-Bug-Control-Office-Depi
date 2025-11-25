@@ -17,7 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.repository.mappers.toMovie
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
@@ -29,10 +32,10 @@ fun SearchResultsGrid(
     results: List<MediaEntity>,
     onItemClick: (MediaEntity) -> Unit,
     favoritesViewModel: FavoritesViewModel,
-    gridState: LazyGridState = rememberLazyGridState() // ✅ استقبال الـ state
-){
-
-    val gridState = rememberLazyGridState()
+    navController: NavController,
+    isAuthenticated: Boolean,
+    gridState: LazyGridState = rememberLazyGridState()
+) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(150.dp),
         state = gridState,
@@ -58,7 +61,9 @@ fun SearchResultsGrid(
                         FavoriteButton(
                             movie = movie,
                             viewModel = favoritesViewModel,
-                            showBackground = true
+                            showBackground = true,
+                            isAuthenticated = isAuthenticated,
+                            onLoginRequired = { navController.navigate("profile") }
                         )
                     }
                 )
@@ -67,7 +72,9 @@ fun SearchResultsGrid(
                     text = media.title ?: media.name ?: "Unknown",
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.bodySmall,
-                    maxLines = 2
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
                 )
             }
         }

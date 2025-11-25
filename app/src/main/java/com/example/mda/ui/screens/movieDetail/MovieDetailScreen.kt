@@ -59,6 +59,7 @@ import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
 import com.example.mda.data.remote.model.Movie
 import com.example.mda.ui.screens.actordetails.widgets.InfoCard
+import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
@@ -454,7 +455,8 @@ fun MovieDetailsContent(
     recommendations: List<MediaEntity>,
     providers: com.example.mda.data.repository.MovieDetailsRepository.ProvidersGrouped?,
     reviews: List<com.example.mda.data.remote.model.ReviewItem>,
-    keywords: List<com.example.mda.data.remote.model.KeywordItem>
+    keywords: List<com.example.mda.data.remote.model.KeywordItem>,
+    isAuthenticated: Boolean
 ) {
     LaunchedEffect(details.id) {
         moviehistoryViewModel.saveViewedMovie(
@@ -697,7 +699,9 @@ fun MovieDetailsContent(
                     movie = movie,
                     viewModel = favoritesViewModel,
                     showBackground = false,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(48.dp),
+                    isAuthenticated = isAuthenticated,
+                    onLoginRequired = { navController.navigate("profile") }
                 )
             }
             Spacer(Modifier.height(12.dp))
@@ -1010,7 +1014,8 @@ fun MovieDetailsScreen(
     repository: MovieDetailsRepository,
     onTopBarStateChange: (TopBarState) -> Unit,
     favoritesViewModel: FavoritesViewModel,
-    moviehistoryViewModel: MoviesHistoryViewModel
+    moviehistoryViewModel: MoviesHistoryViewModel,
+    authViewModel: AuthViewModel
 ) {
     val viewModel: MovieDetailsViewModel = viewModel(factory = MovieDetailsViewModelFactory(repository))
     val scope = rememberCoroutineScope()
@@ -1024,6 +1029,7 @@ fun MovieDetailsScreen(
     val providers by viewModel.providers.collectAsState()
     val reviews by viewModel.reviews.collectAsState()
     val keywords by viewModel.keywords.collectAsState()
+    val authUiState by authViewModel.uiState.collectAsState()
 
 
     // Load from cache first
@@ -1084,7 +1090,8 @@ fun MovieDetailsScreen(
                         recommendations = recommendations,
                         providers = providers,
                         reviews = reviews?.results ?: emptyList(),
-                        keywords = keywords?.all() ?: emptyList()
+                        keywords = keywords?.all() ?: emptyList(),
+                        isAuthenticated = authUiState.isAuthenticated
                     )
                 }
 

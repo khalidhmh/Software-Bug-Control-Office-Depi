@@ -38,7 +38,7 @@ fun ActorDetailsScreen(
     onTopBarStateChange: (TopBarState) -> Unit,
     favoritesViewModel: FavoritesViewModel,
     historyViewModel: HistoryViewModel,
-    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModel
 ) {
     val vm: ActorViewModel = viewModel(factory = ActorViewModel.ActorViewModelFactory(repository))
     val actor by vm.actorFullDetails.collectAsState()

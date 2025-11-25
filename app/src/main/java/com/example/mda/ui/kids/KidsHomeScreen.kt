@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,7 +30,6 @@ import androidx.compose.material3.IconButton
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.kids.KidsFilter.filterKids
-import com.example.mda.ui.screens.components.MovieCardGridWithFavorite
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.kids.favorites.KidsFavoriteButton
 import com.example.mda.data.remote.model.Movie
@@ -38,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import coil.compose.AsyncImage
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.Crossfade
 
@@ -73,8 +74,7 @@ fun KidsHomeScreen(
     }
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 106.dp)
     ) {
         // Hero carousel
@@ -97,7 +97,6 @@ fun KidsHomeScreen(
             item { SectionHeader(title = "Anime Movies", onClick = { onOpenSection("anime") }) }
             item { MediaRow(list = anime.value, onItemClick = onItemClick) }
         }
-        // Fallback: show grid of remaining items if needed could be added later.
     }
 }
 
@@ -110,9 +109,17 @@ private fun SectionHeader(title: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
         IconButton(onClick = onClick) {
-            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray)
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -158,9 +165,8 @@ private fun HeroCarousel(
                     .fillMaxWidth()
                     .height(320.dp)
                     .padding(horizontal = 12.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(18.dp))
             ) {
-                // Backdrop image as background with subtle crossfade on change
                 Crossfade(targetState = current, label = "HeroCrossfade") { item ->
                     if (item != null) {
                         AsyncImage(
@@ -173,7 +179,7 @@ private fun HeroCarousel(
                     }
                 }
 
-                // Gradient overlay (stronger at bottom)
+                // Gradient overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -188,19 +194,23 @@ private fun HeroCarousel(
                         )
                 )
 
-                // Small kids badge top-left
+                // Kids badge
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(12.dp)
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                        .background(Color(0xFF00D8A0).copy(alpha = 0.9f))
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.9f))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text(text = "kids", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = "kids",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
 
-                // Content overlay (title, tags, buttons)
+                // Content overlay
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -215,14 +225,13 @@ private fun HeroCarousel(
 
                     Spacer(Modifier.height(8.dp))
 
-                    // simple tags row (genres) + light subtitle
                     val tags = current.genres?.take(2) ?: emptyList()
                     if (tags.isNotEmpty()) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             tags.forEach { tag ->
                                 Box(
                                     modifier = Modifier
-                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+                                        .clip(RoundedCornerShape(50))
                                         .background(Color.White.copy(alpha = 0.25f))
                                         .padding(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
@@ -239,8 +248,17 @@ private fun HeroCarousel(
                         Spacer(Modifier.height(10.dp))
                     }
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Button(onClick = { onItemClick(current) }) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { onItemClick(current) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        ) {
                             Text("Watch")
                         }
                     }
@@ -257,7 +275,7 @@ private fun HeroCarousel(
                         val selected = (index % items.size.coerceAtLeast(1)) == idx
                         Box(
                             modifier = Modifier
-                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(50))
+                                .clip(RoundedCornerShape(50))
                                 .background(if (selected) Color.White else Color.White.copy(alpha = 0.4f))
                                 .height(6.dp)
                                 .width(if (selected) 16.dp else 6.dp)
@@ -271,19 +289,22 @@ private fun HeroCarousel(
 
 @Composable
 fun KidsPosterCard(
-    media: com.example.mda.data.local.entities.MediaEntity,
+    media: MediaEntity,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier.width(150.dp).height(220.dp),
+    modifier: Modifier = Modifier
+        .width(150.dp)
+        .height(220.dp),
     favoriteButton: @Composable () -> Unit
 ) {
-    androidx.compose.material3.Card(
+    Card(
         onClick = onClick,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
-        Box(
-            modifier = modifier
-        ) {
-            coil.compose.AsyncImage(
+        Box(modifier = modifier) {
+            AsyncImage(
                 model = media.posterPath?.let { "https://image.tmdb.org/t/p/w500$it" }
                     ?: media.backdropPath?.let { "https://image.tmdb.org/t/p/w500$it" },
                 contentDescription = media.title ?: media.name ?: "",
@@ -295,7 +316,7 @@ fun KidsPosterCard(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(6.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
                     .background(Color.Black.copy(alpha = 0.55f))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
@@ -317,7 +338,6 @@ fun KidsPosterCard(
     }
 }
 
-// mapper
 private fun MediaEntity.toMovie(): Movie = Movie(
     id = this.id,
     title = this.title,
