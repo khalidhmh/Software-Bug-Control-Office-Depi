@@ -1,6 +1,8 @@
 package com.example.mda.ui.screens.search
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -32,7 +35,7 @@ import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.auth.AuthViewModel
 
 /**
- * شاشة البحث – محسّنة مع دعم التوب بار الديناميكي
+ * Search Screen - Animated Search Bar Position
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +54,20 @@ fun SearchScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val authUiState by authViewModel.uiState.collectAsState()
 
-    // تهيئة التوب بار
+    // 1. State to track focus
+    var isSearchFocused by remember { mutableStateOf(false) }
+
+    // 2. Logic: It stays up if you are typing (focused) OR if there is text (results shown)
+    val isSearchActive = isSearchFocused || query.isNotEmpty()
+
+    // 3. Animation: Move between 140.dp (Original low position) and 0.dp (Top position)
+    val animatedTopPadding by animateDpAsState(
+        targetValue = if (isSearchActive) 0.dp else 140.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessLow), // Smooth motion
+        label = "SearchBarAnimation"
+    )
+
+    // Setup Top Bar
     LaunchedEffect(Unit) {
         onTopBarStateChange(TopBarState(title = "Discover"))
     }
@@ -83,6 +99,9 @@ fun SearchScreen(
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
+
+            // 4. The Animated Spacer that pushes the Search Bar down or pulls it up
+            Spacer(modifier = Modifier.height(animatedTopPadding))
 
             // Search TextField
             OutlinedTextField(
@@ -124,11 +143,15 @@ fun SearchScreen(
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
-                    focusManager.clearFocus()
+                    focusManager.clearFocus() // This allows it to drop down if text is empty
                     viewModel.submitSearch()
                 }),
                 modifier = Modifier
                     .fillMaxWidth()
+                    // 5. Detect Focus Changes
+                    .onFocusChanged { focusState ->
+                        isSearchFocused = focusState.isFocused
+                    }
                     .padding(top = 4.dp)
                     .height(56.dp)
             )
@@ -141,78 +164,83 @@ fun SearchScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            when (val state = uiState) {
-                UiState.Loading -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
+            // Content Area - Only visible/interactive when needed
+            // The Box ensures the Column doesn't jump in width/layout unexpectedly
+            Box(modifier = Modifier.weight(1f)) {
+                when (val state = uiState) {
+                    UiState.Loading -> Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
 
-                is UiState.Success -> {
-                    if (selectedFilter == "people") {
-                        LazyVerticalGrid(
-                            columns = GridCells.Adaptive(140.dp),
-                            contentPadding = PaddingValues(8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            state = gridScrollState
-                        ) {
-                            items(state.results) { person ->
-                                ActorGridItem(
-                                    actor = person.toActorModel(),
-                                    navController = navController
-                                )
+                    is UiState.Success -> {
+                        if (selectedFilter == "people") {
+                            LazyVerticalGrid(
+                                columns = GridCells.Adaptive(140.dp),
+                                contentPadding = PaddingValues(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                state = gridScrollState
+                            ) {
+                                items(state.results) { person ->
+                                    ActorGridItem(
+                                        actor = person.toActorModel(),
+                                        navController = navController
+                                    )
+                                }
                             }
+                        } else {
+                            SearchResultsGrid(
+                                results = state.results,
+                                onItemClick = {
+                                    navController.navigate("detail/${it.mediaType}/${it.id}")
+                                },
+                                favoritesViewModel = favoritesViewModel,
+                                navController = navController,
+                                isAuthenticated = authUiState.isAuthenticated
+                            )
                         }
-                    } else {
-                        SearchResultsGrid(
-                            results = state.results,
-                            onItemClick = {
-                                navController.navigate("detail/${it.mediaType}/${it.id}")
-                            },
-                            favoritesViewModel = favoritesViewModel,
-                            navController = navController,
-                            isAuthenticated = authUiState.isAuthenticated
+                    }
+
+                    is UiState.History -> {
+                        // History shows when we have items and search is "active"
+                        if (state.items.isNotEmpty()) {
+                            RecentSearchesList(state.items, viewModel)
+                        }
+                    }
+
+                    UiState.Empty -> Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No results found",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
 
-                is UiState.History -> {
-                    if (state.items.isNotEmpty()) {
-                        RecentSearchesList(state.items, viewModel)
+                    is UiState.Error -> Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Error: ${state.message}",
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
-                }
 
-                UiState.Empty -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "No results found",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                is UiState.Error -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Error: ${state.message}",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                else -> {
-                    // LatestMoviesSection(navController, viewModel, favoritesViewModel)
+                    else -> {
+                        // Default state
+                    }
                 }
             }
         }
     }
 }
 
-// تحويل MediaEntity لـ Actor Model بسيط
+// ... Helper functions (toActorModel, RecentSearchesList) remain the same ...
 private fun MediaEntity.toActorModel() =
     Actor(
         id = id,
@@ -225,7 +253,6 @@ private fun MediaEntity.toActorModel() =
         placeOfBirth = null
     )
 
-// 🔹 قائمة الـ Search History
 @Composable
 fun RecentSearchesList(
     items: List<SearchHistoryEntity>,
