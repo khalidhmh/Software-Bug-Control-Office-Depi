@@ -1,11 +1,11 @@
-@file:OptIn(ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 
 package com.example.mda.ui.screens.movieDetail
 
 import android.graphics.drawable.BitmapDrawable
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,9 +18,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material3.*
@@ -28,9 +33,9 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -64,25 +69,246 @@ import com.example.mda.ui.screens.favorites.components.FavoriteButton
 import com.example.mda.ui.screens.movieDetail.components.CastItem
 import com.example.mda.ui.screens.movieDetail.components.VideoThumbnail
 import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
-import com.example.mda.ui.theme.AppBackgroundGradient
-import com.example.mda.ui.theme.RatingYellow
+import com.example.mda.ui.theme.AppVerticalGradient
+import com.example.mda.ui.theme.PrimaryBlue
+import com.example.mda.ui.theme.TextSecondaryDark
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
 
+// --- Helper Components ---
+
 @Composable
-fun SurfaceChip(text: String) {
+fun StyledChip(
+    text: String,
+    icon: ImageVector? = null,
+    onClick: () -> Unit = {}
+) {
     Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.small,
-        modifier = Modifier.padding(0.dp)
+        onClick = onClick,
+        shape = MaterialTheme.shapes.medium, // Uses Shape.kt (8.dp)
+        color = MaterialTheme.colorScheme.surfaceVariant, // Uses DarkSurfaceVariant
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(vertical = 4.dp)
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary // Uses PrimaryBlue
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge, // Uses Type.kt
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
+
+@Composable
+fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+        color = MaterialTheme.colorScheme.primary, // Uses PrimaryBlue
+        modifier = Modifier.padding(bottom = 8.dp, top = 4.dp)
+    )
+}
+
+@Composable
+fun ProductionSection(details: MediaEntity) {
+    val languages = details.spokenLanguages ?: emptyList()
+    val companies = details.productionCompanies ?: emptyList()
+    val countries = details.productionCountries ?: emptyList()
+
+    if (languages.isEmpty() && companies.isEmpty() && countries.isEmpty()) return
+
+    Surface(
+        tonalElevation = 1.dp, // Subtle elevation
+        shape = MaterialTheme.shapes.large, // Uses Shape.kt (16.dp)
+        color = MaterialTheme.colorScheme.surface, // Uses DarkSurface
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Production Details",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(12.dp))
+
+            // 1. Spoken Languages
+            if (languages.isNotEmpty()) {
+                SectionHeader(title = "Spoken Languages")
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    languages.take(6).forEach { lang ->
+                        StyledChip(text = lang, icon = Icons.Default.Language)
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // 2. Countries
+            if (countries.isNotEmpty()) {
+                SectionHeader(title = "Production Countries")
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    countries.take(6).forEach { country ->
+                        StyledChip(text = country, icon = Icons.Default.Public)
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // 3. Companies
+            if (companies.isNotEmpty()) {
+                SectionHeader(title = "Companies")
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    companies.take(8).forEach { comp ->
+                        StyledChip(text = comp, icon = Icons.Default.Business)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- UPDATED Genres Section (Matching Keywords Style) ---
+@Composable
+fun GenresSection(
+    genres: List<Pair<Int, String>>,
+    navController: NavController
+) {
+    if (genres.isEmpty()) return
+
+    Surface(
+        tonalElevation = 1.dp,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Category,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Genres",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                genres.forEach { (id, name) ->
+                    // Uses the same style as KeywordsSection (Circle, Border, Transparent-ish bg)
+                    Surface(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        shape = CircleShape,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                        modifier = Modifier
+                            .clickable {
+                                if (id != -1) {
+                                    navController.navigate("genre_details/$id/$name")
+                                }
+                            }
+                    ) {
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun KeywordsSection(keywords: List<KeywordItem>) {
+    if (keywords.isEmpty()) return
+
+    Surface(
+        tonalElevation = 1.dp,
+        shape = MaterialTheme.shapes.large, // Uses Shape.kt (16.dp)
+        color = MaterialTheme.colorScheme.surface, // Uses DarkSurface
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Tag,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Keywords",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                keywords.take(15).forEach { k ->
+                    // Keyword Tag
+                    Surface(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), // Uses DarkContainer
+                        shape = CircleShape,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .clickable { /* Handle click */ }
+                    ) {
+                        Text(
+                            text = "#${k.name}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Rest of the Screen ---
 
 @Composable
 fun ExpandableText(
@@ -93,14 +319,14 @@ fun ExpandableText(
     Column {
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium, // Uses Type.kt
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = if (expanded) Int.MAX_VALUE else collapsedLines,
             overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(6.dp))
         TextButton(onClick = { expanded = !expanded }) {
-            Text(if (expanded) "Show less" else "Show more")
+            Text(if (expanded) "Show less" else "Show more", color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -117,7 +343,7 @@ fun RecommendationsSimilarTabs(
     var selected by remember { mutableStateOf(0) }
 
     Surface(
-        tonalElevation = 2.dp,
+        tonalElevation = 1.dp,
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
@@ -133,7 +359,7 @@ fun RecommendationsSimilarTabs(
             Spacer(Modifier.height(8.dp))
             TabRow(
                 selectedTabIndex = selected,
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                containerColor = MaterialTheme.colorScheme.surfaceVariant, // DarkSurfaceVariant
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
@@ -147,14 +373,14 @@ fun RecommendationsSimilarTabs(
                     onClick = { selected = 0 },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    text = { Text("Recommendations $recCount", style = MaterialTheme.typography.titleSmall) }
+                    text = { Text("Recommendations $recCount", style = MaterialTheme.typography.labelLarge) }
                 )
                 Tab(
                     selected = selected == 1,
                     onClick = { selected = 1 },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    text = { Text("Similar $simCount", style = MaterialTheme.typography.titleSmall) }
+                    text = { Text("Similar $simCount", style = MaterialTheme.typography.labelLarge) }
                 )
             }
             Spacer(Modifier.height(12.dp))
@@ -199,7 +425,7 @@ fun SimilarItemCard(
             .clickable { onClick() }
     ) {
         Surface(
-            shape = MaterialTheme.shapes.medium,
+            shape = MaterialTheme.shapes.medium, // Shape.kt
             color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier
                 .height(180.dp)
@@ -233,7 +459,12 @@ fun SimilarItemCard(
         Spacer(modifier = Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Star, contentDescription = null, tint = RatingYellow, modifier = Modifier.size(14.dp))
+                Icon(
+                    Icons.Default.Star,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.tertiary, // Uses RatingYellow from Theme
+                    modifier = Modifier.size(14.dp)
+                )
                 Spacer(Modifier.width(4.dp))
                 Text(
                     text = String.format("%.1f", media.voteAverage ?: 0.0),
@@ -269,7 +500,7 @@ fun KeyValueItem(title: String, value: String?, modifier: Modifier = Modifier) {
 @Composable
 fun AboutMovieCard(details: MediaEntity) {
     Surface(
-        tonalElevation = 2.dp,
+        tonalElevation = 1.dp,
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
@@ -346,7 +577,8 @@ fun AboutMovieCard(details: MediaEntity) {
                     ) {
                         (details.productionCompanies ?: emptyList()).take(6)
                             .forEach { comp ->
-                                AssistChip(onClick = {}, label = { Text(comp) })
+                                // Using the styled chip for consistency
+                                StyledChip(text = comp)
                             }
                         if ((details.productionCompanies?.size ?: 0) == 0) {
                             Text(
@@ -367,7 +599,7 @@ fun AboutMovieCard(details: MediaEntity) {
 fun ExpandableOverview(text: String) {
     var expanded by remember { mutableStateOf(false) }
     Surface(
-        tonalElevation = 2.dp,
+        tonalElevation = 1.dp,
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
@@ -388,7 +620,8 @@ fun ExpandableOverview(text: String) {
                 IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded) "Collapse" else "Expand"
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -470,7 +703,7 @@ fun MovieDetailsContent(
                         colors = listOf(
                             Color(0x99000000),
                             Color(0x66000000),
-                            MaterialTheme.colorScheme.background
+                            MaterialTheme.colorScheme.background // Matches DarkBackground
                         )
                     )
                 )
@@ -494,7 +727,7 @@ fun MovieDetailsContent(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(shape = RoundedCornerShape(50), color = Color.Black.copy(alpha = 0.35f)) {
+            Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.35f)) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -616,7 +849,7 @@ fun MovieDetailsContent(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Star, null, tint = RatingYellow, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Star, null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(6.dp))
                                 val avg = String.format("%.1f", details.voteAverage ?: 0.0)
                                 val cnt = details.voteCount?.toString() ?: "0"
@@ -657,19 +890,19 @@ fun MovieDetailsContent(
             }
             Spacer(Modifier.height(12.dp))
 
-            Divider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                 thickness = 1.dp,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
             Spacer(Modifier.height(12.dp))
 
-            // ✅ Tagline
+            // Tagline
             details.tagline?.let { tagline ->
                 if (tagline.isNotEmpty()) {
                     Text(
                         text = "\"$tagline\"",
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = MaterialTheme.colorScheme.secondary, // Uses AccentCyan
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontStyle = FontStyle.Italic,
                             fontWeight = FontWeight.Medium
@@ -720,7 +953,7 @@ fun MovieDetailsContent(
             }
             Spacer(Modifier.height(12.dp))
 
-            // Genres
+            // --- Updated Genres Section ---
             val genresNames = details.genres ?: emptyList()
             val genresIds = details.genreIds ?: emptyList()
 
@@ -731,37 +964,10 @@ fun MovieDetailsContent(
             }
 
             if (genrePairs.isNotEmpty()) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text(
-                        text = "Genres",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        genrePairs.take(8).forEach { (id, name) ->
-                            AssistChip(
-                                onClick = {
-                                    if (id != -1) {
-                                        navController.navigate("genre_details/$id/$name")
-                                    }
-                                },
-                                label = { Text(name) },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                ),
-                                border = AssistChipDefaults.assistChipBorder(enabled = true, borderColor = MaterialTheme.colorScheme.outlineVariant)
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.height(12.dp))
+                GenresSection(genres = genrePairs, navController = navController)
+                Spacer(Modifier.height(16.dp))
             }
+
 
             AboutMovieCard(details)
             Spacer(Modifier.height(16.dp))
@@ -769,59 +975,8 @@ fun MovieDetailsContent(
             MediaTabs(details)
             Spacer(Modifier.height(16.dp))
 
-            // Production Info
-            val languages = details.spokenLanguages ?: emptyList()
-            val companies = details.productionCompanies ?: emptyList()
-            val countries = details.productionCountries ?: emptyList()
-            if (languages.isNotEmpty() || companies.isNotEmpty() || countries.isNotEmpty()) {
-                Surface(
-                    tonalElevation = 2.dp,
-                    shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = "Production",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        if (languages.isNotEmpty()) {
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                languages.take(12).forEach { lang: String ->
-                                    AssistChip(onClick = {}, label = { Text(lang, maxLines = 1) })
-                                }
-                            }
-                            Spacer(Modifier.height(8.dp))
-                        }
-                        if (companies.isNotEmpty()) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                companies.take(12).forEach { comp: String -> AssistChip(onClick = {}, label = { Text(comp, maxLines = 1) }) }
-                            }
-                            Spacer(Modifier.height(8.dp))
-                        }
-                        if (countries.isNotEmpty()) {
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                countries.take(12).forEach { c: String -> AssistChip(onClick = {}, label = { Text(c, maxLines = 1) }) }
-                            }
-                        }
-                    }
-                }
-            }
+            // Production Section
+            ProductionSection(details)
 
             Spacer(Modifier.height(16.dp))
 
@@ -829,7 +984,7 @@ fun MovieDetailsContent(
             val cast = details.cast
             if (!cast.isNullOrEmpty()) {
                 Surface(
-                    tonalElevation = 2.dp,
+                    tonalElevation = 1.dp,
                     shape = MaterialTheme.shapes.large,
                     color = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
@@ -867,7 +1022,7 @@ fun MovieDetailsContent(
                 if (hasAny) {
                     val uri = LocalUriHandler.current
                     Surface(
-                        tonalElevation = 2.dp,
+                        tonalElevation = 1.dp,
                         shape = MaterialTheme.shapes.large,
                         color = MaterialTheme.colorScheme.surface,
                         modifier = Modifier
@@ -923,7 +1078,7 @@ fun MovieDetailsContent(
             // Reviews
             if (reviews.isNotEmpty()) {
                 Surface(
-                    tonalElevation = 2.dp,
+                    tonalElevation = 1.dp,
                     shape = MaterialTheme.shapes.large,
                     color = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
@@ -969,7 +1124,7 @@ fun MovieDetailsContent(
                                             Icon(
                                                 Icons.Default.Star,
                                                 contentDescription = null,
-                                                tint = RatingYellow,
+                                                tint = MaterialTheme.colorScheme.tertiary, // RatingYellow
                                                 modifier = Modifier.size(14.dp)
                                             )
                                             Spacer(Modifier.width(4.dp))
@@ -989,35 +1144,10 @@ fun MovieDetailsContent(
                 }
             }
 
-            // Keywords
-            if (keywords.isNotEmpty()) {
-                Spacer(Modifier.height(16.dp))
-                Surface(
-                    tonalElevation = 2.dp,
-                    shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = "Keywords",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            keywords.take(12).forEach { k: KeywordItem ->
-                                AssistChip(onClick = {}, label = { Text(k.name) })
-                            }
-                        }
-                    }
-                }
-            }
+            Spacer(Modifier.height(16.dp))
+
+            KeywordsSection(keywords)
+
             Spacer(Modifier.height(40.dp))
         }
     }
@@ -1049,7 +1179,6 @@ fun MovieDetailsScreen(
     val keywords by viewModel.keywords.collectAsState()
     val authUiState by authViewModel.uiState.collectAsState()
 
-
     // Load from cache first
     LaunchedEffect(id, isTvShow) {
         scope.launch {
@@ -1062,7 +1191,6 @@ fun MovieDetailsScreen(
         onTopBarStateChange(TopBarState())
     }
 
-
     SwipeRefresh(
         state = refreshState,
         onRefresh = {
@@ -1072,24 +1200,135 @@ fun MovieDetailsScreen(
             }
         }
     ) {
-
+        // App background gradient application
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppBackgroundGradient(isSystemInDarkTheme()))
-
+                // --- FORCED DARK GRADIENT (as requested) ---
+                .background(AppVerticalGradient)
         ) {
             when {
-                isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                // --- UPDATED LOADING STATE ---
+                isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // 1. Back Button (So user is not stuck)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .statusBarsPadding() // Handle safe area
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f), // Glassmorphism effect
+                                contentColor = Color.White, // Forced White for visibility on dark bg
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                IconButton(onClick = { navController.popBackStack() }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Back",
+                                        tint = Color.White // Forced White
+                                    )
+                                }
+                            }
+                        }
+
+                        // 2. Centered Loading Content
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = PrimaryBlue, // Explicitly use PrimaryBlue
+                                trackColor = Color.White.copy(alpha = 0.1f), // Light track
+                                strokeWidth = 4.dp,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Loading details...",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = TextSecondaryDark // Explicit light color
+                            )
+                        }
+                    }
                 }
 
-                error != null -> Text(
-                    text = "Error: $error",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                // --- ERROR STATE (Updated to match theme) ---
+                error != null -> {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // Back Button
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .statusBarsPadding()
+                                .padding(12.dp)
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                                contentColor = Color.White,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                IconButton(onClick = { navController.popBackStack() }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Back",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        }
 
+                        // Error Content
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Default.Tag, // Or an Error icon if available
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                text = "Unable to load details",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White // Force white
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = error ?: "Unknown error",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextSecondaryDark, // Force light grey
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(24.dp))
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        if (isTvShow) viewModel.loadTvDetails(id, fromNetwork = true)
+                                        else viewModel.loadMovieDetails(id, fromNetwork = true)
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            ) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                }
+
+                // --- SUCCESS STATE ---
                 details != null -> AnimatedVisibility(visible = true, enter = fadeIn()) {
                     MovieDetailsContent(
                         details = details!!,
@@ -1107,7 +1346,7 @@ fun MovieDetailsScreen(
 
                 else -> Text(
                     "No details available",
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = TextSecondaryDark,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -1153,7 +1392,7 @@ fun ProviderLogosRow(
 fun MediaTabs(details: MediaEntity) {
     var selected by remember { mutableStateOf(0) }
     Surface(
-        tonalElevation = 2.dp,
+        tonalElevation = 1.dp,
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
@@ -1180,21 +1419,21 @@ fun MediaTabs(details: MediaEntity) {
                     onClick = { selected = 0 },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    text = { Text("Videos $vCount", style = MaterialTheme.typography.titleSmall) }
+                    text = { Text("Videos $vCount", style = MaterialTheme.typography.labelLarge) }
                 )
                 Tab(
                     selected = selected == 1,
                     onClick = { selected = 1 },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    text = { Text("Posters $pCount", style = MaterialTheme.typography.titleSmall) }
+                    text = { Text("Posters $pCount", style = MaterialTheme.typography.labelLarge) }
                 )
                 Tab(
                     selected = selected == 2,
                     onClick = { selected = 2 },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    text = { Text("Backdrops $bCount", style = MaterialTheme.typography.titleSmall) }
+                    text = { Text("Backdrops $bCount", style = MaterialTheme.typography.labelLarge) }
                 )
             }
             when (selected) {
