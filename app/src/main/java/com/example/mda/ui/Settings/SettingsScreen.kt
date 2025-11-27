@@ -40,20 +40,27 @@ fun SettingsScreen(
     val theme by viewModel.themeMode.collectAsState()
     val notifications by viewModel.notificationsEnabled.collectAsState()
     val uiState by authViewModel?.uiState?.collectAsState() ?: remember { mutableStateOf(AuthUiState()) }
+// 🟢 قراءات مباشرة من SessionManager (نفس اللي استخدمناه في AuthRepository)
+    val sessionManager = remember { com.example.mda.data.datastore.SessionManager(context) }
 
+// flows من الـ DataStore
+    val localName by sessionManager.accountName.collectAsState(initial = "")
+    val localUsername by sessionManager.accountUsername.collectAsState(initial = "")
+    val localId by sessionManager.accountId.collectAsState(initial = 0)
     val isLoggedIn = uiState.isAuthenticated
     val account = uiState.accountDetails
     LaunchedEffect(Unit) {
         onTopBarStateChange(
             TopBarState(
                 title = "Settings",
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
+                showBackButton = false
             )
-        )
+            )
+
+        // 🟢 استدعاء التفاصيل لو المستخدم لوج إن ومفيش بيانات حساب بعد
+        if (authViewModel != null && uiState.isAuthenticated && uiState.accountDetails == null) {
+            authViewModel.fetchAccountDetails()
+        }
     }
 
     Column(
@@ -65,8 +72,13 @@ fun SettingsScreen(
     ) {
         ProfileCard(
             isLoggedIn = isLoggedIn,
-            userName = account?.name ?: account?.username,
-            userEmail = account?.id?.toString(),
+            // 🟢 الاسم أو اليوزرنيم حسب اللي متوفر أولًا
+            userName = account?.name?.ifEmpty { account.username }
+                ?: localName?.ifEmpty { localUsername },
+
+            // 🟢 السطر التاني (@username)
+            userEmail = "@${account?.username ?: localUsername}",
+
             onClick = { navController.navigate("profile") },
             onLoginClick = { navController.navigate("login") }
         )
@@ -100,25 +112,13 @@ fun SettingsScreen(
                 title = "Kids Mode"
             ) { navController.navigate("kids") }
             Divider()
-             SettingsItem(Icons.Default.Security, "Privacy Settings") { navController.navigate("privacy_settings") }
+             SettingsItem(Icons.Default.Security, "Privacy Policy") { navController.navigate("privacy_policy") }
 
             Divider()
             SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq") }
             Divider()
             SettingsItem(Icons.Default.Info, "About") { navController.navigate("about_app") }
         }
-
-        SettingsGroupCard {
-            Divider()
-            SettingsItem(
-                Icons.Default.Logout,
-                "Log out",
-                textColor = MaterialTheme.colorScheme.error,
-                iconColor = MaterialTheme.colorScheme.error
-            ) {
-                 }
-        }
-
         Spacer(Modifier.height(80.dp))
 
     }

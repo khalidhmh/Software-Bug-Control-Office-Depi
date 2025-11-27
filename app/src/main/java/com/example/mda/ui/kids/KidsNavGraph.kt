@@ -1,6 +1,8 @@
 package com.example.mda.ui.kids
 
+import android.util.LayoutDirection
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -28,10 +30,15 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.theme.AppBackgroundGradient
+import com.example.mda.ui.theme.AppTopBarColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,12 +66,11 @@ fun KidsRoot(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppBackgroundGradient())
     ) {
         Scaffold(
-            contentWindowInsets = WindowInsets(0),
-            containerColor = Color.Transparent,
-            topBar = {
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                containerColor = Color.Transparent,
+                topBar = {
                 if (showBars) {
                     TopAppBar(
                         title = {
@@ -106,7 +112,9 @@ fun KidsRoot(
                 }
             },
             bottomBar = {
-                if (showBars) {
+                if (showBars && currentRoute != KidsScreens.Splash.route) {
+                    val (topBarBg) = AppTopBarColors( darkTheme = isSystemInDarkTheme())
+
                     AnimatedNavigationBar(
                         navController = kidsNavController,
                         buttons = listOf(
@@ -114,15 +122,21 @@ fun KidsRoot(
                             ButtonData(KidsScreens.Search.route, "Search", Icons.Default.Search),
                             ButtonData(KidsScreens.Favorites.route, "Favorites", Icons.Default.Favorite),
                         ),
-                        barColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        barColor = topBarBg, // ✅ نفس لون التوب بار
                         circleColor = MaterialTheme.colorScheme.background,
                         selectedColor = MaterialTheme.colorScheme.primary,
-                        unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                        unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
             }
+
         ) { innerPadding ->
-            Box(Modifier.padding(innerPadding)) {
+            Box(
+                modifier = Modifier.padding(
+                    top = innerPadding.calculateTopPadding())
+                .navigationBarsPadding())
+
+            {
                 KidsNavGraph(
                     parentNavController = parentNavController,
                     navController = kidsNavController,

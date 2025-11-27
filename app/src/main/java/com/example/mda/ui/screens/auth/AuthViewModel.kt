@@ -82,8 +82,6 @@ class AuthViewModel(
             return
         }
 
-        Log.d("AuthViewModel", "Creating session with token: $requestToken")
-
         val result = authRepository.createSession(requestToken)
         result.fold(
             onSuccess = { sessionId ->
@@ -93,6 +91,11 @@ class AuthViewModel(
                     isAuthenticated = true,
                     error = null
                 )
+
+                // 🟢 بعد نجاح التسجيل، نستدعي حساب المستخدم بالكامل من TMDB
+                viewModelScope.launch {
+                    fetchAccountDetails()
+                }
             },
             onFailure = { exception ->
                 Log.e("AuthViewModel", "Failed to create session", exception)

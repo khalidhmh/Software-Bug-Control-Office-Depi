@@ -1,5 +1,6 @@
 package com.example.mda.ui.screens.search
 
+import android.R.attr.padding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -48,40 +49,18 @@ fun SearchScreen(
     val selectedFilter by viewModel.selectedFilter.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val gridScrollState = rememberLazyGridState()
-    val snackbarHostState = remember { SnackbarHostState() }
     val authUiState by authViewModel.uiState.collectAsState()
 
-    // تهيئة التوب بار
-    LaunchedEffect(Unit) {
-        onTopBarStateChange(TopBarState(title = "Discover"))
-    }
-
-    Scaffold(
-        containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = { },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-    ) { padding ->
-
-        Column(
+    onTopBarStateChange(
+        TopBarState(
+            title = "Search",
+            showBackButton = false
+        )
+    )
+    Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
 
             // Search TextField
@@ -210,7 +189,7 @@ fun SearchScreen(
             }
         }
     }
-}
+
 
 // تحويل MediaEntity لـ Actor Model بسيط
 private fun MediaEntity.toActorModel() =

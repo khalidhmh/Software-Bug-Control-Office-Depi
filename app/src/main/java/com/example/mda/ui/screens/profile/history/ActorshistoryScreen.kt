@@ -1,27 +1,15 @@
 package com.example.mda.ui.screens.profile.history
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,10 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import com.example.mda.R
 import com.example.mda.ui.navigation.TopBarState
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 @Composable
 fun HistoryScreen(
@@ -52,14 +41,7 @@ fun HistoryScreen(
         onTopBarStateChange(
             TopBarState(
                 title = "History",
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                },
+                showBackButton = true,
                 actions = {
                     IconButton(onClick = { viewModel.clearHistory() }) {
                         Icon(
@@ -73,70 +55,80 @@ fun HistoryScreen(
     }
 
     if (history.isEmpty()) {
-        emptyScreen(
-            "No viewed people yet",
-            " Start exploring and your viewed people will appear here.",
+        emptyScreen("No viewed people yet",
+            "Start exploring and your viewed history will appear here.",
+            IconType.PERSON
         )
-
     } else {
         LazyColumn(
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp, vertical = 12.dp)
         ) {
             items(history) { person ->
 
-                Card(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                        .padding(vertical = 6.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         .clickable {
                             navController.navigate("ActorDetails/${person.id}")
-                        },
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        }
+                        .padding(12.dp)
                 ) {
-
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp)
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-
-                        AsyncImage(
-                            model = "https://image.tmdb.org/t/p/w200${person.profilePath}",
-                            contentDescription = person.name,
+                        // صورة الممثل أو الفيلم
+                        Box(
                             modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
+                                .width(100.dp)
+                                .aspectRatio(0.7f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.onSurfaceVariant)
+                        ) {
+                            AsyncImage(
+                                model = "https://image.tmdb.org/t/p/w200${person.profilePath}",
+                                contentDescription = person.name,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.matchParentSize(),
+                                error = rememberAsyncImagePainter(R.drawable.person_placeholder)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.width(16.dp))
 
+                        // النصوص
                         Column(
-                            modifier = Modifier.align(Alignment.CenterVertically)
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(
                                 text = person.name ?: "Actor Name",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 fontWeight = FontWeight.Bold
                             )
 
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             Text(
-                                text = "Viewed on: ${
-                                    SimpleDateFormat(
-                                        "dd MMM yyyy",
-                                        Locale.getDefault()
-                                    ).format(Date(person.viewedAt))}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
+                                text = "Viewed on: " + SimpleDateFormat(
+                                    "dd MMM yyyy",
+                                    Locale.getDefault()
+                                ).format(Date(person.viewedAt)),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
             }
-
+            item {
+                Spacer(modifier = Modifier.height(100.dp))
+            }
         }
     }
 }

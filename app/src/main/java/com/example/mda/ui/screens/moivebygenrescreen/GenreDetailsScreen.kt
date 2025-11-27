@@ -81,14 +81,7 @@ fun GenreDetailsScreen(
         onTopBarStateChange(
             TopBarState(
                 title = genreName,
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
+                showBackButton = true,
                 actions = {
                     IconButton(onClick = { isGridView = !isGridView }) {
                         Icon(

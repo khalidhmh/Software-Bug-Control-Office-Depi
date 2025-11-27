@@ -67,6 +67,7 @@ class AuthRepository(
     suspend fun getAccountDetails(): Result<AccountDetails> {
         return try {
             val sessionId = sessionManager.sessionId.first()
+
             if (sessionId.isNullOrEmpty()) {
                 return Result.failure(Exception("No session ID found. Please login first."))
             }
@@ -78,6 +79,7 @@ class AuthRepository(
 
                 // Save account id
                 sessionManager.saveAccountId(details.id)
+                sessionManager.saveAccountInfo(details.name, details.username)
 
                 return Result.success(details)
 

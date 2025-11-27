@@ -197,14 +197,16 @@ class MainActivity : ComponentActivity() {
                             var topBarState by remember { mutableStateOf(TopBarState()) }
 
                             Scaffold(
-                                contentWindowInsets = WindowInsets(0),
+                                contentWindowInsets = WindowInsets(0, 0, 0, 0),
                                 containerColor = Color.Transparent,
                                 topBar = {
+                                    val backStackEntry by navController.currentBackStackEntryAsState()
                                     val currentRoute =
                                         navController.currentBackStackEntryAsState().value?.destination?.route
 
                                     // ✅ Hide TopAppBar for these routes
                                     val hideTopBarRoutes = listOf(
+                                        "splash",
                                         "ActorDetails/{personId}",
                                         "detail/{mediaType}/{id}",
                                         "onboarding",
@@ -214,53 +216,95 @@ class MainActivity : ComponentActivity() {
                                         "kids"  // ✅ Added kids route
                                     )
 
-                                    if (currentRoute !in hideTopBarRoutes) {
+                                    if (currentRoute != null && currentRoute !in hideTopBarRoutes) {
                                         val (topBarBg, topBarText) =
                                             AppTopBarColors(darkTheme = darkTheme)
-                                        TopAppBar(
-                                            title = {
-                                                val titleToShow = if (topBarState.title.isNotEmpty())
-                                                    topBarState.title
-                                                else when (currentRoute) {
-                                                    "home" -> "Home"
-                                                    "movies" -> "Movies"
-                                                    "actors" -> "People"
-                                                    "search" -> "Search"
-                                                    "HistoryScreen" -> "History"
-                                                    "about_app" -> "About"
-                                                    else -> ""
-                                                }
-                                                Text(titleToShow, color = topBarText)
-                                            },
-                                            colors = TopAppBarDefaults.topAppBarColors(
-                                                containerColor = topBarBg,
-                                                titleContentColor = topBarText,
-                                                navigationIconContentColor = topBarText,
-                                                actionIconContentColor = topBarText
-                                            ),
-                                            navigationIcon = { topBarState.navigationIcon?.invoke() },
-                                            actions = {
-                                                topBarState.actions(this)
-
+                                        val resetTopBar = currentRoute in listOf("about_app", "help_faq", "privacy_policy")
+                                        val titleToShow = if (resetTopBar) {
+                                            when (currentRoute) {
+                                                "about_app" -> "About"
+                                                "help_faq" -> "Help & FAQ"
+                                                "privacy_policy" -> "Privacy Policy"
+                                                else -> ""
                                             }
-                                        )
+                                        } else {
+                                            if (topBarState.title.isNotEmpty()) topBarState.title
+                                            else when (currentRoute) {
+                                                "home" -> "Home"
+                                                "movies" -> "Movies"
+                                                "actors" -> "People"
+                                                "search" -> "Search"
+                                                "HistoryScreen" -> "History"
+                                                "settings" -> "Settings"
+                                                else -> ""
+                                            }
+                                        }
+                                        if (currentRoute == "home") {
+                                            Surface(
+                                                color = topBarBg,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .statusBarsPadding()
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier
+                                                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                                                ) {
+                                                    Text(
+                                                        text = topBarState.title.ifEmpty { titleToShow },
+                                                        style = MaterialTheme.typography.headlineSmall.copy(color = topBarText)
+                                                    )
+
+                                                    topBarState.subtitle?.let {
+                                                        Text(
+                                                            text = it,
+                                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                                color = topBarText.copy(alpha = 0.6f)
+                                                            ),
+                                                            modifier = Modifier.padding(top = 2.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            // ✳️ باقي الشاشات العادية
+                                            TopAppBar(
+                                                title = { Text(titleToShow, color = topBarText) },
+                                                colors = TopAppBarDefaults.topAppBarColors(
+                                                    containerColor = topBarBg,
+                                                    titleContentColor = topBarText,
+                                                    navigationIconContentColor = topBarText,
+                                                    actionIconContentColor = topBarText
+                                                ),
+                                                navigationIcon = {
+                                                    if (topBarState.showBackButton) {
+                                                        IconButton(onClick = { navController.navigateUp() }) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.ArrowBack,
+                                                                contentDescription = "Back"
+                                                            )
+                                                        }
+                                                    }
+                                                },
+                                                actions = { topBarState.actions(this) }
+                                            )
+                                        }
                                     }
                                 },
                                 bottomBar = {
-                                    val currentRoute =
-                                        navController.currentBackStackEntryAsState().value?.destination?.route
-
-                                    // ✅ Hide BottomBar for these routes
+                                    val backStackEntry by navController.currentBackStackEntryAsState()
+                                    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                                     val hideBottomBarRoutes = listOf(
+                                        "splash",
                                         "ActorDetails/{personId}",
                                         "detail/{mediaType}/{id}",
                                         "login",
                                         "signup",
                                         "account",
-                                        "kids"  // ✅ Added kids route
+                                        "kids"
                                     )
 
-                                    if (currentRoute !in hideBottomBarRoutes) {
+                                    if (currentRoute != null && currentRoute !in hideBottomBarRoutes) { // 🟢 أضفنا شرط التأكيد
                                         val buttons = listOf(
                                             ButtonData("home", "Home", Icons.Default.Home),
                                             ButtonData("movies", "Movies", Icons.Default.Movie),
@@ -268,35 +312,34 @@ class MainActivity : ComponentActivity() {
                                             ButtonData("search", "Search", Icons.Default.Search),
                                             ButtonData("settings", "Settings", Icons.Default.Settings)
                                         )
+                                        val (topBarBg) = AppTopBarColors(darkTheme = darkTheme)
 
                                         AnimatedNavigationBar(
                                             navController = navController,
                                             buttons = buttons,
-                                            barColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                                            barColor = topBarBg,
                                             circleColor = MaterialTheme.colorScheme.background,
                                             selectedColor = MaterialTheme.colorScheme.primary,
-                                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                                            unselectedColor = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
                                 }
                             ) { innerPadding ->
-                                val currentRoute =
-                                    navController.currentBackStackEntryAsState().value?.destination?.route
 
-                                // ✅ Don't apply padding for kids route (it has its own Scaffold)
-                                val adjustedPadding = if (currentRoute == "kids") {
-                                    PaddingValues(0.dp)
-                                } else {
-                                    PaddingValues(
+
+                                val navBarInsets = WindowInsets.navigationBars.asPaddingValues()
+                                val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                                val isKidsRoute = currentRoute == "kids"
+
+                                Box(
+                                    modifier = Modifier.padding(
                                         top = innerPadding.calculateTopPadding(),
-                                        bottom = 0.dp,
-                                        start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
-                                        end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
+                                        bottom = if (isKidsRoute) 0.dp else navBarInsets.calculateBottomPadding(),
+                                        start = innerPadding.calculateLeftPadding(LayoutDirection.Ltr),
+                                        end = innerPadding.calculateRightPadding(LayoutDirection.Ltr)
                                     )
-                                }
-
-                                Box(modifier = Modifier.padding(adjustedPadding)) {
-                                    MdaNavHost(
+                                ) {
+                                MdaNavHost(
                                         navController = navController,
                                         moviesRepository = moviesRepository,
                                         actorsRepository = actorRepository,

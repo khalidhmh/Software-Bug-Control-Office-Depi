@@ -48,7 +48,7 @@ fun AnimatedNavigationBar(
     selectedColor: Color,
     unselectedColor: Color,
 ) {
-    val circleRadius = 26.dp
+    val circleRadius = 21.dp
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     var barSize by remember { mutableStateOf(IntSize(0, 0)) }
 
@@ -80,10 +80,15 @@ fun AnimatedNavigationBar(
     val barShape = remember(cutoutOffset) {
         BarShape(offset = cutoutOffset, circleRadius = circleRadius, cornerRadius = 25.dp)
     }
-    val barOverlayColor = barColor.copy(alpha = 0.6f)
+    val barOverlayColor = barColor.copy(alpha = 0.9f)
 
-    Box {
-        Circle(
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+    ) {
+
+    Circle(
             modifier = Modifier
                 .offset { circleOffset }
                 .zIndex(1f),
@@ -96,13 +101,13 @@ fun AnimatedNavigationBar(
         Row(
             modifier = Modifier
                 .onPlaced { barSize = it.size }
+                .height(75.dp)
                 .graphicsLayer {
                     shape = barShape
                     clip = true
                 }
                 .fillMaxWidth()
-                .background(barOverlayColor)
-                .padding(vertical = 6.dp),
+                .background(barOverlayColor),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             buttons.forEachIndexed { index, button ->
