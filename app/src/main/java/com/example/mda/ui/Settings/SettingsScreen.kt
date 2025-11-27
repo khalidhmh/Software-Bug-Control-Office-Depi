@@ -39,9 +39,10 @@ fun SettingsScreen(
 
     val theme by viewModel.themeMode.collectAsState()
     val notifications by viewModel.notificationsEnabled.collectAsState()
-    val uiState by authViewModel?.uiState?.collectAsState() ?: remember { mutableStateOf(AuthUiState()) }
-// 🟢 قراءات مباشرة من SessionManager (نفس اللي استخدمناه في AuthRepository)
+   // 🟢 قراءات مباشرة من SessionManager (نفس اللي استخدمناه في AuthRepository)
     val sessionManager = remember { com.example.mda.data.datastore.SessionManager(context) }
+    val uiState by authViewModel?.uiState?.collectAsState()
+        ?: remember { mutableStateOf(AuthUiState()) }
 
 // flows من الـ DataStore
     val localName by sessionManager.accountName.collectAsState(initial = "")
@@ -85,24 +86,63 @@ fun SettingsScreen(
         Text("Other settings", style = MaterialTheme.typography.labelLarge)
 
         SettingsGroupCard {
-            SettingsItem(Icons.Default.Person, "Profile details") { navController.navigate("profile_details")}
-            Divider()
-            SettingsItem(Icons.Default.Lock, "Password") { navController.navigate("change_password")}
-            Divider()
+
             SettingsItem(
-                Icons.Default.Notifications, "Notifications",
-                isToggle = true,
-                toggleState = notifications,
-                onToggleChange = { viewModel.updateNotifications(it) }
+                Icons.Default.Favorite,
+                "Favorite Movies",
+                onClick = {
+                    navController.navigate("Favprofile")
+                }
             )
             Divider()
+
             SettingsItem(
-                Icons.Default.DarkMode, "Dark Mode",
-                isToggle = true,
-                toggleState = theme == 2,
-                onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
+                Icons.Default.Person,
+                "Actors Viewed",
+                onClick = {
+                    navController.navigate("HistoryScreen")
+                }
+            )
+            Divider()
+
+            SettingsItem(
+                Icons.Default.Movie,
+                "Movies Viewed",
+                onClick = {
+                    navController.navigate("MovieHistoryScreen")
+                }
             )
         }
+        SettingsGroupCard {
+            SettingsItem(Icons.Default.Person, "Profile details") {
+                if (isLoggedIn) {
+                    navController.navigate("account")
+                } else {
+                    navController.navigate("login")
+
+                }
+            }
+                Divider()
+                SettingsItem(Icons.Default.Lock, "Password") {
+
+                    // not implemented yet
+                    // navController.navigate("change_password")
+                }
+                Divider()
+                SettingsItem(
+                    Icons.Default.Notifications, "Notifications",
+                    isToggle = true,
+                    toggleState = notifications,
+                    onToggleChange = { viewModel.updateNotifications(it) }
+                )
+                Divider()
+                SettingsItem(
+                    Icons.Default.DarkMode, "Dark Mode",
+                    isToggle = true,
+                    toggleState = theme == 2,
+                    onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
+                )
+            }
 
         SettingsGroupCard {
             SettingsItem(Icons.Default.Language, "Language") { navController.navigate("language_settings") }
