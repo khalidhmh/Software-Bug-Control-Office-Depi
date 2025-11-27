@@ -35,6 +35,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.datastore.dataStore
+import com.example.mda.data.SettingsDataStore
 import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.theme.AppBackgroundGradient
@@ -55,6 +61,14 @@ fun KidsRoot(
     val isSection = currentRoute?.startsWith("kids_section") == true
     val currentArgs = backStackEntry.value?.arguments
     val sectionArg = currentArgs?.getString("category")
+    val context = LocalContext.current
+    val settingsDataStore = remember { SettingsDataStore(context) }
+    val themeMode by settingsDataStore.themeModeFlow.collectAsState(initial = 0)
+    val darkTheme = when (themeMode) {
+        2 -> true
+        1 -> false
+        else -> isSystemInDarkTheme()
+    }
     val sectionTitle = when (sectionArg) {
         "cartoons" -> "New Cartoons"
         "family" -> "Family Movies"
@@ -113,8 +127,7 @@ fun KidsRoot(
             },
             bottomBar = {
                 if (showBars && currentRoute != KidsScreens.Splash.route) {
-                    val (topBarBg) = AppTopBarColors( darkTheme = isSystemInDarkTheme())
-
+                    val (topBarBg) = AppTopBarColors(darkTheme)
                     AnimatedNavigationBar(
                         navController = kidsNavController,
                         buttons = listOf(
@@ -122,7 +135,7 @@ fun KidsRoot(
                             ButtonData(KidsScreens.Search.route, "Search", Icons.Default.Search),
                             ButtonData(KidsScreens.Favorites.route, "Favorites", Icons.Default.Favorite),
                         ),
-                        barColor = topBarBg, // ✅ نفس لون التوب بار
+                        barColor = topBarBg,
                         circleColor = MaterialTheme.colorScheme.background,
                         selectedColor = MaterialTheme.colorScheme.primary,
                         unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)

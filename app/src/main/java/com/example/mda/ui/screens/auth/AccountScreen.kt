@@ -30,23 +30,17 @@ import com.example.mda.ui.theme.AppBackgroundGradient
 fun AccountScreen(
     navController: NavController,
     viewModel: AuthViewModel,
-    onTopBarStateChange: (TopBarState) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchAccountDetails()
-        onTopBarStateChange(
-            TopBarState(
-                title = "My Account",
-                showBackButton = true
-            )
-        )
     }
 
     Box(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(top = 100.dp)
         ) {
             when {
                 uiState.isLoading -> {

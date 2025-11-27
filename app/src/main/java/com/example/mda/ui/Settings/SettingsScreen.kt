@@ -58,7 +58,6 @@ fun SettingsScreen(
             )
             )
 
-        // 🟢 استدعاء التفاصيل لو المستخدم لوج إن ومفيش بيانات حساب بعد
         if (authViewModel != null && uiState.isAuthenticated && uiState.accountDetails == null) {
             authViewModel.fetchAccountDetails()
         }
@@ -73,11 +72,8 @@ fun SettingsScreen(
     ) {
         ProfileCard(
             isLoggedIn = isLoggedIn,
-            // 🟢 الاسم أو اليوزرنيم حسب اللي متوفر أولًا
             userName = account?.name?.ifEmpty { account.username }
                 ?: localName?.ifEmpty { localUsername },
-
-            // 🟢 السطر التاني (@username)
             userEmail = "@${account?.username ?: localUsername}",
 
             onClick = { navController.navigate("profile") },
@@ -114,15 +110,6 @@ fun SettingsScreen(
             )
         }
         SettingsGroupCard {
-            SettingsItem(Icons.Default.Person, "Profile details") {
-                if (isLoggedIn) {
-                    navController.navigate("account")
-                } else {
-                    navController.navigate("login")
-
-                }
-            }
-                Divider()
                 SettingsItem(Icons.Default.Lock, "Password") {
 
                     // not implemented yet

@@ -157,7 +157,9 @@ fun HomeScreen(
                     onMovieClick = { m ->
                         navController.navigate("detail/${m.mediaType}/${m.id}")
                     },
-                    onViewMoreClick = {},
+                    onViewMoreClick = {
+                        navController.navigate("popular_movies")
+                    },
                     favoritesViewModel = favoritesViewModel,
                     navController = navController,
                     isAuthenticated = authUiState.isAuthenticated
@@ -166,30 +168,7 @@ fun HomeScreen(
         }
     }
 }
-@Composable
-fun MainTopBar(state: TopBarState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-    ) {
-        Text(
-            text = state.title,
-            style = MaterialTheme.typography.headlineSmall.copy(
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        )
 
-        state.subtitle?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                )
-            )
-        }
-    }
-}
 @Composable
 fun getGreetingMessage(): String {
     val calendar = remember { Calendar.getInstance() }
