@@ -51,17 +51,17 @@ fun ActorListItem(
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 16.dp), // ✅ شلنا الـ clickable المكرر هنا
+                .padding(vertical = 8.dp, horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             // صورة الممثل
             Box(
                 modifier = Modifier
-                    .width(80.dp)
+                    .width(100.dp)
                     .aspectRatio(0.7f)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant)
             ) {
                 AsyncImage(
                     model = "https://image.tmdb.org/t/p/w500${actor.profilePath}",
@@ -80,13 +80,14 @@ fun ActorListItem(
             ) {
                 Text(
                     text = actor.name,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(2.dp)) // ✅ قللنا المسافة من 4dp → 2dp
+                Spacer(modifier = Modifier.height(4.dp))
 
 
                 val department = actor.knownForDepartment ?: "Acting"
@@ -94,20 +95,20 @@ fun ActorListItem(
 
                 Text(
                     text = infoLine,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(2.dp)) // ✅ نزّلنا ده كمان بدل 4dp
+                Spacer(modifier = Modifier.height(4.dp))
 
                 val knownForTitles = actor.getKnownForTitles()
 
                 if (knownForTitles.isNotEmpty()) {
                     Text(
                         text = knownForTitles,
-                        style = MaterialTheme.typography.bodySmall, // ✅ bodySmall بدل bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis

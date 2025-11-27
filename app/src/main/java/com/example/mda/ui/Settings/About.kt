@@ -22,11 +22,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.mda.ui.navigation.TopBarState
 
 @Composable
-fun AboutScreen(onBackClick: () -> Unit) {
+fun AboutScreen(navController: NavController,
+                onTopBarStateChange: (TopBarState) -> Unit
+) {
     val dark = isSystemInDarkTheme()
     val colorScheme = MaterialTheme.colorScheme
+    onTopBarStateChange(
+        TopBarState(
+            title = "About",
+            showBackButton = true
+        )
+    )
 
     Box(
         modifier = Modifier
@@ -93,7 +103,7 @@ fun AboutScreen(onBackClick: () -> Unit) {
 fun HeroSection(dark: Boolean) {
     val colorScheme = MaterialTheme.colorScheme
 
-    // 🎨 Gradient ناعم أكتر بدون فاصل
+
     val cardGradient = if (dark) {
         Brush.verticalGradient(
             colorStops = arrayOf(

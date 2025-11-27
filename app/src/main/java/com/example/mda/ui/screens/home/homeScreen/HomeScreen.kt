@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -49,10 +51,21 @@ fun HomeScreen(
 
     // 🔹 أول ما الصفحة تفتح، حدّث التوصيات حسب نشاط المستخدم
     LaunchedEffect(Unit) {
-        onTopBarStateChange(TopBarState(title = "Home", actions = {}))
         viewModel.onUserActivityDetected(forceRefresh = true)
     }
 
+    val greeting = getGreetingMessage()
+    LaunchedEffect(Unit) {
+        while (true) {
+            onTopBarStateChange(
+                TopBarState(
+                    title = greeting,
+                    subtitle = "What do you want to watch?"
+                )
+            )
+            kotlinx.coroutines.delay(5 * 60 * 1000)
+        }
+    }
     SwipeRefresh(
         state = refreshState,
         onRefresh = {
@@ -151,5 +164,41 @@ fun HomeScreen(
                 )
             }
         }
+    }
+}
+@Composable
+fun MainTopBar(state: TopBarState) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+    ) {
+        Text(
+            text = state.title,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        )
+
+        state.subtitle?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                )
+            )
+        }
+    }
+}
+@Composable
+fun getGreetingMessage(): String {
+    val calendar = remember { Calendar.getInstance() }
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+
+    return when (hour) {
+        in 5..11 -> "Good Morning"
+        in 12..16 -> "Good Afternoon"
+        in 17..20 -> "Good Evening"
+        else -> "Good Night"
     }
 }

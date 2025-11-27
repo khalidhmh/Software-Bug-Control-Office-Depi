@@ -75,7 +75,7 @@ fun KidsHomeScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 106.dp)
+       contentPadding = PaddingValues(bottom = 106.dp)
     ) {
         // Hero carousel
         item {
@@ -98,6 +98,7 @@ fun KidsHomeScreen(
             item { MediaRow(list = anime.value, onItemClick = onItemClick) }
         }
     }
+
 }
 
 @Composable

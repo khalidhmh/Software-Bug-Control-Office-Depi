@@ -15,21 +15,6 @@ import kotlinx.coroutines.launch
 
 enum class ViewType { GRID, LIST }
 
-enum class MediaTypeFilter {
-    ALL, MOVIE, TV
-}
-
-enum class SortType {
-    NONE, AZ, ZA
-}
-
-data class ActorFilters(
-    val mediaType: MediaTypeFilter = MediaTypeFilter.ALL,
-    val sort: SortType = SortType.NONE,
-    val minWorks: Int = 0,
-    val firstWorkYear: Int? = null
-)
-
 class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
 
     private val _state = MutableStateFlow<ActorUiState>(ActorUiState.Loading)
@@ -38,21 +23,13 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
     private val _viewType = MutableStateFlow(ViewType.GRID)
     val viewType: StateFlow<ViewType> = _viewType.asStateFlow()
 
-    private val _filters = MutableStateFlow(ActorFilters())
-    val filters: StateFlow<ActorFilters> = _filters.asStateFlow()
-
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     private val gson = Gson()
     private val type = object : TypeToken<List<KnownFor>>() {}.type
 
-    // Master list to hold all actors
     private var _allActors: List<Actor> = emptyList()
-
     private var currentPage = 1
     private var isLastPage = false
     private var isLoading = false
@@ -63,43 +40,6 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
 
     fun toggleViewType() {
         _viewType.value = if (_viewType.value == ViewType.GRID) ViewType.LIST else ViewType.GRID
-    }
-
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-        applySearch()
-    }
-
-    private fun applySearch() {
-        val query = _searchQuery.value
-        val filtered = if (query.isBlank()) {
-            _allActors
-        } else {
-            _allActors.filter { actor ->
-                actor.name.contains(query, ignoreCase = true)
-            }
-        }
-
-        // Apply filters on the search results
-        val filters = _filters.value
-        val finalList = filtered
-            .filter { actor ->
-                when (filters.mediaType) {
-                    MediaTypeFilter.ALL -> true
-                    MediaTypeFilter.MOVIE -> actor.knownFor?.any { it.mediaType == "movie" } == true
-                    MediaTypeFilter.TV -> actor.knownFor?.any { it.mediaType == "tv" } == true
-                }
-            }
-            .filter { actor -> (actor.knownFor?.size ?: 0) >= filters.minWorks }
-            .let { list ->
-                when (filters.sort) {
-                    SortType.NONE -> list
-                    SortType.AZ -> list.sortedBy { it.name }
-                    SortType.ZA -> list.sortedByDescending { it.name }
-                }
-            }
-
-        _state.value = ActorUiState.Success(finalList)
     }
 
     fun loadActors(forceRefresh: Boolean = false) {
@@ -126,7 +66,6 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
                     _state.value = ActorUiState.Error("No actors found", ErrorType.NetworkError)
                     isLastPage = true
                 } else {
-
                     val currentList =
                         if (currentPage == 1) emptyList()
                         else (_state.value as? ActorUiState.Success)?.actors.orEmpty()
@@ -154,11 +93,8 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
                             )
                         }).distinctBy { it.id }
 
-                    // Update master list
                     _allActors = updatedList
-
-                    // Apply search + filters
-                    applySearch()
+                    _state.value = ActorUiState.Success(_allActors)
 
                     currentPage++
                     if (newEntities.isEmpty()) isLastPage = true
@@ -182,24 +118,5 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
 
     fun retry() {
         loadActors(forceRefresh = true)
-    }
-
-    // -----------------------
-    //      FILTERS LOGIC
-    // -----------------------
-
-    fun updateMediaType(type: MediaTypeFilter) {
-        _filters.value = _filters.value.copy(mediaType = type)
-        applySearch()
-    }
-
-    fun updateSort(sort: SortType) {
-        _filters.value = _filters.value.copy(sort = sort)
-        applySearch()
-    }
-
-    fun updateMinWorks(min: Int) {
-        _filters.value = _filters.value.copy(minWorks = min)
-        applySearch()
     }
 }

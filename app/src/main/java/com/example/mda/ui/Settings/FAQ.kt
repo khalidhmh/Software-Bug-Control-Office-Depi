@@ -1,9 +1,9 @@
-package com.example.mda.ui.Settings.Help
+package com.example.mda.ui.Settings
+
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,15 +30,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.theme.AppBackgroundGradient
 
 @Composable
-fun HelpScreen() {
-    val dark = isSystemInDarkTheme()
-    val gradient = AppBackgroundGradient(dark)
-
+fun HelpScreen(
+    navController: NavController,
+    onTopBarStateChange: (TopBarState) -> Unit
+) {
+    onTopBarStateChange(
+        TopBarState(
+            title = "Help & FAQ",
+            showBackButton = true
+        )
+    )
     val faqs = listOf(
         "How does the movie search work?" to
                 "You can search for any movie by typing its title in the search bar. The results update instantly as you type.",
@@ -58,17 +65,11 @@ fun HelpScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(gradient)
+            .background(Color.Transparent)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-
-            Text(
-                text = "Help & FAQ",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
 
             Spacer(Modifier.height(16.dp))
 

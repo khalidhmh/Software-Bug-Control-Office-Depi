@@ -4,9 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Person
@@ -21,57 +22,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.mda.ui.navigation.TopBarState
+import com.example.mda.ui.theme.AppBackgroundGradient
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountScreen(
     navController: NavController,
     viewModel: AuthViewModel,
-    darkTheme: Boolean = false,
-    onToggleTheme: () -> Unit = {}
+    onTopBarStateChange: (TopBarState) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Theme colors matching MainActivity
-    val topBarText = if (darkTheme) Color.White else Color.Black
-
     LaunchedEffect(Unit) {
         viewModel.fetchAccountDetails()
+        onTopBarStateChange(
+            TopBarState(
+                title = "My Account",
+                showBackButton = true
+            )
+        )
     }
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = { Text("My Account", color = topBarText) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = topBarText
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onToggleTheme) {
-                        Icon(
-                            imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Toggle Theme",
-                            tint = topBarText
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
-        }
-    ) { padding ->
-        Box(
+    Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
         ) {
             when {
                 uiState.isLoading -> {
@@ -80,6 +55,7 @@ fun AccountScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+
                 uiState.error != null -> {
                     Column(
                         modifier = Modifier
@@ -96,31 +72,30 @@ fun AccountScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { viewModel.fetchAccountDetails() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
+                            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
                         ) {
                             Text("Retry")
                         }
                     }
                 }
+
                 uiState.accountDetails != null -> {
                     val account = uiState.accountDetails!!
+
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .padding(16.dp),
+                            .padding(top = 32.dp, start = 20.dp, end = 20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.height(24.dp))
 
-                        // Profile Avatar
+                        // ===== Avatar =====
                         Box(
                             modifier = Modifier
-                                .size(120.dp)
+                                .size(110.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)),
                             contentAlignment = Alignment.Center
                         ) {
                             val avatarUrl = account.avatar?.tmdb?.avatarPath
@@ -128,83 +103,62 @@ fun AccountScreen(
                                 AsyncImage(
                                     model = "https://image.tmdb.org/t/p/w200$avatarUrl",
                                     contentDescription = "Avatar",
+                                    contentScale = ContentScale.Crop,
                                     modifier = Modifier
-                                        .size(120.dp)
-                                        .clip(CircleShape),
-                                    contentScale = ContentScale.Crop
+                                        .size(110.dp)
+                                        .clip(CircleShape)
                                 )
                             } else {
                                 Icon(
                                     imageVector = Icons.Default.Person,
-                                    contentDescription = "Profile",
-                                    modifier = Modifier.size(60.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(56.dp)
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        // User Name
+                        // ===== Name & Username =====
                         Text(
                             text = account.name.ifEmpty { account.username },
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Username
                         Text(
                             text = "@${account.username}",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(28.dp))
 
-                        // Account Details Card
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                            ),
-                            shape = MaterialTheme.shapes.large
+                        // ===== Account Info Card =====
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                            tonalElevation = 2.dp,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ) {
+                            Column(modifier = Modifier.padding(20.dp)) {
                                 Text(
                                     text = "Account Information",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
-
                                 Spacer(modifier = Modifier.height(16.dp))
-
-                                AccountInfoRow(
-                                    label = "Account ID",
-                                    value = account.id.toString(),
-                                    darkTheme = darkTheme
-                                )
-                                AccountInfoRow(
-                                    label = "Language",
-                                    value = account.iso6391.uppercase(),
-                                    darkTheme = darkTheme
-                                )
-                                AccountInfoRow(
-                                    label = "Country",
-                                    value = account.iso31661.uppercase(),
-                                    darkTheme = darkTheme
-                                )
+                                AccountInfoRow("Account ID", account.id.toString())
+                                AccountInfoRow("Language", account.iso6391.uppercase())
+                                AccountInfoRow("Country", account.iso31661.uppercase())
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(30.dp))
 
-                        // Logout Button
+                        // ===== Logout button (Primary color instead of red) =====
                         OutlinedButton(
                             onClick = {
                                 viewModel.logout()
@@ -212,31 +166,32 @@ fun AccountScreen(
                                     popUpTo("account") { inclusive = true }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            ),
                             border = ButtonDefaults.outlinedButtonBorder.copy(
-                                brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.error)
-                            )
+                                brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary)
+                            ),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
                         ) {
-                            Text("Logout")
+                            Text(
+                                text = "Logout",
+                                fontWeight = FontWeight.Medium,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(60.dp))
                     }
                 }
             }
         }
     }
-}
 
 @Composable
-fun AccountInfoRow(
-    label: String,
-    value: String,
-    darkTheme: Boolean = false
-) {
+fun AccountInfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -251,7 +206,7 @@ fun AccountInfoRow(
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
     }

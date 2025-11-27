@@ -58,8 +58,7 @@ fun ActorDetailsScreenContent(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .background(AppBackgroundGradient()),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {

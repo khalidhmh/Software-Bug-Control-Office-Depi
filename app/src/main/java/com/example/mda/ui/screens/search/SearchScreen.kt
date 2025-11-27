@@ -1,5 +1,8 @@
 package com.example.mda.ui.screens.search
 
+import android.R.attr.padding
+import android.R.attr.text
+import androidx.compose.foundation.background
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -35,7 +38,8 @@ import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.auth.AuthViewModel
 
 /**
- * Search Screen - Animated Search Bar Position
+
+Search Screen - Animated Search Bar Position
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,27 +55,22 @@ fun SearchScreen(
     val selectedFilter by viewModel.selectedFilter.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val gridScrollState = rememberLazyGridState()
-    val snackbarHostState = remember { SnackbarHostState() }
     val authUiState by authViewModel.uiState.collectAsState()
 
-    // 1. State to track focus
+    // 🟢 تم نقل المتغيّرات للخارج بدل ما تكون داخل Column
     var isSearchFocused by remember { mutableStateOf(false) }
-
-    // 2. Logic: It stays up if you are typing (focused) OR if there is text (results shown)
     val isSearchActive = isSearchFocused || query.isNotEmpty()
-
-    // 3. Animation: Move between 140.dp (Original low position) and 0.dp (Top position)
     val animatedTopPadding by animateDpAsState(
         targetValue = if (isSearchActive) 0.dp else 140.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessLow), // Smooth motion
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "SearchBarAnimation"
     )
 
-    // Setup Top Bar
+    // 🟢 تثبيت حالة الـ TopBar (تحسين ترتيب)
     LaunchedEffect(Unit) {
         onTopBarStateChange(TopBarState(title = "Discover"))
     }
-
+    val snackbarHostState = remember { SnackbarHostState() }  // 🟢 أضفنا السطر ده
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
@@ -91,16 +90,14 @@ fun SearchScreen(
                 )
             }
         }
-    ) { padding ->
+    ) { padding ->     // 🟢 هنا أقفلنا Scaffold بشكل صحيح
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-
-            // 4. The Animated Spacer that pushes the Search Bar down or pulls it up
+            // 🟢 Spacer المتحرك
             Spacer(modifier = Modifier.height(animatedTopPadding))
 
             // Search TextField
@@ -143,12 +140,11 @@ fun SearchScreen(
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
-                    focusManager.clearFocus() // This allows it to drop down if text is empty
+                    focusManager.clearFocus()
                     viewModel.submitSearch()
                 }),
                 modifier = Modifier
                     .fillMaxWidth()
-                    // 5. Detect Focus Changes
                     .onFocusChanged { focusState ->
                         isSearchFocused = focusState.isFocused
                     }
@@ -164,8 +160,6 @@ fun SearchScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Content Area - Only visible/interactive when needed
-            // The Box ensures the Column doesn't jump in width/layout unexpectedly
             Box(modifier = Modifier.weight(1f)) {
                 when (val state = uiState) {
                     UiState.Loading -> Box(
@@ -205,7 +199,6 @@ fun SearchScreen(
                     }
 
                     is UiState.History -> {
-                        // History shows when we have items and search is "active"
                         if (state.items.isNotEmpty()) {
                             RecentSearchesList(state.items, viewModel)
                         }
@@ -231,89 +224,88 @@ fun SearchScreen(
                         )
                     }
 
-                    else -> {
-                        // Default state
-                    }
+                    else -> {}
                 }
             }
         }
     }
 }
 
-// ... Helper functions (toActorModel, RecentSearchesList) remain the same ...
-private fun MediaEntity.toActorModel() =
-    Actor(
-        id = id,
-        name = name ?: title.orEmpty(),
-        profilePath = posterPath ?: backdropPath,
-        knownFor = null,
-        biography = null,
-        birthday = null,
-        knownForDepartment = null,
-        placeOfBirth = null
-    )
-
-@Composable
-fun RecentSearchesList(
-    items: List<SearchHistoryEntity>,
-    viewModel: SearchViewModel
-) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp)
-    ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Recent Searches",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            TextButton(onClick = { viewModel.clearHistory() }) {
-                Text("Clear all", color = MaterialTheme.colorScheme.error)
-            }
-        }
-
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+    // ... Helper functions (toActorModel, RecentSearchesList) remain the same ...
+    private fun MediaEntity.toActorModel() =
+        Actor(
+            id = id,
+            name = name ?: title.orEmpty(),
+            profilePath = posterPath ?: backdropPath,
+            knownFor = null,
+            biography = null,
+            birthday = null,
+            knownForDepartment = null,
+            placeOfBirth = null
         )
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(top = 8.dp)
+    @Composable
+    fun RecentSearchesList(
+        items: List<SearchHistoryEntity>,
+        viewModel: SearchViewModel
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
         ) {
-            items(items) { record ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            viewModel.onQueryChange(record.query)
-                            viewModel.submitSearch()
-                        }
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        record.query,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    IconButton(onClick = { viewModel.deleteOne(record.query) }) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Recent Searches",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
+                TextButton(onClick = { viewModel.clearHistory() }) {
+                    Text("Clear all", color = MaterialTheme.colorScheme.error)
+                }
+            }
+
+            text
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                items(items) { record ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.onQueryChange(record.query)
+                                viewModel.submitSearch()
+                            }
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            record.query,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        IconButton(onClick = { viewModel.deleteOne(record.query) }) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                }
             }
         }
     }
-}
