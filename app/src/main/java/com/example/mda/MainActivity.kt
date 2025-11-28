@@ -1,7 +1,9 @@
 package com.example.mda
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,6 +36,7 @@ import com.example.mda.data.repository.*
 import com.example.mda.ui.navigation.*
 import com.example.mda.ui.screens.actors.ActorViewModel
 import com.example.mda.ui.screens.actors.ActorViewModelFactory
+import com.example.mda.ui.screens.components.NoInternetScreen
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModelFactory
 import com.example.mda.ui.screens.genreScreen.GenreViewModel
@@ -47,7 +51,9 @@ import com.example.mda.ui.screens.search.SearchViewModel
 import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.theme.AppTopBarColors
 import com.example.mda.ui.theme.MovieAppTheme
+import com.example.mda.util.ConnectivityObserver
 import com.example.mda.util.GenreViewModelFactory
+import com.example.mda.util.NetworkConnectivityObserver
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -137,7 +143,24 @@ class MainActivity : ComponentActivity() {
             }
 
             val navController = rememberNavController()
+            val connectivityObserver = remember { NetworkConnectivityObserver(applicationContext) }
+            val networkStatus by connectivityObserver.observe().collectAsState(initial = ConnectivityObserver.Status.Available)
             MovieAppTheme(darkTheme = darkTheme) {
+                if (networkStatus == ConnectivityObserver.Status.Lost || networkStatus == ConnectivityObserver.Status.Unavailable) {
+                    NoInternetScreen(
+                        onRetry = {
+                            try {
+                                // نفتح إعدادات الواي فاي للمستخدم
+                                val intent =
+                                    android.content.Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                // لو حصل مشكلة، نفتح الإعدادات العامة
+                                context.startActivity(android.content.Intent(android.provider.Settings.ACTION_SETTINGS))
+                            }
+                        }
+                    )
+                } else {
 
                 // 🌈 Gradient Background
                 Box(
@@ -167,10 +190,16 @@ class MainActivity : ComponentActivity() {
 
                             // ViewModels
                             val homeViewModel: HomeViewModel =
-                                viewModel(factory = HomeViewModelFactory(moviesRepository, authRepository))
+                                viewModel(
+                                    factory = HomeViewModelFactory(
+                                        moviesRepository,
+                                        authRepository
+                                    )
+                                )
                             val genreViewModel: GenreViewModel =
                                 viewModel(factory = GenreViewModelFactory(moviesRepository))
-                            val searchVM: SearchViewModel = viewModel(factory = searchViewModelFactory)
+                            val searchVM: SearchViewModel =
+                                viewModel(factory = searchViewModelFactory)
                             searchViewModel = searchVM
 
                             val favoritesVM: FavoritesViewModel =
@@ -219,7 +248,11 @@ class MainActivity : ComponentActivity() {
                                     if (currentRoute != null && currentRoute !in hideTopBarRoutes) {
                                         val (topBarBg, topBarText) =
                                             AppTopBarColors(darkTheme = darkTheme)
-                                        val resetTopBar = currentRoute in listOf("about_app", "help_faq", "privacy_policy")
+                                        val resetTopBar = currentRoute in listOf(
+                                            "about_app",
+                                            "help_faq",
+                                            "privacy_policy"
+                                        )
                                         val titleToShow = if (resetTopBar) {
                                             when (currentRoute) {
                                                 "about_app" -> "About"
@@ -248,11 +281,16 @@ class MainActivity : ComponentActivity() {
                                             ) {
                                                 Column(
                                                     modifier = Modifier
-                                                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                                                        .padding(
+                                                            horizontal = 16.dp,
+                                                            vertical = 10.dp
+                                                        )
                                                 ) {
                                                     Text(
                                                         text = topBarState.title.ifEmpty { titleToShow },
-                                                        style = MaterialTheme.typography.headlineSmall.copy(color = topBarText)
+                                                        style = MaterialTheme.typography.headlineSmall.copy(
+                                                            color = topBarText
+                                                        )
                                                     )
 
                                                     topBarState.subtitle?.let {
@@ -293,7 +331,8 @@ class MainActivity : ComponentActivity() {
                                 },
                                 bottomBar = {
                                     val backStackEntry by navController.currentBackStackEntryAsState()
-                                    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                                    val currentRoute =
+                                        navController.currentBackStackEntryAsState().value?.destination?.route
                                     val hideBottomBarRoutes = listOf(
                                         "splash",
                                         "ActorDetails/{personId}",
@@ -310,7 +349,11 @@ class MainActivity : ComponentActivity() {
                                             ButtonData("movies", "Movies", Icons.Default.Movie),
                                             ButtonData("actors", "People", Icons.Default.People),
                                             ButtonData("search", "Search", Icons.Default.Search),
-                                            ButtonData("settings", "Settings", Icons.Default.Settings)
+                                            ButtonData(
+                                                "settings",
+                                                "Settings",
+                                                Icons.Default.Settings
+                                            )
                                         )
                                         val (topBarBg) = AppTopBarColors(darkTheme = darkTheme)
 
@@ -328,7 +371,8 @@ class MainActivity : ComponentActivity() {
 
 
                                 val navBarInsets = WindowInsets.navigationBars.asPaddingValues()
-                                val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                                val currentRoute =
+                                    navController.currentBackStackEntryAsState().value?.destination?.route
                                 val isKidsRoute = currentRoute == "kids"
 
                                 Box(
@@ -339,14 +383,16 @@ class MainActivity : ComponentActivity() {
                                         end = innerPadding.calculateRightPadding(LayoutDirection.Ltr)
                                     )
                                 ) {
-                                MdaNavHost(
+                                    MdaNavHost(
                                         navController = navController,
                                         moviesRepository = moviesRepository,
                                         actorsRepository = actorRepository,
                                         movieDetailsRepository = movieDetailsRepository,
                                         localDao = mediaDao,
                                         localRepository = localRepository,
-                                        onTopBarStateChange = { newState -> topBarState = newState },
+                                        onTopBarStateChange = { newState ->
+                                            topBarState = newState
+                                        },
                                         genreViewModel = genreViewModel,
                                         searchViewModel = searchViewModel,
                                         actorViewModel = actorViewModel,
@@ -356,7 +402,7 @@ class MainActivity : ComponentActivity() {
                                         moviesHistoryViewModel = moviesHistoryViewModel,
                                         authRepository = authRepository,
                                         darkTheme = darkTheme,
-                                    homeViewModel = homeViewModel
+                                        homeViewModel = homeViewModel
 
                                     )
                                 }
@@ -364,6 +410,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
             }
         }
     }
