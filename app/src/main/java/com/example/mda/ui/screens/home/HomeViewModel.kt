@@ -48,18 +48,36 @@ class HomeViewModel(
     init {
         Log.d("HomeVM", "✅ HomeViewModel initialized")
 
-        loadTrending("day")
-        loadPopularData()
-        loadTopRated()
+        // ✅ تحميل أول مرة فقط لو البيانات فاضية
+        if (_trendingMedia.value.isEmpty()) {
+            loadTrending("day")
+        }
 
-        // ✅ راقب الجلسة وحدث التوصيات الذكية لما المستخدم يكون logged in
+        if (_popularMovies.value.isEmpty() || _popularTvShows.value.isEmpty()) {
+            loadPopularData()
+        }
+
+        if (_topRatedMovies.value.isEmpty()) {
+            loadTopRated()
+        }
+
+        // ✅ راقب الجلسة مرة واحدة فقط
+        observeSession()
+    }
+
+    /**
+     * راقب الجلسة وحمّل التوصيات الذكية فقط لما يكون المستخدم Logged in
+     */
+    private fun observeSession() {
         viewModelScope.launch {
             authRepository.getSessionId().collect { sessionId ->
                 if (!sessionId.isNullOrEmpty()) {
                     val account = authRepository.getAccountDetails().getOrNull()
                     if (account != null) {
-                        Log.d("HomeVM", "🔁 Session active. Loading smart recommendations for ${account.id}")
-                        loadSmartRecommendations(account.id, sessionId)
+                        if (_recommendedMedia.value.isEmpty()) { // ✅ امنع تكرار التحميل
+                            Log.d("HomeVM", "🔁 Session active. Loading smart recommendations for ${account.id}")
+                            loadSmartRecommendations(account.id, sessionId)
+                        }
                     }
                 } else {
                     Log.d("HomeVM", "🚫 No Session found, skipping recommendations.")

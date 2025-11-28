@@ -18,7 +18,7 @@ enum class ViewType { GRID, LIST }
 class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
 
     private val _state = MutableStateFlow<ActorUiState>(ActorUiState.Loading)
-    val state: StateFlow<ActorUiState> = _state.asStateFlow()
+    val state: StateFlow<ActorUiState> = _stat.asStateFlow()
 
     private val _viewType = MutableStateFlow(ViewType.GRID)
     val viewType: StateFlow<ViewType> = _viewType.asStateFlow()

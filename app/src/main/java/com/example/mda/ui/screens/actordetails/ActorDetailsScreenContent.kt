@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -35,9 +36,9 @@ fun ActorDetailsScreenContent(
     authViewModel: AuthViewModel,
 ) {
 
-    var showAll by remember { mutableStateOf(false) }
+    var showAll by rememberSaveable { mutableStateOf(false) }
 
-   LaunchedEffect(actor.id) {
+    LaunchedEffect(actor.id) {
        historyViewModel.saveViewedPerson(
            PersonEntity(
                id = actor.id,
