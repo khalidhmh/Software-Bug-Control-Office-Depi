@@ -62,6 +62,8 @@ import com.example.mda.data.remote.model.KeywordItem
 import com.example.mda.data.remote.model.Movie
 import com.example.mda.data.remote.model.ReviewItem
 import com.example.mda.data.repository.MovieDetailsRepository
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
@@ -141,7 +143,7 @@ fun ProductionSection(details: MediaEntity) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Production Details",
+                text = localizedString(LocalizationKeys.DETAIL_PRODUCTION_DETAILS),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -149,7 +151,8 @@ fun ProductionSection(details: MediaEntity) {
 
             // 1. Spoken Languages
             if (languages.isNotEmpty()) {
-                SectionHeader(title = "Spoken Languages")
+                SectionHeader(title = localizedString(LocalizationKeys.DETAIL_SPOKEN_LANGUAGES))
+
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -163,7 +166,8 @@ fun ProductionSection(details: MediaEntity) {
 
             // 2. Countries
             if (countries.isNotEmpty()) {
-                SectionHeader(title = "Production Countries")
+                SectionHeader(title = localizedString(LocalizationKeys.DETAIL_PRODUCTION_COUNTRIES))
+
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -177,7 +181,8 @@ fun ProductionSection(details: MediaEntity) {
 
             // 3. Companies
             if (companies.isNotEmpty()) {
-                SectionHeader(title = "Companies")
+                SectionHeader(title = localizedString(LocalizationKeys.DETAIL_COMPANIES))
+
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -216,7 +221,7 @@ fun GenresSection(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Genres",
+                    text = localizedString(LocalizationKeys.DETAIL_GENRES),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -274,7 +279,7 @@ fun KeywordsSection(keywords: List<KeywordItem>) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Keywords",
+                    text = localizedString(LocalizationKeys.DETAIL_KEYWORDS),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -326,7 +331,7 @@ fun ExpandableText(
         )
         Spacer(Modifier.height(6.dp))
         TextButton(onClick = { expanded = !expanded }) {
-            Text(if (expanded) "Show less" else "Show more", color = MaterialTheme.colorScheme.primary)
+            Text(if (expanded) localizedString(LocalizationKeys.COMMON_SHOW_LESS) else localizedString(LocalizationKeys.COMMON_SHOW_MORE), color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -352,7 +357,7 @@ fun RecommendationsSimilarTabs(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = "Discover",
+                text = localizedString(LocalizationKeys.DETAIL_DISCOVER),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -373,20 +378,20 @@ fun RecommendationsSimilarTabs(
                     onClick = { selected = 0 },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    text = { Text("Recommendations $recCount", style = MaterialTheme.typography.labelLarge) }
+                    text = { Text(localizedString(LocalizationKeys.DETAIL_RECOMMENDATIONS_COUNT, "count", recCount.toString()), style = MaterialTheme.typography.labelLarge) }
                 )
                 Tab(
                     selected = selected == 1,
                     onClick = { selected = 1 },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    text = { Text("Similar $simCount", style = MaterialTheme.typography.labelLarge) }
+                    text = { Text(localizedString(LocalizationKeys.DETAIL_SIMILAR_COUNT, "count", simCount.toString()), style = MaterialTheme.typography.labelLarge) }
                 )
             }
             Spacer(Modifier.height(12.dp))
 
             val list = if (selected == 0) recommendations else similar
-            val emptyMsg = if (selected == 0) "No recommendations" else "No similar"
+            val emptyMsg = if (selected == 0) localizedString(LocalizationKeys.DETAIL_NO_RECOMMENDATIONS) else localizedString(LocalizationKeys.DETAIL_NO_SIMILAR)
 
             if (list.isEmpty()) {
                 Text(
@@ -441,7 +446,7 @@ fun SimilarItemCard(
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "No image",
+                        text = localizedString(LocalizationKeys.COMMON_NO_IMAGE),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -476,6 +481,48 @@ fun SimilarItemCard(
             if (year.isNotEmpty()) {
                 Text(text = year, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        }
+    }
+}
+
+@Composable
+fun ExpandableOverview(text: String) {
+    var expanded by remember { mutableStateOf(false) }
+    Surface(
+        tonalElevation = 1.dp,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = localizedString(LocalizationKeys.DETAIL_OVERVIEW),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) localizedString(LocalizationKeys.COMMON_COLLAPSE) else localizedString(LocalizationKeys.COMMON_EXPAND),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = if (expanded) Int.MAX_VALUE else 4,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -517,10 +564,7 @@ fun AboutMovieCard(details: MediaEntity) {
                         text = "IMDb",
                         color = MaterialTheme.colorScheme.onPrimary,
                         style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(
-                            horizontal = 8.dp,
-                            vertical = 4.dp
-                        )
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
                 Spacer(Modifier.width(8.dp))
@@ -533,34 +577,34 @@ fun AboutMovieCard(details: MediaEntity) {
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 KeyValueItem(
-                    "Status",
-                    details.status,
+                    title = "Status",
+                    value = details.status,
                     modifier = Modifier.weight(1f)
                 )
                 KeyValueItem(
-                    "Original language",
-                    details.spokenLanguages?.firstOrNull(),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                KeyValueItem(
-                    "Budget",
-                    details.budget?.takeIf { it > 0 }?.let { "$it" },
-                    modifier = Modifier.weight(1f)
-                )
-                KeyValueItem(
-                    "Revenue",
-                    details.revenue?.takeIf { it > 0 }?.let { "$it" },
+                    title = "Original language",
+                    value = details.spokenLanguages?.firstOrNull(),
                     modifier = Modifier.weight(1f)
                 )
             }
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 KeyValueItem(
-                    "Production country",
-                    details.productionCountries?.firstOrNull(),
+                    title = "Budget",
+                    value = details.budget?.takeIf { it > 0 }?.let { "$it" },
+                    modifier = Modifier.weight(1f)
+                )
+                KeyValueItem(
+                    title = "Revenue",
+                    value = details.revenue?.takeIf { it > 0 }?.let { "$it" },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                KeyValueItem(
+                    title = "Production country",
+                    value = details.productionCountries?.firstOrNull(),
                     modifier = Modifier.weight(1f)
                 )
                 Column(modifier = Modifier.weight(1f)) {
@@ -577,7 +621,6 @@ fun AboutMovieCard(details: MediaEntity) {
                     ) {
                         (details.productionCompanies ?: emptyList()).take(6)
                             .forEach { comp ->
-                                // Using the styled chip for consistency
                                 StyledChip(text = comp)
                             }
                         if ((details.productionCompanies?.size ?: 0) == 0) {
@@ -590,49 +633,6 @@ fun AboutMovieCard(details: MediaEntity) {
                     }
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun ExpandableOverview(text: String) {
-    var expanded by remember { mutableStateOf(false) }
-    Surface(
-        tonalElevation = 1.dp,
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Overview",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded) "Collapse" else "Expand",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = if (expanded) Int.MAX_VALUE else 4,
-                overflow = TextOverflow.Ellipsis
-            )
         }
     }
 }
@@ -731,7 +731,7 @@ fun MovieDetailsContent(
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = localizedString(LocalizationKeys.COMMON_BACK),
                         tint = Color.White
                     )
                 }

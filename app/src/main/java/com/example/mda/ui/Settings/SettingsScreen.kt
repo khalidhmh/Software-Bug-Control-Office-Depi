@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.mda.data.SettingsDataStore
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthUiState
 import com.example.mda.ui.screens.auth.AuthViewModel
@@ -40,7 +42,7 @@ fun SettingsScreen(
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(dataStore))
     val theme by viewModel.themeMode.collectAsState()
     val notifications by viewModel.notificationsEnabled.collectAsState()
-   // 🟢 قراءات مباشرة من SessionManager (نفس اللي استخدمناه في AuthRepository)
+   // قراءات مباشرة من SessionManager (نفس اللي استخدمناه في AuthRepository)
     val sessionManager = remember { com.example.mda.data.datastore.SessionManager(context) }
     val uiState by authViewModel?.uiState?.collectAsState()
         ?: remember { mutableStateOf(AuthUiState()) }
@@ -51,13 +53,14 @@ fun SettingsScreen(
     val localId by sessionManager.accountId.collectAsState(initial = 0)
     val isLoggedIn = uiState.isAuthenticated
     val account = uiState.accountDetails
-    LaunchedEffect(Unit) {
+    val settingsTitle = localizedString(LocalizationKeys.SETTINGS_TITLE)
+    LaunchedEffect(settingsTitle) {
         onTopBarStateChange(
             TopBarState(
-                title = "Settings",
+                title = settingsTitle,
                 showBackButton = false
             )
-            )
+        )
 
         if (authViewModel != null && uiState.isAuthenticated && uiState.accountDetails == null) {
             authViewModel.fetchAccountDetails()
@@ -82,7 +85,7 @@ fun SettingsScreen(
             onClick = { navController.navigate("profile") },
             onLoginClick = { navController.navigate("login") }
         )
-        Text("Other settings",
+        Text(localizedString(LocalizationKeys.SETTINGS_OTHER),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -91,7 +94,7 @@ fun SettingsScreen(
 
             SettingsItem(
                 Icons.Default.Favorite,
-                "Favorite Movies",
+                localizedString(LocalizationKeys.SETTINGS_FAVORITES),
                 onClick = {
                     navController.navigate("Favprofile")
                 }
@@ -100,7 +103,7 @@ fun SettingsScreen(
 
             SettingsItem(
                 Icons.Default.Person,
-                "Actors Viewed",
+                localizedString(LocalizationKeys.SETTINGS_ACTORS_VIEWED),
                 onClick = {
                     navController.navigate("HistoryScreen")
                 }
@@ -109,28 +112,28 @@ fun SettingsScreen(
 
             SettingsItem(
                 Icons.Default.Movie,
-                "Movies Viewed",
+                localizedString(LocalizationKeys.SETTINGS_MOVIES_VIEWED),
                 onClick = {
                     navController.navigate("MovieHistoryScreen")
                 }
             )
         }
         SettingsGroupCard {
-                SettingsItem(Icons.Default.Lock, "Password") {
+                SettingsItem(Icons.Default.Lock, localizedString(LocalizationKeys.SETTINGS_PASSWORD)) {
 
                     // not implemented yet
                     // navController.navigate("change_password")
                 }
                 Divider()
                 SettingsItem(
-                    Icons.Default.Notifications, "Notifications",
+                    Icons.Default.Notifications, localizedString(LocalizationKeys.SETTINGS_NOTIFICATIONS),
                     isToggle = true,
                     toggleState = notifications,
                     onToggleChange = { viewModel.updateNotifications(it) }
                 )
                 Divider()
                 SettingsItem(
-                    Icons.Default.DarkMode, "Dark Mode",
+                    Icons.Default.DarkMode, localizedString(LocalizationKeys.SETTINGS_DARK_MODE),
                     isToggle = true,
                     toggleState = theme == 2,
                     onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
@@ -138,19 +141,19 @@ fun SettingsScreen(
             }
 
         SettingsGroupCard {
-            SettingsItem(Icons.Default.Language, "Language") { navController.navigate("language_settings") }
+            SettingsItem(Icons.Default.Language, localizedString(LocalizationKeys.SETTINGS_LANGUAGE)) { navController.navigate("language_settings") }
             Divider()
             SettingsItem(
                 icon = Icons.Default.ChildCare,
-                title = "Kids Mode"
+                title = localizedString(LocalizationKeys.SETTINGS_KIDS_MODE)
             ) { navController.navigate("kids") }
             Divider()
-             SettingsItem(Icons.Default.Security, "Privacy Policy") { navController.navigate("privacy_policy") }
+             SettingsItem(Icons.Default.Security, localizedString(LocalizationKeys.SETTINGS_PRIVACY_POLICY)) { navController.navigate("privacy_policy") }
 
             Divider()
-            SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq") }
+            SettingsItem(Icons.Default.Help, localizedString(LocalizationKeys.SETTINGS_HELP_FAQ)) { navController.navigate("help_faq") }
             Divider()
-            SettingsItem(Icons.Default.Info, "About") { navController.navigate("about_app") }
+            SettingsItem(Icons.Default.Info, localizedString(LocalizationKeys.SETTINGS_ABOUT)) { navController.navigate("about_app") }
         }
         Spacer(Modifier.height(80.dp))
 

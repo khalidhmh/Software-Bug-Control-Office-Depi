@@ -23,6 +23,9 @@ import com.example.mda.ui.screens.home.homeScreen.*
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -54,17 +57,24 @@ fun HomeScreen(
         viewModel.onUserActivityDetected(forceRefresh = true)
     }
 
-    val greeting = getGreetingMessage()
-    LaunchedEffect(Unit) {
-        while (true) {
-            onTopBarStateChange(
-                TopBarState(
-                    title = greeting,
-                    subtitle = "What do you want to watch?"
-                )
-            )
-            kotlinx.coroutines.delay(5 * 60 * 1000)
+    val greeting = remember {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        when (hour) {
+            in 5..11 -> LocalizationKeys.HOME_GREETING_MORNING
+            in 12..16 -> LocalizationKeys.HOME_GREETING_AFTERNOON
+            in 17..20 -> LocalizationKeys.HOME_GREETING_EVENING
+            else -> LocalizationKeys.HOME_GREETING_MORNING
         }
+    }
+    val titleText = localizedString(greeting)
+    val subtitleText = localizedString(LocalizationKeys.HOME_SUBTITLE)
+    LaunchedEffect(titleText, subtitleText) {
+        onTopBarStateChange(
+            TopBarState(
+                title = titleText,
+                subtitle = subtitleText
+            )
+        )
     }
     SwipeRefresh(
         state = refreshState,
@@ -170,14 +180,4 @@ fun HomeScreen(
 }
 
 @Composable
-fun getGreetingMessage(): String {
-    val calendar = remember { Calendar.getInstance() }
-    val hour = calendar.get(Calendar.HOUR_OF_DAY)
-
-    return when (hour) {
-        in 5..11 -> "Good Morning"
-        in 12..16 -> "Good Afternoon"
-        in 17..20 -> "Good Evening"
-        else -> "Good Night"
-    }
-}
+fun getGreetingMessage(): String = localizedString(LocalizationKeys.HOME_GREETING_MORNING)
