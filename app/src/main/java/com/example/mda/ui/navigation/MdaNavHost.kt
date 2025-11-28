@@ -3,6 +3,7 @@ package com.example.mda.ui.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -38,6 +39,7 @@ import com.example.mda.ui.screens.settings.SettingsScreen
 import com.example.mda.ui.screens.onboarding.OnboardingScreen
 import com.example.mda.ui.screens.splash.SplashScreen
 import com.example.mda.ui.kids.KidsRoot
+import com.example.mda.ui.kids.KidsSplashScreen
 import com.example.mda.ui.screens.home.homeScreen.PopularNowScreen
 import com.example.mda.ui.screens.settings.PrivacyPolicyScreen
 
@@ -59,7 +61,8 @@ fun MdaNavHost(
     authRepository: AuthRepository,
     historyViewModel: HistoryViewModel,
     moviesHistoryViewModel: MoviesHistoryViewModel,
-    darkTheme: Boolean
+    darkTheme: Boolean,
+    homeViewModel: HomeViewModel
 ) {
     NavHost(
         navController = navController,
@@ -77,18 +80,14 @@ fun MdaNavHost(
 
         // Home
         composable("home") {
-            val homeViewModel: HomeViewModel = viewModel(
-                factory = HomeViewModelFactory(moviesRepository, authRepository)
-            )
             HomeScreen(
-                viewModel = homeViewModel,
+                viewModel = homeViewModel,   // ⬅️ بدلاً من إنشاء جديد
                 navController = navController,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
-                authViewModel = authViewModel!!
+                authViewModel = authViewModel
             )
         }
-
         // Actors List
         composable("actors") {
             ActorsScreen(
@@ -248,6 +247,16 @@ fun MdaNavHost(
                 moviesRepository = moviesRepository,
                 favoritesViewModel = favoritesViewModel,
                 localRepository = localRepository
+            )
+        }
+        // Kids Splash Screen
+        composable("kids_splash") {
+            KidsSplashScreen(
+                onFinished = {
+                    navController.navigate("kids") {
+                        popUpTo("kids_splash") { inclusive = true }
+                    }
+                }
             )
         }
 

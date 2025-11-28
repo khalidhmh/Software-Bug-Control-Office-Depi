@@ -40,17 +40,8 @@ fun SignupScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = onToggleTheme) {
-                        Icon(
-                            imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Toggle Theme",
-                            tint = topBarText
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = Color(0xFF032541) // اللون الأساسي لـ TMDB
                 )
             )
         }

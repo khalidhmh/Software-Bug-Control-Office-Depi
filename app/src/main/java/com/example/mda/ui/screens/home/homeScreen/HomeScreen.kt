@@ -49,23 +49,16 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     val authUiState by authViewModel.uiState.collectAsState()
 
-    // 🔹 أول ما الصفحة تفتح، حدّث التوصيات حسب نشاط المستخدم
-    LaunchedEffect(Unit) {
-        viewModel.onUserActivityDetected(forceRefresh = true)
+    val greeting = getGreetingMessage()
+    LaunchedEffect(greeting) {
+        onTopBarStateChange(
+            TopBarState(
+                title = greeting,
+                subtitle = "What do you want to watch?"
+            )
+        )
     }
 
-    val greeting = getGreetingMessage()
-    LaunchedEffect(Unit) {
-        while (true) {
-            onTopBarStateChange(
-                TopBarState(
-                    title = greeting,
-                    subtitle = "What do you want to watch?"
-                )
-            )
-            kotlinx.coroutines.delay(5 * 60 * 1000)
-        }
-    }
     SwipeRefresh(
         state = refreshState,
         onRefresh = {

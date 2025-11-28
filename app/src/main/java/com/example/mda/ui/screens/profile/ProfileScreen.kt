@@ -36,7 +36,6 @@ fun ProfileScreen(
     val uiState = authViewModel?.uiState?.collectAsState()?.value
     val account = uiState?.accountDetails
 
-    val gradientBackground = AppBackgroundGradient()
 
     LaunchedEffect(Unit) {
         onTopBarStateChange(TopBarState(title = "Profile", showBackButton = true))

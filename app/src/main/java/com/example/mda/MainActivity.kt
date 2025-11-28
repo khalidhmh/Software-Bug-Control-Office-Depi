@@ -356,6 +356,7 @@ class MainActivity : ComponentActivity() {
                                         moviesHistoryViewModel = moviesHistoryViewModel,
                                         authRepository = authRepository,
                                         darkTheme = darkTheme,
+                                    homeViewModel = homeViewModel
 
                                     )
                                 }
