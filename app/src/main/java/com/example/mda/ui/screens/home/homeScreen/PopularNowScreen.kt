@@ -97,7 +97,7 @@ fun PopularNowScreen(
                                             .padding(8.dp),
                                         showBackground = true,
                                         isAuthenticated = authUiState.isAuthenticated,
-                                        onLoginRequired = { navController.navigate("profile") }
+                                        onLoginRequired = { navController.navigate("settings") }
                                     )
                                 }
                             }
@@ -123,7 +123,7 @@ fun PopularNowScreen(
                                             .padding(8.dp),
                                         showBackground = true,
                                         isAuthenticated = authUiState.isAuthenticated,
-                                        onLoginRequired = { navController.navigate("profile") }
+                                        onLoginRequired = { navController.navigate("settings") }
                                     )
                                 }
                             }

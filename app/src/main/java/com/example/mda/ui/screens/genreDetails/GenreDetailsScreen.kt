@@ -186,7 +186,7 @@ fun GenreDetailsScreen(
                                                 .padding(8.dp),
                                             showBackground = true,
                                             isAuthenticated = authUiState.isAuthenticated,
-                                            onLoginRequired = { navController.navigate("profile") }
+                                            onLoginRequired = { navController.navigate("settings") }
                                         )
                                     }
                                 }
@@ -228,7 +228,7 @@ fun GenreDetailsScreen(
                                                 .align(Alignment.TopStart)
                                                 .padding(8.dp),
                                             showBackground = true,
-                                            onLoginRequired = { navController.navigate("profile") }
+                                            onLoginRequired = { navController.navigate("settings") }
                                         )
                                     }
                                 }
