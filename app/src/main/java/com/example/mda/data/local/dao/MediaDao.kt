@@ -42,7 +42,7 @@ interface MediaDao {
     @Query("DELETE FROM media_items WHERE isFavorite = 0 AND isInWatchlist = 0")
     suspend fun clearNonSaved()
 
-    // 🔹 Clear by genre in Kotlin
+    // Clear by genre in Kotlin
     suspend fun clearGenreById(genreId: Int) {
         val all = getAll().first()
         val toDelete = all.filter { it.genreIds?.contains(genreId) == true }

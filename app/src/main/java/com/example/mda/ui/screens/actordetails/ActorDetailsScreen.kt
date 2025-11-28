@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mda.ui.actor.ActorViewModel
@@ -21,6 +22,7 @@ import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.actordetails.calculateAge
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.google.accompanist.swiperefresh.*
 import kotlinx.coroutines.launch
@@ -37,7 +39,7 @@ fun ActorDetailsScreen(
     onTopBarStateChange: (TopBarState) -> Unit,
     favoritesViewModel: FavoritesViewModel,
     historyViewModel: HistoryViewModel,
-    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModel
 ) {
     val vm: ActorViewModel = viewModel(factory = ActorViewModel.ActorViewModelFactory(repository))
     val actor by vm.actorFullDetails.collectAsState()
@@ -79,7 +81,7 @@ fun ActorDetailsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(Color.Transparent)
 
             ) {
                 when {

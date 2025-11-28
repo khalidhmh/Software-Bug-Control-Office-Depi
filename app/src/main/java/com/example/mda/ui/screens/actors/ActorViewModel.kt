@@ -4,43 +4,35 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mda.data.remote.model.Actor
+import com.example.mda.data.remote.model.KnownFor
 import com.example.mda.data.repository.ActorsRepository
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.example.mda.data.remote.model.KnownFor
-import kotlin.collections.emptyList
-import kotlin.collections.map
-
 
 enum class ViewType { GRID, LIST }
 
 class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
 
     private val _state = MutableStateFlow<ActorUiState>(ActorUiState.Loading)
-    val state: StateFlow<ActorUiState> = _state
+    val state: StateFlow<ActorUiState> = _state.asStateFlow()
 
     private val _viewType = MutableStateFlow(ViewType.GRID)
-    val viewType: StateFlow<ViewType> = _viewType
+    val viewType: StateFlow<ViewType> = _viewType.asStateFlow()
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery
+    private val gson = Gson()
+    private val type = object : TypeToken<List<KnownFor>>() {}.type
 
-    // --- Master list to hold all actors ---
     private var _allActors: List<Actor> = emptyList()
-
     private var currentPage = 1
     private var isLastPage = false
     private var isLoading = false
-
-    val gson = Gson()
-    val type = object : com.google.gson.reflect.TypeToken<List<KnownFor>>() {}.type
 
     init {
         loadActors()
@@ -50,23 +42,6 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
         _viewType.value = if (_viewType.value == ViewType.GRID) ViewType.LIST else ViewType.GRID
     }
 
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-        applySearch()
-    }
-
-    private fun applySearch() {
-        val query = _searchQuery.value
-        val filtered = if (query.isBlank()) {
-            _allActors // reset to full list if search is empty
-        } else {
-            _allActors.filter { actor ->
-                actor.name.contains(query, ignoreCase = true)
-            }
-        }
-        _state.value = ActorUiState.Success(filtered)
-    }
-
     fun loadActors(forceRefresh: Boolean = false) {
         if (isLoading && !forceRefresh) return
         if (forceRefresh) {
@@ -74,44 +49,56 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
             isLastPage = false
         }
 
+        Log.d("ActorVM", "loadActors called, forceRefresh=$forceRefresh, currentPage=$currentPage")
         viewModelScope.launch {
             isLoading = true
             if (forceRefresh) _isRefreshing.value = true
-            if (currentPage == 1 && !forceRefresh) _state.value = ActorUiState.Loading
+
+            if (currentPage == 1 && !forceRefresh) {
+                _state.value = ActorUiState.Loading
+            }
 
             try {
                 val newEntities = repository.getPopularActorsWithCache(page = currentPage)
+                Log.d("ActorVM", "Fetched ${newEntities.size} actors from repository")
 
-                val currentList = if (currentPage == 1) emptyList() else _allActors
-                val updatedList = (currentList + newEntities.map { entity ->
-                    val knownForList = try {
-                        val field = entity::class.java.getDeclaredField("knownFor")
-                        field.isAccessible = true
-                        val jsonValue = field.get(entity) as? String
-                        jsonValue?.let { gson.fromJson<List<KnownFor>>(it, type) } ?: emptyList()
-                    } catch (e: Exception) {
-                        emptyList()
-                    }
+                if (newEntities.isEmpty() && currentPage == 1) {
+                    _state.value = ActorUiState.Error("No actors found", ErrorType.NetworkError)
+                    isLastPage = true
+                } else {
+                    val currentList =
+                        if (currentPage == 1) emptyList()
+                        else (_state.value as? ActorUiState.Success)?.actors.orEmpty()
 
-                    Actor(
-                        id = entity.id,
-                        name = entity.name,
-                        profilePath = entity.profilePath,
-                        biography = entity.biography,
-                        birthday = entity.birthday,
-                        placeOfBirth = entity.placeOfBirth,
-                        knownFor = knownForList
-                    )
-                }).distinctBy { it.id }
+                    val updatedList =
+                        (currentList + newEntities.map { entity ->
+                            val knownForList = try {
+                                val field = entity::class.java.getDeclaredField("knownFor")
+                                field.isAccessible = true
+                                val jsonValue = field.get(entity) as? String
+                                jsonValue?.let { gson.fromJson<List<KnownFor>>(it, type) } ?: emptyList()
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
 
-                // --- Update master list ---
-                _allActors = updatedList
+                            Actor(
+                                id = entity.id,
+                                name = entity.name,
+                                profilePath = entity.profilePath,
+                                biography = entity.biography,
+                                birthday = entity.birthday,
+                                placeOfBirth = entity.placeOfBirth,
+                                knownForDepartment = entity.knownForDepartment,
+                                knownFor = knownForList
+                            )
+                        }).distinctBy { it.id }
 
-                // Apply search on the master list
-                applySearch()
+                    _allActors = updatedList
+                    _state.value = ActorUiState.Success(_allActors)
 
-                currentPage++
-                if (newEntities.isEmpty()) isLastPage = true
+                    currentPage++
+                    if (newEntities.isEmpty()) isLastPage = true
+                }
 
             } catch (e: Exception) {
                 if (_allActors.isEmpty()) {
@@ -133,7 +120,3 @@ class ActorViewModel(private val repository: ActorsRepository) : ViewModel() {
         loadActors(forceRefresh = true)
     }
 }
-
-
-
-

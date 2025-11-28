@@ -31,6 +31,7 @@ fun Movie.toMediaEntity(defaultType: String? = this.mediaType): MediaEntity {
     )
 }
 
+
 /**
  * 🆕 Mapper محدث لتحويل MovieDetailsResponse إلى MediaEntity مع كل التفاصيل
  */

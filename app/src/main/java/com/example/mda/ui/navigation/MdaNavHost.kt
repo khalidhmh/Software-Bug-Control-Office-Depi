@@ -10,39 +10,37 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.mda.data.local.dao.MediaDao
-import com.example.mda.data.repository.MovieDetailsRepository
-import com.example.mda.data.repository.MoviesRepository
+import com.example.mda.data.local.LocalRepository
+import com.example.mda.data.repository.*
+import com.example.mda.ui.Settings.AboutScreen
+import com.example.mda.ui.Settings.HelpScreen
+import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
 import com.example.mda.ui.screens.actors.ActorsScreen
+import com.example.mda.ui.screens.actors.ActorViewModel
+import com.example.mda.ui.screens.auth.*
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.genreScreen.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
-import com.example.mda.ui.screens.moivebygenrescreen.GenreDetailsScreen
+import com.example.mda.ui.screens.genreDetails.GenreDetailsScreen
 import com.example.mda.ui.screens.movieDetail.MovieDetailsScreen
-import com.example.mda.ui.screens.search.SearchScreen
-import com.example.mda.ui.screens.search.SearchViewModel
-import com.example.mda.util.GenreViewModelFactory
-import com.example.mda.data.repository.ActorsRepository
-import com.example.mda.ui.home.HomeScreen
-import com.example.mda.ui.screens.actors.ActorViewModel
-import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.profile.ProfileScreen
-import com.example.mda.ui.screens.favorites.FavoritesViewModel
-import com.example.mda.ui.screens.auth.AuthViewModel
-import com.example.mda.ui.screens.auth.LoginScreen
-import com.example.mda.ui.screens.auth.SignupScreen
-import com.example.mda.ui.screens.auth.AccountScreen
 import com.example.mda.ui.screens.profile.favourites.FavoritesScreen
 import com.example.mda.ui.screens.profile.history.HistoryScreen
 import com.example.mda.ui.screens.profile.history.HistoryViewModel
 import com.example.mda.ui.screens.profile.history.MoviesHistoryScreen
 import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
+import com.example.mda.ui.screens.search.SearchScreen
+import com.example.mda.ui.screens.search.SearchViewModel
+import com.example.mda.ui.screens.settings.SettingsScreen
+import com.example.mda.ui.screens.onboarding.OnboardingScreen
+import com.example.mda.ui.screens.splash.SplashScreen
 import com.example.mda.ui.kids.KidsRoot
-import com.example.mda.data.local.LocalRepository
+import com.example.mda.ui.screens.home.homeScreen.PopularNowScreen
+import com.example.mda.ui.screens.settings.PrivacyPolicyScreen
 
-// ✅ تعديل: أضفت import لـ ActorRepository (كان ناقص)
-
-// ✅ تعديل شامل: تم تنظيف تعريف الدالة وتصحيح بنية كل الشاشات
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MdaNavHost(
@@ -53,59 +51,67 @@ fun MdaNavHost(
     localDao: MediaDao,
     localRepository: LocalRepository,
     onTopBarStateChange: (TopBarState) -> Unit,
-    GenreViewModel: GenreViewModel,
-    SearchViewModel: SearchViewModel,
+    genreViewModel: GenreViewModel,
+    searchViewModel: SearchViewModel,
     actorViewModel: ActorViewModel,
     favoritesViewModel: FavoritesViewModel,
     authViewModel: AuthViewModel,
+    authRepository: AuthRepository,
     historyViewModel: HistoryViewModel,
-    moviesHistoryViewModel: MoviesHistoryViewModel
-
+    moviesHistoryViewModel: MoviesHistoryViewModel,
+    darkTheme: Boolean
 ) {
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = "splash"
     ) {
+        // Splash
+        composable("splash") {
+            SplashScreen(navController = navController)
+        }
 
-        // 🏠 Home
+        // Onboarding
+        composable("onboarding") {
+            OnboardingScreen(navController = navController)
+        }
+
+        // Home
         composable("home") {
-            // ✅ صحيح: الشاشة تنشئ الـ ViewModel الخاص بها
-            val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(moviesRepository))
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(moviesRepository, authRepository)
+            )
             HomeScreen(
                 viewModel = homeViewModel,
                 navController = navController,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+                authViewModel = authViewModel!!
             )
         }
 
-        // 🌟 Actors List (People)
+        // Actors List
         composable("actors") {
-            // ✅ صحيح: تم تمرير الـ repository والدالة بشكل صحيح
             ActorsScreen(
                 navController = navController,
                 actorsRepository = actorsRepository,
-                onTopBarStateChange = onTopBarStateChange,
-                viewModel = actorViewModel
+                viewModel = actorViewModel,
+                onTopBarStateChange = onTopBarStateChange
             )
         }
 
-        // 🔍 Search
+        // Search
         composable("search") {
-            // ✅ صحيح: الشاشة تنشئ الـ ViewModel الخاص بها
             SearchScreen(
                 navController = navController,
-                viewModel = SearchViewModel,
+                viewModel = searchViewModel,
                 onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
+                favoritesViewModel = favoritesViewModel,
+                authViewModel = authViewModel!!
             )
         }
 
-        // 🎞️ Movies / Genres List
-        // تم دمج "movies" و "genres" في مسار واحد لأنهما يعرضان نفس الشاشة
+        // Movies / Genres
         composable("movies") {
-            // ✅ صحيح: الشاشة تنشئ الـ ViewModel الخاص بها
-            val genreViewModel: GenreViewModel = viewModel(factory = GenreViewModelFactory(moviesRepository))
             GenreScreen(
                 navController = navController,
                 viewModel = genreViewModel,
@@ -113,7 +119,7 @@ fun MdaNavHost(
             )
         }
 
-        // 👤 Actor Details
+        // Actor Details
         composable(
             route = "ActorDetails/{personId}",
             arguments = listOf(navArgument("personId") { type = NavType.IntType })
@@ -126,11 +132,11 @@ fun MdaNavHost(
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
                 historyViewModel = historyViewModel,
-                authViewModel = authViewModel
+                authViewModel = authViewModel!!
             )
         }
 
-        // 🎬 Genre Details
+        // Genre Details
         composable(
             route = "genre_details/{genreId}/{genreName}",
             arguments = listOf(
@@ -151,54 +157,30 @@ fun MdaNavHost(
             )
         }
 
-        // 🎞️ Movies (Genre reuse)
-        composable("movies") {
-            GenreScreen(navController = navController, GenreViewModel,onTopBarStateChange)
-        }
-
-        // 🌟 Actors List (People)
-        composable("actors") {
-            // ✅ تعديل: استخدمنا ActorsScreen الجديدة اللي فيها Offline Mode + كاش
-            ActorsScreen(
-                navController = navController,
-                actorsRepository = actorsRepository,
-                viewModel = actorViewModel,
-                onTopBarStateChange = onTopBarStateChange,
-            )
-        }
-
-        // 🔍 Search
-        composable("search") {
-            SearchScreen(
-                navController = navController,
-                viewModel = SearchViewModel,
-                onTopBarStateChange = onTopBarStateChange,
-                favoritesViewModel = favoritesViewModel
-            )
-        }
-
-        // 🎥 Movie/TV Details
+        // Movie / TV Details
         composable(
             route = "detail/{mediaType}/{id}",
             arguments = listOf(
                 navArgument("mediaType") { type = NavType.StringType },
                 navArgument("id") { type = NavType.IntType }
             )
-        ) {
-            val type = it.arguments?.getString("mediaType") ?: "movie"
-            val id = it.arguments?.getInt("id") ?: 0
+        ) { backStackEntry ->
+            val mediaType = backStackEntry.arguments?.getString("mediaType") ?: "movie"
+            val id = backStackEntry.arguments?.getInt("id") ?: 0
+            val isTvShow = mediaType == "tv"
             MovieDetailsScreen(
                 id = id,
-                isTvShow = (type == "tv"),
+                isTvShow = isTvShow,
                 navController = navController,
                 repository = movieDetailsRepository,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
-                moviehistoryViewModel = moviesHistoryViewModel
+                moviehistoryViewModel = moviesHistoryViewModel,
+                authViewModel = authViewModel!!
             )
         }
 
-        // 👤 Profile Screen
+        // Profile
         composable("profile") {
             ProfileScreen(
                 navController = navController,
@@ -207,15 +189,18 @@ fun MdaNavHost(
                 onTopBarStateChange = onTopBarStateChange
             )
         }
-        // 👤 Profile Screen
+
+        // Favorites
         composable("Favprofile") {
             FavoritesScreen(
                 navController = navController,
                 favoritesViewModel = favoritesViewModel,
-
-                onTopBarStateChange = onTopBarStateChange
+                onTopBarStateChange = onTopBarStateChange,
+                authViewModel = authViewModel!!
             )
         }
+
+        // History
         composable("HistoryScreen") {
             HistoryScreen(
                 navController = navController,
@@ -224,6 +209,7 @@ fun MdaNavHost(
             )
         }
 
+        // Movies History
         composable("MovieHistoryScreen") {
             MoviesHistoryScreen(
                 navController = navController,
@@ -232,17 +218,19 @@ fun MdaNavHost(
             )
         }
 
-        // 🔐 Authentication Screens
+        // Authentication - Updated with theme parameters
         composable("login") {
             LoginScreen(
                 navController = navController,
-                viewModel = authViewModel
+                viewModel = authViewModel,
+                darkTheme = darkTheme,
             )
         }
 
         composable("signup") {
             SignupScreen(
-                navController = navController
+                navController = navController,
+                darkTheme = darkTheme,
             )
         }
 
@@ -250,11 +238,10 @@ fun MdaNavHost(
             AccountScreen(
                 navController = navController,
                 viewModel = authViewModel,
-                onTopBarStateChange = onTopBarStateChange
             )
         }
 
-        // 👶 Kids Mode (isolated sub-experience)
+        // Kids Mode
         composable("kids") {
             KidsRoot(
                 parentNavController = navController,
@@ -263,12 +250,44 @@ fun MdaNavHost(
                 localRepository = localRepository
             )
         }
+
+        // Settings
+        composable("settings") {
+            SettingsScreen(
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange,
+                authViewModel = authViewModel,
+                FavoritesViewModel = favoritesViewModel
+            )
+        }
+        composable("about_app") {
+            AboutScreen(
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("help_faq") {
+            HelpScreen(navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("privacy_policy") {
+            PrivacyPolicyScreen(navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("popular_movies") {
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(moviesRepository, authRepository)
+            )
+
+            PopularNowScreen(
+                navController = navController,
+                homeViewModel = homeViewModel,
+                favoritesViewModel = favoritesViewModel ,
+                authViewModel = authViewModel!!,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
     }
-}
-fun getTitleForRoute(route: String?): String = when (route) {
-    "home" -> "Home"
-    "movies" -> "Movies"
-    "actors" -> "Actors"
-    "search" -> "Search"
-    else -> ""
 }

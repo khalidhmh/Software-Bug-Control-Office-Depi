@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 
 data class TopBarState(
     val title: String = "",
-    val navigationIcon: (@Composable () -> Unit)? = null,
+    val subtitle: String? = null, // 👈 أضفنا السطر ده
+    val showBackButton: Boolean = false,
     val actions: @Composable RowScope.() -> Unit = {}
 )
