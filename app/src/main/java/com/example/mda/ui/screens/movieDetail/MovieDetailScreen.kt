@@ -1192,20 +1192,12 @@ fun MovieDetailsScreen(
     }
 
     SwipeRefresh(
-        state = refreshState,
-        onRefresh = {
-            scope.launch {
-                if (isTvShow) viewModel.loadTvDetails(id, fromNetwork = true)
-                else viewModel.loadMovieDetails(id, fromNetwork = true)
-            }
-        }
+        state = rememberSwipeRefreshState(isRefreshing = false),
+        onRefresh = { /* Disable refresh */ }
     ) {
-        // App background gradient application
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                // --- FORCED DARK GRADIENT (as requested) ---
-                .background(AppVerticalGradient)
         ) {
             when {
                 // --- UPDATED LOADING STATE ---

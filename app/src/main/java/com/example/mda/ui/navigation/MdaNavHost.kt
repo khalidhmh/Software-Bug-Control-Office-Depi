@@ -38,6 +38,7 @@ import com.example.mda.ui.screens.settings.SettingsScreen
 import com.example.mda.ui.screens.onboarding.OnboardingScreen
 import com.example.mda.ui.screens.splash.SplashScreen
 import com.example.mda.ui.kids.KidsRoot
+import com.example.mda.ui.screens.home.homeScreen.PopularNowScreen
 import com.example.mda.ui.screens.settings.PrivacyPolicyScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -237,7 +238,6 @@ fun MdaNavHost(
             AccountScreen(
                 navController = navController,
                 viewModel = authViewModel,
-                onTopBarStateChange = onTopBarStateChange
             )
         }
 
@@ -272,6 +272,19 @@ fun MdaNavHost(
         }
         composable("privacy_policy") {
             PrivacyPolicyScreen(navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("popular_movies") {
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(moviesRepository, authRepository)
+            )
+
+            PopularNowScreen(
+                navController = navController,
+                homeViewModel = homeViewModel,
+                favoritesViewModel = favoritesViewModel ,
+                authViewModel = authViewModel!!,
                 onTopBarStateChange = onTopBarStateChange
             )
         }

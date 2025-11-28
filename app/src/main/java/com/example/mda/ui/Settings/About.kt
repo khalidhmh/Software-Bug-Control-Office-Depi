@@ -26,8 +26,9 @@ import androidx.navigation.NavController
 import com.example.mda.ui.navigation.TopBarState
 
 @Composable
-fun AboutScreen(navController: NavController,
-                onTopBarStateChange: (TopBarState) -> Unit
+fun AboutScreen(
+    navController: NavController,
+    onTopBarStateChange: (TopBarState) -> Unit
 ) {
     val dark = isSystemInDarkTheme()
     val colorScheme = MaterialTheme.colorScheme

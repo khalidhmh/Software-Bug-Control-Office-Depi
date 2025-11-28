@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
+import com.example.mda.ui.screens.search.SearchBarComposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -72,16 +73,16 @@ fun KidsSearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 20.dp)
     ) {
         ExposedDropdownMenuBox(
             expanded = expanded && allSuggestions.isNotEmpty(),
             onExpandedChange = { expanded = it }
         ) {
             // ❤️ نفس شكل السيرش في الشاشة العادية
-            OutlinedTextField(
-                value = query,
-                onValueChange = { q ->
+            SearchBarComposable(
+                query = query,
+                onQueryChange = { q ->
                     query = q
                     expanded = false
                     searchJob?.cancel()
@@ -102,45 +103,7 @@ fun KidsSearchScreen(
                         }
                     }
                 },
-                placeholder = {
-                    Text(
-                        text = "Search kids-safe content...",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                trailingIcon = {
-                    if (query.isNotEmpty()) {
-                        IconButton(onClick = {
-                            query = ""
-                            results = emptyList()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                },
-                shape = RoundedCornerShape(30.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                ),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = {
+                onSearch = {
                     focusManager.clearFocus()
                     if (query.isNotBlank()) {
                         scope.launch { KidsSearchStore.saveQuery(context, query) }
@@ -157,11 +120,8 @@ fun KidsSearchScreen(
                             results = filterKids(remote)
                         }
                     }
-                }),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp)
-                    .height(56.dp)
+                },
+                placeholderText = "Search kids-safe content..."
             )
 
             val filteredSuggestions = remember(query, allSuggestions) {
