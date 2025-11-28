@@ -24,6 +24,8 @@ import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AccountInfoRow
 import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import com.example.mda.ui.screens.profile.history.HistoryViewModel
+import com.example.mda.ui.screens.profile.history.MoviesHistoryViewModel
 import com.example.mda.ui.theme.AppBackgroundGradient
 
 @Composable
@@ -31,6 +33,8 @@ fun ProfileScreen(
     navController: NavController,
     favoritesViewModel: FavoritesViewModel,
     authViewModel: AuthViewModel?,
+    historyviewModel: HistoryViewModel,
+    moviesHistoryViewModel: MoviesHistoryViewModel,
     onTopBarStateChange: (TopBarState) -> Unit
 ) {
     val uiState = authViewModel?.uiState?.collectAsState()?.value
@@ -44,8 +48,8 @@ fun ProfileScreen(
 
 
     LaunchedEffect(uiState?.isAuthenticated) {
-        if(authViewModel?.uiState?.value?.isAuthenticated == true){
-        favoritesViewModel.syncFavoritesFromTmdb();
+        if (authViewModel?.uiState?.value?.isAuthenticated == true) {
+            favoritesViewModel.syncFavoritesFromTmdb();
         }
     }
 
@@ -150,9 +154,14 @@ fun ProfileScreen(
 
                     // ===== Logout card (زي الشكل القديم) =====
                     Surface(
-                        onClick = { authViewModel?.logout()
-                                  favoritesViewModel.clearLocalFavorites()
-                                  navController.navigate("Settings")},
+                        onClick = {
+                            authViewModel?.logout()
+                            favoritesViewModel.clearLocalFavorites()
+                            historyviewModel.clearHistory()
+                            moviesHistoryViewModel.clearHistory()
+
+                            navController.navigate("Settings")
+                        },
                         shape = RoundedCornerShape(14.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
                         tonalElevation = 2.dp,
