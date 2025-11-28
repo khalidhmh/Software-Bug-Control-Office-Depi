@@ -1,4 +1,4 @@
-package com.example.mda.ui.screens.moivebygenrescreen
+package com.example.mda.ui.screens.genreDetails
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

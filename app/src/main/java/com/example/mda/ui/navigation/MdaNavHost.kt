@@ -24,7 +24,7 @@ import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.genreScreen.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.example.mda.ui.screens.home.HomeViewModelFactory
-import com.example.mda.ui.screens.moivebygenrescreen.GenreDetailsScreen
+import com.example.mda.ui.screens.genreDetails.GenreDetailsScreen
 import com.example.mda.ui.screens.movieDetail.MovieDetailsScreen
 import com.example.mda.ui.screens.profile.ProfileScreen
 import com.example.mda.ui.screens.profile.favourites.FavoritesScreen
@@ -256,7 +256,8 @@ fun MdaNavHost(
             SettingsScreen(
                 navController = navController,
                 onTopBarStateChange = onTopBarStateChange,
-                authViewModel = authViewModel
+                authViewModel = authViewModel,
+                FavoritesViewModel = favoritesViewModel
             )
         }
         composable("about_app") {

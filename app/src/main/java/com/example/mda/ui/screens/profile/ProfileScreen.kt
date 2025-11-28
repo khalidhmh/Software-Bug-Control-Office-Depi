@@ -33,7 +33,6 @@ fun ProfileScreen(
     authViewModel: AuthViewModel?,
     onTopBarStateChange: (TopBarState) -> Unit
 ) {
-    val favorites by favoritesViewModel.favorites.collectAsState()
     val uiState = authViewModel?.uiState?.collectAsState()?.value
     val account = uiState?.accountDetails
 
@@ -42,6 +41,13 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         onTopBarStateChange(TopBarState(title = "Profile", showBackButton = true))
         authViewModel?.fetchAccountDetails()
+    }
+
+
+    LaunchedEffect(uiState?.isAuthenticated) {
+        if(authViewModel?.uiState?.value?.isAuthenticated == true){
+        favoritesViewModel.syncFavoritesFromTmdb();
+        }
     }
 
     Box(
@@ -145,7 +151,9 @@ fun ProfileScreen(
 
                     // ===== Logout card (زي الشكل القديم) =====
                     Surface(
-                        onClick = { authViewModel?.logout() },
+                        onClick = { authViewModel?.logout()
+                                  favoritesViewModel.clearLocalFavorites()
+                                  navController.navigate("Settings")},
                         shape = RoundedCornerShape(14.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
                         tonalElevation = 2.dp,

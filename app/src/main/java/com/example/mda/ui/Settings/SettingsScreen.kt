@@ -25,18 +25,19 @@ import com.example.mda.data.SettingsDataStore
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthUiState
 import com.example.mda.ui.screens.auth.AuthViewModel
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
     onTopBarStateChange: (TopBarState) -> Unit,
-    authViewModel: AuthViewModel?
+    authViewModel: AuthViewModel?,
+    FavoritesViewModel: FavoritesViewModel
 ) {
     val context = LocalContext.current
     val dataStore = remember { SettingsDataStore(context) }
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(dataStore))
-
     val theme by viewModel.themeMode.collectAsState()
     val notifications by viewModel.notificationsEnabled.collectAsState()
    // 🟢 قراءات مباشرة من SessionManager (نفس اللي استخدمناه في AuthRepository)
@@ -60,8 +61,10 @@ fun SettingsScreen(
 
         if (authViewModel != null && uiState.isAuthenticated && uiState.accountDetails == null) {
             authViewModel.fetchAccountDetails()
+            FavoritesViewModel.syncFavoritesFromTmdb()
         }
     }
+    FavoritesViewModel.syncFavoritesFromTmdb()
 
     Column(
         modifier = Modifier
@@ -79,7 +82,10 @@ fun SettingsScreen(
             onClick = { navController.navigate("profile") },
             onLoginClick = { navController.navigate("login") }
         )
-        Text("Other settings", style = MaterialTheme.typography.labelLarge)
+        Text("Other settings",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         SettingsGroupCard {
 

@@ -46,7 +46,7 @@ fun LoginScreen(
     LaunchedEffect(uiState.isAuthenticated) {
         if (uiState.isAuthenticated && !hasNavigated) {
             hasNavigated = true
-            navController.navigate("account") {
+            navController.navigate("profile") {
                 popUpTo("login") { inclusive = true }
             }
         }

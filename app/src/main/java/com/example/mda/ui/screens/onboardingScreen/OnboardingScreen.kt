@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -26,10 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.example.mda.R
 import com.example.mda.data.datastore.IntroDataStore
-import com.example.mda.data.remote.model.Image
+import com.example.mda.ui.theme.AppBackgroundGradient
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -43,7 +41,7 @@ fun OnboardingScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(AppBackgroundGradient())
     ) {
         HorizontalPager(
             state = pagerState
@@ -52,9 +50,7 @@ fun OnboardingScreen(navController: NavController) {
                 OnboardingPage(item = item)
             }
         }
-        }
 
-        // ✅ Indicators + Buttons
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -68,34 +64,29 @@ fun OnboardingScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // الأزرار في الأسفل
             if (pagerState.currentPage < onboardingItems.lastIndex) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // زر Skip
                     TextButton(onClick = {
                         scope.launch { introDataStore.setIntroShown(true) }
                         navController.navigate("splash") {
                             popUpTo("onboarding") { inclusive = true }
                         }
                     }) {
-                        Text("Skip", color = Color.White.copy(alpha = 0.7f))
+                        Text("Skip", color = Color.Black)
                     }
 
-                    // زر Next
                     TextButton(onClick = {
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         }
                     }) {
-                        Text("Next →", color = Color.White)
+                        Text("Next →", color = Color.Black)
                     }
                 }
             } else {
-                // في آخر صفحة يظهر زر "Start Discovering"
-                // في آخر صفحة يظهر زر "Start Discovering"
                 Button(
                     onClick = {
                         scope.launch {
@@ -114,8 +105,11 @@ fun OnboardingScreen(navController: NavController) {
                     Box(
                         modifier = Modifier
                             .background(
-                                brush = Brush.horizontalGradient(
-                                    listOf(Color(0xFF6A1B9A), Color(0xFF00BCD4))
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.secondary
+                                    )
                                 ),
                                 shape = RoundedCornerShape(16.dp)
                             )
@@ -125,8 +119,8 @@ fun OnboardingScreen(navController: NavController) {
                     ) {
                         Text(
                             text = "Start Discovering",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.titleLarge
                         )
                     }
                 }
@@ -137,22 +131,19 @@ fun OnboardingScreen(navController: NavController) {
             Text(
                 text = "Discover. Explore. Preview.",
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = Color.White.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                 fontSize = 12.sp
             )
         }
     }
+}
 
 @Composable
 fun OnboardingPage(item: OnboardingItem) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    listOf(Color(0xFF15002C), Color(0xFF0E022A))
-                )
-            ),
+            .background(AppBackgroundGradient()),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -161,7 +152,7 @@ fun OnboardingPage(item: OnboardingItem) {
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(0.25f)
+                .alpha(0.15f)
         )
 
         Column(
@@ -171,21 +162,22 @@ fun OnboardingPage(item: OnboardingItem) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(48.dp))
-
-            // Icon
             Text(
                 text = item.icon,
                 fontSize = 64.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
+                color = MaterialTheme.colorScheme.primary
             )
 
-            // Title & Description
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 GradientText(
                     text = item.title,
                     gradient = Brush.horizontalGradient(
-                        listOf(Color(0xFF00BCD4), Color(0xFFB388FF), Color(0xFFFF4081))
+                        listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary,
+                            MaterialTheme.colorScheme.tertiary
+                        )
                     ),
                     fontSize = 32.sp,
                     fontWeight = FontWeight.ExtraBold
@@ -195,9 +187,8 @@ fun OnboardingPage(item: OnboardingItem) {
 
                 Text(
                     text = item.subtitle,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
 
@@ -205,8 +196,8 @@ fun OnboardingPage(item: OnboardingItem) {
 
                 Text(
                     text = item.description,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     lineHeight = 20.sp
                 )
@@ -224,10 +215,20 @@ fun PagerIndicators(totalPages: Int, currentPage: Int) {
         horizontalArrangement = Arrangement.Center
     ) {
         repeat(totalPages) { index ->
-            val color = if (index == currentPage)
-                Brush.horizontalGradient(listOf(Color(0xFF00BCD4), Color(0xFFB388FF)))
+            val brush = if (index == currentPage)
+                Brush.horizontalGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.secondary
+                    )
+                )
             else
-                Brush.horizontalGradient(listOf(Color.White.copy(alpha = 0.3f), Color.White.copy(alpha = 0.3f)))
+                Brush.horizontalGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+                        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
+                    )
+                )
 
             Box(
                 modifier = Modifier
@@ -235,7 +236,7 @@ fun PagerIndicators(totalPages: Int, currentPage: Int) {
                     .height(8.dp)
                     .width(if (index == currentPage) 24.dp else 8.dp)
                     .background(
-                        brush = color,
+                        brush = brush,
                         shape = CircleShape
                     )
             )
@@ -262,6 +263,7 @@ fun GradientText(
 }
 
 // Data model
+
 data class OnboardingItem(
     val title: String,
     val subtitle: String,
@@ -275,14 +277,14 @@ val onboardingItems = listOf(
         title = "Discover",
         subtitle = "Movies You'll Love",
         description = "Explore trending films, hidden gems, and upcoming releases tailored to your taste.",
-        imageRes = com.example.mda.R.drawable.discover,
+        imageRes = R.drawable.discover,
         icon = "🔍"
     ),
     OnboardingItem(
         title = "Browse",
         subtitle = "By Genre & Category",
         description = "From Action to Comedy, find the right movie for every mood.",
-        imageRes = com.example.mda.R.drawable.browse,
+        imageRes = R.drawable.browse,
         icon = "🎭"
     ),
     OnboardingItem(
