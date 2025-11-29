@@ -1,5 +1,6 @@
 package com.example.mda.data.local
 
+import android.util.Log
 import com.example.mda.data.local.dao.MediaDao
 import com.example.mda.data.local.dao.SearchHistoryDao
 import com.example.mda.data.local.entities.MediaEntity
@@ -9,14 +10,15 @@ import kotlinx.coroutines.flow.first
 
 class LocalRepository(
     private val mediaDao: MediaDao,
-    private val searchHistoryDao: SearchHistoryDao, // ✅ جديد
-    // TODO: لما تعمل ViewHistoryDao، ضيفه هنا كمان
+    private val searchHistoryDao: SearchHistoryDao
 ) {
 
     // ---------------- MEDIA DATA ----------------
     fun getAll(): Flow<List<MediaEntity>> = mediaDao.getAll()
     fun getFavorites(): Flow<List<MediaEntity>> = mediaDao.getFavorites()
     fun getWatchlist(): Flow<List<MediaEntity>> = mediaDao.getWatchlist()
+
+    suspend fun getAllOnce(): List<MediaEntity> = mediaDao.getAllMediaOnce()
 
     suspend fun addOrUpdate(item: MediaEntity) = mediaDao.upsert(item)
 
@@ -34,22 +36,39 @@ class LocalRepository(
     suspend fun delete(item: MediaEntity) = mediaDao.delete(item)
     suspend fun clearNonSaved() = mediaDao.clearNonSaved()
 
-    suspend fun addOrUpdateAllFromApi(entities: List<MediaEntity>) {
-        val existingMap = entities.mapNotNull { e ->
-            mediaDao.getByIdOnly(e.id)?.let { e.id to it }
-        }.toMap()
+    // 🔥🔥 دالة معدلة بالكامل لتحسين الأداء والحفاظ على المفضلة
+    suspend fun addOrUpdateAllFromApi(newEntities: List<MediaEntity>) {
+        if (newEntities.isEmpty()) return
 
-        val finalEntities = entities.map { e ->
-            val old = existingMap[e.id]
-            if (old != null) {
-                e.copy(
-                    isFavorite = old.isFavorite,
-                    isInWatchlist = old.isInWatchlist
-                )
-            } else e
+        try {
+            // 1. جلب كل الداتا الموجودة حالياً مرة واحدة (استعلام واحد سريع)
+            val currentCachedItems = mediaDao.getAllMediaOnce()
+
+            // 2. تحويلها لـ Map للبحث السريع (ID -> Entity)
+            val currentMap = currentCachedItems.associateBy { it.id }
+
+            // 3. دمج الداتا الجديدة مع القديمة
+            val finalEntities = newEntities.map { newItem ->
+                val oldItem = currentMap[newItem.id]
+                if (oldItem != null) {
+                    // لو الفيلم موجود، حافظ على حالة الـ Favorite والـ Watchlist
+                    newItem.copy(
+                        isFavorite = oldItem.isFavorite,
+                        isInWatchlist = oldItem.isInWatchlist
+                    )
+                } else {
+                    newItem
+                }
+            }
+
+            // 4. حفظ الكل مرة واحدة
+            mediaDao.insertAll(finalEntities)
+            Log.d("RepoDebug", "💾 Successfully saved/updated ${finalEntities.size} items in DB.")
+
+        } catch (e: Exception) {
+            Log.e("RepoDebug", "❌ Error saving to DB: ${e.message}")
+            e.printStackTrace()
         }
-
-        mediaDao.insertAll(finalEntities)
     }
 
     suspend fun addOrUpdateAll(entities: List<MediaEntity>) =
@@ -71,8 +90,6 @@ class LocalRepository(
 
     /**
      * Clear all favorites flag locally.
-     * Implementation: read current favorites then set their flag to false
-     * using existing DAO updateFavoriteStatus(id, false).
      */
     suspend fun clearAllFavorites() {
         val currentFavorites = mediaDao.getFavorites().first()
@@ -83,7 +100,6 @@ class LocalRepository(
 
     /**
      * Mark a single media item as favorite (or remove favorite).
-     * Uses the existing DAO updateFavoriteStatus.
      */
     suspend fun setFavorite(id: Int, isFavorite: Boolean) {
         mediaDao.updateFavoriteStatus(id, isFavorite)
@@ -91,7 +107,6 @@ class LocalRepository(
 
     /**
      * Mark many ids as favorite. Items that don't exist in DB will be ignored.
-     * If you want to insert missing items you can use addOrUpdate(...) before calling this.
      */
     suspend fun setFavorites(ids: List<Int>) {
         ids.forEach { id ->
@@ -108,9 +123,4 @@ class LocalRepository(
     }
 
     suspend fun clearSearchHistory() = searchHistoryDao.deleteAll()
-
-    // ---------------- VIEW HISTORY (TODO) ----------------
-    // TODO: لما تعمل ViewHistoryDao اضف:
-    // fun getViewHistory(): Flow<List<ViewHistoryEntity>>
-    // suspend fun addViewHistory(entity: ViewHistoryEntity)
 }

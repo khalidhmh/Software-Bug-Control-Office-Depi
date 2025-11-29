@@ -10,12 +10,15 @@ import com.example.mda.data.remote.model.MovieResponse
 import com.example.mda.data.remote.model.getKnownForTitles
 import com.example.mda.data.repository.mappers.toMediaEntity
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 
 class MoviesRepository(
     private val api: TmdbApi,
     private val localRepo: LocalRepository
 ) {
+
+    companion object {
+        private const val TAG = "RepoDebug"
+    }
 
     /** ---------------------------------------------------------------------
      *  SAFE API CALL  (يحافظ على الكاش في حالة فشل الاتصال)
@@ -29,6 +32,9 @@ class MoviesRepository(
         return try {
             val response = apiCall()
             if (response != null && !response.results.isNullOrEmpty()) {
+
+                Log.d(TAG, "✅ API Success: Fetched ${response.results.size} items. Processing...")
+
                 var entities = response.results
                     .filter { it.adult != true }
                     .map { it.toMediaEntity(typeFilter) }
@@ -42,16 +48,18 @@ class MoviesRepository(
 
                 // فلترة إضافية عند الحاجة
                 if (typeFilter != null) entities = entities.filter { it.mediaType == typeFilter }
-                if (genreId != null) entities =
-                    entities.filter { it.genreIds?.contains(genreId) == true }
+                if (genreId != null) entities = entities.filter { it.genreIds?.contains(genreId) == true }
 
-                // حفظ في الكاش المحلي
+                // 🔥 حفظ في الكاش المحلي (الخطوة الأهم)
                 localRepo.addOrUpdateAllFromApi(entities)
+
                 entities
             } else {
+                Log.w(TAG, "⚠️ API returned null or empty. Using Fallback.")
                 fallback()
             }
         } catch (e: Exception) {
+            Log.e(TAG, "❌ API Call Failed: ${e.message}. Using Fallback.")
             e.printStackTrace()
             fallback()
         }
@@ -100,7 +108,6 @@ class MoviesRepository(
         }
     }
 
-    // ✅ Fixed: Using safeApiCall instead of manual API call
     suspend fun getTvShowsByGenre(genreId: Int, page: Int = 1): List<MediaEntity> = safeApiCall(
         apiCall = {
             val res = api.getTvShowsByGenre(genreId, page)
@@ -122,7 +129,7 @@ class MoviesRepository(
         },
         fallback = { localRepo.getAll().first().filter { it.mediaType == "tv" } },
         typeFilter = "tv"
-    ).also { Log.d("MoviesRepository", "✅ TV Shows fetched: ${it.size}") }
+    )
 
     // ---------------------- Trending ----------------------
     suspend fun getTrendingMedia(
@@ -271,11 +278,20 @@ class MoviesRepository(
             }
         }
 
-        // 3️⃣ Fallback
-        if (collected.isEmpty()) getGeneralFallback()
-        else collected.distinctBy { it.id }
-            .sortedByDescending { it.voteAverage ?: 0.0 }
-            .map { it.toMediaEntity() }
+        // 3️⃣ Final List & Cache
+        val finalList = if (collected.isEmpty()) {
+            getGeneralFallback() // Fallback already handles caching
+        } else {
+            val mapped = collected.distinctBy { it.id }
+                .sortedByDescending { it.voteAverage ?: 0.0 }
+                .map { it.toMediaEntity() }
+
+            // 🔥 Save Smart Recs to DB as well
+            localRepo.addOrUpdateAllFromApi(mapped)
+            mapped
+        }
+
+        finalList
 
     } catch (e: Exception) {
         e.printStackTrace()
@@ -307,10 +323,16 @@ class MoviesRepository(
 
             val allList = trendingMovies + trendingTv + topMovies + topTv + popularMovies
 
-            allList.distinctBy { it.id }
+            val finalEntities = allList.distinctBy { it.id }
                 .sortedByDescending { it.voteAverage ?: 0.0 }
                 .take(25)
                 .map { it.toMediaEntity() }
+
+            // 🔥 Save Fallback to DB
+            Log.d(TAG, "💾 Saving Fallback data to DB (${finalEntities.size} items)")
+            localRepo.addOrUpdateAllFromApi(finalEntities)
+
+            finalEntities
 
         } catch (e: Exception) {
             e.printStackTrace()

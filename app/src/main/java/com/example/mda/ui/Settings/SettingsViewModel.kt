@@ -10,12 +10,16 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(private val dataStore: SettingsDataStore) : ViewModel() {
 
+    // ---------------------- Flows ----------------------
+    // Theme mode: 0 = System, 1 = Light, 2 = Dark
     val themeMode = dataStore.themeModeFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
+    // Notifications enabled flow
     val notificationsEnabled = dataStore.notificationsFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
+    // ---------------------- Functions ----------------------
     fun updateTheme(mode: Int) {
         viewModelScope.launch {
             dataStore.setThemeMode(mode)
@@ -29,6 +33,7 @@ class SettingsViewModel(private val dataStore: SettingsDataStore) : ViewModel() 
     }
 }
 
+// ---------------------- ViewModel Factory ----------------------
 @Suppress("UNCHECKED_CAST")
 class SettingsViewModelFactory(
     private val dataStore: SettingsDataStore

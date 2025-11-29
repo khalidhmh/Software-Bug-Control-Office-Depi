@@ -2,7 +2,6 @@ package com.example.mda.ui.screens.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -11,25 +10,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.mda.R
 import com.example.mda.ui.theme.AppBackgroundGradient
 
 @Composable
-fun NoInternetScreen(onRetry: () -> Unit) {
-    val isDark = isSystemInDarkTheme()
-    
+fun NoInternetScreen(
+    isDarkTheme: Boolean, // ✅ نستقبل حالة الثيم من الـ Main
+    onRetry: () -> Unit
+) {
+    // ❌ قمنا بإزالة: val isDark = isSystemInDarkTheme()
+    // لكي نعتمد على إعدادات التطبيق
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppBackgroundGradient(isDark)), // استخدام نفس التدرج اللوني للتطبيق
+            .background(AppBackgroundGradient(isDarkTheme)), // ✅ استخدام الثيم الممرر
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -37,17 +35,12 @@ fun NoInternetScreen(onRetry: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(32.dp)
         ) {
-            // صورة تعبر عن عدم وجود انترنت
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(R.drawable.nocon) // ملف الصورة أو الـ GIF فى drawable
-                    .crossfade(true)
-                    .build(),
+            Image(
+                painter = painterResource(id = R.drawable.network),
                 contentDescription = "No Internet Connection",
                 modifier = Modifier
                     .size(250.dp)
-                    .padding(bottom = 16.dp),
-                contentScale = ContentScale.Fit
+                    .padding(bottom = 16.dp)
             )
 
             Text(
