@@ -27,7 +27,6 @@ fun ActorsScreen(
     onTopBarStateChange: (TopBarState) -> Unit,
     viewModel: ActorViewModel
 ) {
-    val viewModel: ActorViewModel = viewModel(factory = ActorViewModelFactory(actorsRepository))
     val uiState by viewModel.state.collectAsState()
     val viewType by viewModel.viewType.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()

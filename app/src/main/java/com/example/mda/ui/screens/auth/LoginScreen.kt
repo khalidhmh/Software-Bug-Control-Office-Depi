@@ -67,7 +67,7 @@ fun LoginScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF032541) // اللون الأساسي لـ TMDB
+                    containerColor = if (darkTheme) Color(0xFF032541) else Color.White
                 )
             )
         }

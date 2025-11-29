@@ -26,9 +26,9 @@ class ActorsRepository(
     // ✅ 1. Fetch list of popular actors (API direct)
     suspend fun getPopularActors(page: Int = 1): Response<ActorResponse> =
         withContext(Dispatchers.IO) {
-            Log.d("ActorsRepo", "getPopularActors called, page=$page")
+//            Log.d("ActorsRepo", "getPopularActors called, page=$page")
             val response = api.getPopularPeople(page = page)
-            Log.d("ActorsRepo", "API response success=${response.isSuccessful}")
+//            Log.d("ActorsRepo", "API response success=${response.isSuccessful}")
             response
         }
 
@@ -38,16 +38,16 @@ class ActorsRepository(
      */
     suspend fun getPopularActorsWithCache(page: Int = 1): List<ActorEntity> =
         withContext(Dispatchers.IO) {
-            Log.d("ActorsRepo", "getPopularActorsWithCache called, page=$page")
+//            Log.d("ActorsRepo", "getPopularActorsWithCache called, page=$page")
             try {
                 val response = api.getPopularPeople(page = page)
-                Log.d("ActorsRepo", "API call completed, success=${response.isSuccessful}")
+//                Log.d("ActorsRepo", "API call completed, success=${response.isSuccessful}")
 
                 if (response.isSuccessful) {
                     val actors = response.body()?.results ?: emptyList()
-                    Log.d("ActorsRepo", "Fetched ${actors.size} actors from API")
+//                    Log.d("ActorsRepo", "Fetched ${actors.size} actors from API")
                     actors.forEach {
-                        Log.d("ActorsRepo", "API known_for for ${it.name}: ${it.knownFor}")
+//                        Log.d("ActorsRepo", "API known_for for ${it.name}: ${it.knownFor}")
                     }
 
                     cacheActors(actors)
@@ -64,15 +64,19 @@ class ActorsRepository(
                         )
                     }
                 } else {
-                    Log.d("ActorsRepo", "API error, using cache")
+//                    Log.d("ActorsRepo", "API error, using cache")
                     actorDao?.getAllActors()
-                        ?.also { Log.d("ActorsRepo", "Fetched ${it.size} actors from cache") }
+                        ?.also {
+//                            Log.d("ActorsRepo", "Fetched ${it.size} actors from cache")
+                        }
                         ?: emptyList()
                 }
             } catch (e: Exception) {
-                Log.d("ActorsRepo", "Exception in API call: ${e.localizedMessage}, using cache")
+//                Log.d("ActorsRepo", "Exception in API call: ${e.localizedMessage}, using cache")
                 actorDao?.getAllActors()
-                    ?.also { Log.d("ActorsRepo", "Fetched ${it.size} actors from cache") }
+                    ?.also {
+//                        Log.d("ActorsRepo", "Fetched ${it.size} actors from cache")
+                    }
                     ?: emptyList()
             }
         }
@@ -82,10 +86,10 @@ class ActorsRepository(
      */
     suspend fun cacheActors(actors: List<Actor>) = withContext(Dispatchers.IO) {
         if (actorDao == null) {
-            Log.d("ActorsRepo", "cacheActors skipped: actorDao is null")
+//            Log.d("ActorsRepo", "cacheActors skipped: actorDao is null")
             return@withContext
         }
-        Log.d("ActorsRepo", "Caching ${actors.size} actors")
+//        Log.d("ActorsRepo", "Caching ${actors.size} actors")
         actors.forEach { actor ->
             val gson = Gson()
             val knownForJson = gson.toJson(actor.knownFor)
@@ -101,7 +105,7 @@ class ActorsRepository(
                 knownFor = knownForJson
             )
             actorDao.upsert(entity)
-            Log.d("ActorsRepo", "Cached actor: ${actor.name}")
+//            Log.d("ActorsRepo", "Cached actor: ${actor.name}")
         }
     }
 
@@ -110,7 +114,7 @@ class ActorsRepository(
      */
     suspend fun getCachedActors(): List<ActorEntity> = withContext(Dispatchers.IO) {
         val cached = actorDao?.getAllActors() ?: emptyList()
-        Log.d("ActorsRepo", "getCachedActors returned ${cached.size} actors")
+//        Log.d("ActorsRepo", "getCachedActors returned ${cached.size} actors")
         cached
     }
 

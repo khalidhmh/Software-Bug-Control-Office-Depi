@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,6 +48,7 @@ fun ActorListItem(
                 navController.navigate("actorDetails/${actor.id}")
             }
             .padding(1.dp)
+            .testTag("actor_${actor.id}")
     ) {
         Row(
             modifier = modifier

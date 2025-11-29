@@ -37,6 +37,7 @@ import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.local.database.AppDatabase
 import com.example.mda.data.remote.RetrofitInstance
 import com.example.mda.data.repository.*
+import com.example.mda.ui.home.getGreetingMessage
 import com.example.mda.ui.navigation.*
 import com.example.mda.ui.screens.actors.ActorViewModel
 import com.example.mda.ui.screens.actors.ActorViewModelFactory
