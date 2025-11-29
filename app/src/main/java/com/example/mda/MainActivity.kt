@@ -30,6 +30,7 @@ import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.local.database.AppDatabase
 import com.example.mda.data.remote.RetrofitInstance
 import com.example.mda.data.repository.*
+import com.example.mda.ui.home.getGreetingMessage
 import com.example.mda.ui.navigation.*
 import com.example.mda.ui.screens.actors.ActorViewModel
 import com.example.mda.ui.screens.actors.ActorViewModelFactory
@@ -227,10 +228,12 @@ class MainActivity : ComponentActivity() {
                                                 "privacy_policy" -> "Privacy Policy"
                                                 else -> ""
                                             }
+                                        } else if (currentRoute == "home") {
+                                            getGreetingMessage()
+                                        } else if (topBarState.title.isNotEmpty()) {
+                                            topBarState.title
                                         } else {
-                                            if (topBarState.title.isNotEmpty()) topBarState.title
-                                            else when (currentRoute) {
-                                                "home" -> "Home"
+                                            when (currentRoute) {
                                                 "movies" -> "Movies"
                                                 "actors" -> "People"
                                                 "search" -> "Search"
@@ -239,6 +242,8 @@ class MainActivity : ComponentActivity() {
                                                 else -> ""
                                             }
                                         }
+
+                                        val subtitleToShow = if (currentRoute == "home") "What do you want to watch?" else topBarState.subtitle
                                         if (currentRoute == "home") {
                                             Surface(
                                                 color = topBarBg,
@@ -251,11 +256,11 @@ class MainActivity : ComponentActivity() {
                                                         .padding(horizontal = 16.dp, vertical = 10.dp)
                                                 ) {
                                                     Text(
-                                                        text = topBarState.title.ifEmpty { titleToShow },
+                                                        text = titleToShow, // 🟢 نستخدم القيمة اللي عدلناها فوق
                                                         style = MaterialTheme.typography.headlineSmall.copy(color = topBarText)
                                                     )
 
-                                                    topBarState.subtitle?.let {
+                                                    subtitleToShow?.let {
                                                         Text(
                                                             text = it,
                                                             style = MaterialTheme.typography.bodyMedium.copy(
@@ -330,7 +335,10 @@ class MainActivity : ComponentActivity() {
                                 val navBarInsets = WindowInsets.navigationBars.asPaddingValues()
                                 val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                                 val isKidsRoute = currentRoute == "kids"
-
+                                LaunchedEffect(currentRoute) {
+                                    topBarState = if (currentRoute == "home") topBarState
+                                    else TopBarState() // نفرغ الحالة عند الانتقال لصفحة أخرى
+                                }
                                 Box(
                                     modifier = Modifier.padding(
                                         top = innerPadding.calculateTopPadding(),
