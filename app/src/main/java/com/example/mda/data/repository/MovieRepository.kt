@@ -21,7 +21,7 @@ class MoviesRepository(
     }
 
     /** ---------------------------------------------------------------------
-     *  SAFE API CALL  (يحافظ على الكاش في حالة فشل الاتصال)
+     *  SAFE API CALL
      *  --------------------------------------------------------------------*/
     private suspend fun safeApiCall(
         apiCall: suspend () -> MovieResponse?,
@@ -35,9 +35,16 @@ class MoviesRepository(
 
                 Log.d(TAG, "✅ API Success: Fetched ${response.results.size} items. Processing...")
 
-                var entities = response.results
-                    .filter { it.adult != true }
-                    .map { it.toMediaEntity(typeFilter) }
+                // 🔥 التعديل: فلترة النتائج لإزالة العناصر السيئة (بدون صور أو أسماء)
+                val rawResults = response.results
+                    .filter { it.adult != true } // استبعاد المحتوى غير اللائق
+                    .filter { !it.posterPath.isNullOrBlank() } // ✅ استبعاد العناصر اللي من غير صورة (أهم خطوة)
+                    .filter { !it.title.isNullOrBlank() || !it.name.isNullOrBlank() } // ✅ استبعاد العناصر اللي من غير اسم
+
+                // تم إزالة sortedByDescending { it.popularity } لأن المتغير غير موجود في الموديل عندك
+                // الفلترة بالأعلى كافية جداً لتنظيف البحث
+
+                var entities = rawResults.map { it.toMediaEntity(typeFilter) }
 
                 // إجبار الـ mediaType لو ناقص
                 entities = entities.map {
@@ -50,8 +57,10 @@ class MoviesRepository(
                 if (typeFilter != null) entities = entities.filter { it.mediaType == typeFilter }
                 if (genreId != null) entities = entities.filter { it.genreIds?.contains(genreId) == true }
 
-                // 🔥 حفظ في الكاش المحلي (الخطوة الأهم)
-                localRepo.addOrUpdateAllFromApi(entities)
+                // 🔥 حفظ في الكاش المحلي
+                if (entities.isNotEmpty()) {
+                    localRepo.addOrUpdateAllFromApi(entities)
+                }
 
                 entities
             } else {
@@ -191,24 +200,27 @@ class MoviesRepository(
                     val res = api.searchPeople(query)
                     if (res.isSuccessful) {
                         val body = res.body()
-                        body?.results?.map {
-                            MediaEntity(
-                                id = it.id,
-                                name = it.name,
-                                title = it.name,
-                                overview = it.getKnownForTitles(),
-                                posterPath = it.profilePath,
-                                backdropPath = null,
-                                voteAverage = null,
-                                releaseDate = null,
-                                firstAirDate = null,
-                                mediaType = "person",
-                                adult = false,
-                                genreIds = emptyList(),
-                                isFavorite = false,
-                                isInWatchlist = false
-                            )
-                        } ?: emptyList()
+                        body?.results
+                            ?.filter { !it.profilePath.isNullOrBlank() } // ✅ إزالة من ليس له صورة
+                            // تم إزالة الترتيب هنا أيضاً لتجنب الخطأ
+                            ?.map {
+                                MediaEntity(
+                                    id = it.id,
+                                    name = it.name,
+                                    title = it.name,
+                                    overview = it.getKnownForTitles(),
+                                    posterPath = it.profilePath,
+                                    backdropPath = null,
+                                    voteAverage = null,
+                                    releaseDate = null,
+                                    firstAirDate = null,
+                                    mediaType = "person",
+                                    adult = false,
+                                    genreIds = emptyList(),
+                                    isFavorite = false,
+                                    isInWatchlist = false
+                                )
+                            } ?: emptyList()
                     } else emptyList()
                 } catch (e: Exception) {
                     emptyList()
@@ -282,7 +294,7 @@ class MoviesRepository(
         val finalList = if (collected.isEmpty()) {
             getGeneralFallback() // Fallback already handles caching
         } else {
-            val mapped = collected.distinctBy { it.id }
+            val mapped = collected.distinctBy { it.id                } // إغلاق distinctBy
                 .sortedByDescending { it.voteAverage ?: 0.0 }
                 .map { it.toMediaEntity() }
 
