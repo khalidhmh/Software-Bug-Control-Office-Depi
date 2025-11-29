@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -36,12 +35,15 @@ fun HomeScreen(
     favoritesViewModel: FavoritesViewModel,
     authViewModel: AuthViewModel
 ) {
-    val trending = viewModel.trendingMedia.collectAsState(initial = emptyList()).value
-    val movies = viewModel.popularMovies.collectAsState(initial = emptyList()).value
-    val tv = viewModel.popularTvShows.collectAsState(initial = emptyList()).value
-    val mixed = viewModel.popularMixed.collectAsState(initial = emptyList()).value
-    val recommendations = viewModel.recommendedMedia.collectAsState(initial = emptyList()).value
+    // Collect data directly from StateFlow without initial value
+    // This prevents the UI from resetting to empty list on re-entry
+    val trending by viewModel.trendingMedia.collectAsState()
+    val movies by viewModel.popularMovies.collectAsState()
+    val tv by viewModel.popularTvShows.collectAsState()
+    val mixed by viewModel.popularMixed.collectAsState()
+    val recommendations by viewModel.recommendedMedia.collectAsState()
 
+    // Save scroll state across navigation events
     val scrollState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
     var refreshing by remember { mutableStateOf(false) }
@@ -50,6 +52,7 @@ fun HomeScreen(
     val authUiState by authViewModel.uiState.collectAsState()
 
     val greeting = getGreetingMessage()
+
     LaunchedEffect(greeting) {
         onTopBarStateChange(
             TopBarState(
@@ -67,7 +70,6 @@ fun HomeScreen(
                 viewModel.loadTrending("day")
                 viewModel.loadPopularData()
                 viewModel.loadTopRated()
-                // ✅ تحدّث التوصيات الذكية مع كل Refresh
                 viewModel.onUserActivityDetected(forceRefresh = true)
                 delay(1500)
                 refreshing = false
@@ -88,7 +90,7 @@ fun HomeScreen(
             state = scrollState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
