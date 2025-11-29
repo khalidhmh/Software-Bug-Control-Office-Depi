@@ -1,5 +1,6 @@
 package com.example.mda.data.local.database
 
+import android.content.Context
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -31,11 +32,27 @@ import com.example.mda.data.local.entities.SearchHistoryEntity
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun mediaDao(): MediaDao
     abstract fun actorDao(): ActorDao
     abstract fun actorDetailsDao(): ActorDetailsDao
     abstract fun searchHistoryDao(): SearchHistoryDao
-
     abstract fun historyDao(): HistoryDao
     abstract fun MoviehistoryDao(): MovieHistoryDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: androidx.room.Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "mda_database"
+                ).fallbackToDestructiveMigration()
+                    .build().also { INSTANCE = it }
+            }
+        }
+    }
 }

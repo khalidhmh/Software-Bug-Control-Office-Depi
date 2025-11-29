@@ -2,6 +2,7 @@ package com.example.mda.data.repository.mappers
 
 import com.example.mda.data.local.entities.Cast
 import com.example.mda.data.local.entities.MediaEntity
+import com.example.mda.data.local.entities.MoviesViewedEntitty
 import com.example.mda.data.local.entities.Video
 import com.example.mda.data.remote.model.Movie
 import com.example.mda.data.remote.model.MovieDetailsResponse
@@ -111,5 +112,22 @@ fun MovieDetailsResponse.toMediaEntity(type: String = "movie"): MediaEntity {
         videos = videosList,
         posters = posters,
         backdrops = backdrops
+    )
+}
+
+fun MoviesViewedEntitty.toMediaEntity(): MediaEntity {
+    return MediaEntity(
+        id = this.id,
+        // إذا كان فيلم نضع الاسم في title، وإذا مسلسل نضعه في name
+        title = if (this.mediaType == "movie") this.name else null,
+        name = if (this.mediaType == "tv") this.name else null,
+        posterPath = this.posterPath,
+        backdropPath = this.backdropPath,
+        mediaType = this.mediaType ?: "movie",
+        overview = "Recently Viewed", // نص توضيحي
+        voteAverage = 0.0, // غير متوفر في السجل
+        releaseDate = null,
+        firstAirDate = null,
+        timestamp = System.currentTimeMillis()
     )
 }

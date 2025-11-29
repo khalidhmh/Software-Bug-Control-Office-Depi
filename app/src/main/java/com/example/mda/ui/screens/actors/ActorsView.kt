@@ -3,8 +3,10 @@ package com.example.mda.ui.screens.actors
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -12,6 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,28 +31,26 @@ fun ActorsView(
     navController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
-    val gridState = rememberLazyGridState()
-    val listState = rememberLazyListState()
+    // 1. Save scroll position across navigation (Home <-> Actors)
+    val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
-    // Pagination trigger
+    // 2. Pagination Logic
     LaunchedEffect(
-        gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index,
-        listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+        gridState.firstVisibleItemIndex,
+        listState.firstVisibleItemIndex,
+        actors.size
     ) {
+        if (actors.isEmpty()) return@LaunchedEffect
+
         val lastVisibleItemIndex = if (viewType == ViewType.GRID) {
             gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
         } else {
             listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
         }
 
-        // Log for debug
-        android.util.Log.d(
-            "ActorsView",
-            "Last visible index: $lastVisibleItemIndex / actors.size=${actors.size}"
-        )
-
+        // Load more when reaching the bottom (threshold of 6 items)
         if (lastVisibleItemIndex != null && lastVisibleItemIndex >= actors.size - 6) {
-            android.util.Log.d("ActorsView", "Triggering loadMoreActors()")
             viewModel.loadMoreActors()
         }
     }
@@ -66,6 +67,8 @@ fun ActorsView(
             items(actors, key = { "grid-${it.id}" }) { actor ->
                 ActorGridItem(actor = actor, navController = navController)
             }
+            // Bottom spacer to avoid navigation bar overlap
+            item { Spacer(modifier = Modifier.height(100.dp)) }
         }
     } else {
         LazyColumn(
@@ -74,7 +77,6 @@ fun ActorsView(
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-
         ) {
             items(actors, key = { "list-${it.id}" }) { actor ->
                 Box(
@@ -85,7 +87,8 @@ fun ActorsView(
                     ActorListItem(actor = actor, navController = navController)
                 }
             }
-            item { Box(modifier = Modifier.height(66.dp)) }
+            // Bottom spacer to avoid navigation bar overlap
+            item { Box(modifier = Modifier.height(100.dp)) }
         }
     }
 }

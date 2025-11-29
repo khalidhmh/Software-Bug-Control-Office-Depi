@@ -1,5 +1,6 @@
 package com.example.mda.ui.screens.settings
 
+import android.os.Build // ✅ تم إضافة هذا
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,10 +23,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.mda.data.SettingsDataStore
+import com.example.mda.notifications.NotificationHelper // ✅ تم إضافة هذا
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthUiState
 import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.mda.work.InactiveUserWorker
+import com.example.mda.work.SuggestedMovieWorker
+import com.example.mda.work.TrendingReminderWorker
+import androidx.core.content.edit // عشان التعديل السهل
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,30 +48,33 @@ fun SettingsScreen(
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(dataStore))
     val theme by viewModel.themeMode.collectAsState()
     val notifications by viewModel.notificationsEnabled.collectAsState()
-   // 🟢 قراءات مباشرة من SessionManager (نفس اللي استخدمناه في AuthRepository)
+
+    // 🟢 قراءات مباشرة من SessionManager
     val sessionManager = remember { com.example.mda.data.datastore.SessionManager(context) }
     val uiState by authViewModel?.uiState?.collectAsState()
         ?: remember { mutableStateOf(AuthUiState()) }
 
-// flows من الـ DataStore
+    // flows من الـ DataStore
     val localName by sessionManager.accountName.collectAsState(initial = "")
     val localUsername by sessionManager.accountUsername.collectAsState(initial = "")
-    val localId by sessionManager.accountId.collectAsState(initial = 0)
     val isLoggedIn = uiState.isAuthenticated
     val account = uiState.accountDetails
+
     LaunchedEffect(Unit) {
         onTopBarStateChange(
             TopBarState(
                 title = "Settings",
                 showBackButton = false
             )
-            )
+        )
 
         if (authViewModel != null && uiState.isAuthenticated && uiState.accountDetails == null) {
             authViewModel.fetchAccountDetails()
             FavoritesViewModel.syncFavoritesFromTmdb()
         }
     }
+
+    // يفضل عدم استدعاء الدوال الثقيلة مباشرة هنا، لكن سنبقيها كما طلبت
     FavoritesViewModel.syncFavoritesFromTmdb()
 
     Column(
@@ -82,7 +93,9 @@ fun SettingsScreen(
             onClick = { navController.navigate("profile") },
             onLoginClick = { navController.navigate("login") }
         )
-        Text("Other settings",
+
+        Text(
+            "Other settings",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -115,27 +128,27 @@ fun SettingsScreen(
                 }
             )
         }
-        SettingsGroupCard {
-                SettingsItem(Icons.Default.Lock, "Password") {
 
-                    // not implemented yet
-                    // navController.navigate("change_password")
-                }
-                Divider()
-                SettingsItem(
-                    Icons.Default.Notifications, "Notifications",
-                    isToggle = true,
-                    toggleState = notifications,
-                    onToggleChange = { viewModel.updateNotifications(it) }
-                )
-                Divider()
-                SettingsItem(
-                    Icons.Default.DarkMode, "Dark Mode",
-                    isToggle = true,
-                    toggleState = theme == 2,
-                    onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
-                )
+        SettingsGroupCard {
+            SettingsItem(Icons.Default.Lock, "Password") {
+                // not implemented yet
+                // navController.navigate("change_password")
             }
+            Divider()
+            SettingsItem(
+                Icons.Default.Notifications, "Notifications",
+                isToggle = true,
+                toggleState = notifications,
+                onToggleChange = { viewModel.updateNotifications(it) }
+            )
+            Divider()
+            SettingsItem(
+                Icons.Default.DarkMode, "Dark Mode",
+                isToggle = true,
+                toggleState = theme == 2,
+                onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
+            )
+        }
 
         SettingsGroupCard {
             SettingsItem(Icons.Default.Language, "Language") { navController.navigate("language_settings") }
@@ -145,15 +158,82 @@ fun SettingsScreen(
                 title = "Kids Mode"
             ) { navController.navigate("kids") }
             Divider()
-             SettingsItem(Icons.Default.Security, "Privacy Policy") { navController.navigate("privacy_policy") }
+            SettingsItem(Icons.Default.Security, "Privacy Policy") { navController.navigate("privacy_policy") }
 
             Divider()
             SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq") }
             Divider()
             SettingsItem(Icons.Default.Info, "About") { navController.navigate("about_app") }
+
+            Divider()
+
+            // ✅ تم تصحيح مكان الزر وتنسيقه
+            Box(modifier = Modifier.padding(16.dp)) {
+                Button(
+                    onClick = {
+                        // تجربة مباشرة لـ NotificationHelper
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            NotificationHelper.sendNotification(
+                                context,
+                                "تست الإشعارات 🔔",
+                                "ده إشعار تجريبي عشان نتأكد إن الدنيا شغالة!"
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Test Notification Now")
+                }
+            }
+            // ... (تحت زرار Test Notification Now)
+
+            Divider()
+
+            // 1. زرار اختبار Trending Worker (بيشتغل علطول)
+            Button(
+                onClick = {
+                    val request = OneTimeWorkRequestBuilder<TrendingReminderWorker>().build()
+                    WorkManager.getInstance(context).enqueue(request)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Force Start: Trending Worker")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 2. زرار اختبار Suggested Movie (بيشتغل علطول)
+            Button(
+                onClick = {
+                    val request = OneTimeWorkRequestBuilder<SuggestedMovieWorker>().build()
+                    WorkManager.getInstance(context).enqueue(request)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Force Start: Suggested Movie")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 3. زرار اختبار Inactive User (مع خدعة الوقت)
+            Button(
+                onClick = {
+                    // أ. نخدع التطبيق إننا فتحناه آخر مرة من 3 أيام (72 ساعة)
+                    val prefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                    val threeDaysAgo = System.currentTimeMillis() - (72L * 60 * 60 * 1000)
+                    prefs.edit { putLong("last_open", threeDaysAgo) }
+
+                    // ب. نشغل الـ Worker
+                    val request = OneTimeWorkRequestBuilder<InactiveUserWorker>().build()
+                    WorkManager.getInstance(context).enqueue(request)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)) // لون مميز عشان تلاحظه
+            ) {
+                Text("Test Inactive User (Hack Time)")
+            }
         }
         Spacer(Modifier.height(80.dp))
-
     }
 }
 
@@ -201,6 +281,7 @@ fun SettingsItem(
         }
     }
 }
+
 @Composable
 fun ProfileCard(
     isLoggedIn: Boolean,
@@ -209,7 +290,6 @@ fun ProfileCard(
     onClick: () -> Unit,
     onLoginClick: () -> Unit
 ) {
-
     Card(
         onClick = {
             if (isLoggedIn) onClick() else onLoginClick()
@@ -240,7 +320,6 @@ fun ProfileCard(
 
             Spacer(modifier = Modifier.width(16.dp))
             if (isLoggedIn) {
-
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = userName ?: "User",

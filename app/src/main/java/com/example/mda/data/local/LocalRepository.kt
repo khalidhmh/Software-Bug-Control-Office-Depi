@@ -1,22 +1,27 @@
 package com.example.mda.data.local
 
+import android.util.Log
 import com.example.mda.data.local.dao.MediaDao
+import com.example.mda.data.local.dao.MovieHistoryDao // ✅ إضافة Import
 import com.example.mda.data.local.dao.SearchHistoryDao
 import com.example.mda.data.local.entities.MediaEntity
+import com.example.mda.data.local.entities.MoviesViewedEntitty // ✅ إضافة Import
 import com.example.mda.data.local.entities.SearchHistoryEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
 class LocalRepository(
     private val mediaDao: MediaDao,
-    private val searchHistoryDao: SearchHistoryDao, // ✅ جديد
-    // TODO: لما تعمل ViewHistoryDao، ضيفه هنا كمان
+    private val searchHistoryDao: SearchHistoryDao,
+    val movieHistoryDao: MovieHistoryDao // 🔥 ✅ 1. أضفنا هذا الـ DAO هنا
 ) {
 
     // ---------------- MEDIA DATA ----------------
     fun getAll(): Flow<List<MediaEntity>> = mediaDao.getAll()
     fun getFavorites(): Flow<List<MediaEntity>> = mediaDao.getFavorites()
     fun getWatchlist(): Flow<List<MediaEntity>> = mediaDao.getWatchlist()
+
+    suspend fun getAllOnce(): List<MediaEntity> = mediaDao.getAllMediaOnce()
 
     suspend fun addOrUpdate(item: MediaEntity) = mediaDao.upsert(item)
 
@@ -34,22 +39,31 @@ class LocalRepository(
     suspend fun delete(item: MediaEntity) = mediaDao.delete(item)
     suspend fun clearNonSaved() = mediaDao.clearNonSaved()
 
-    suspend fun addOrUpdateAllFromApi(entities: List<MediaEntity>) {
-        val existingMap = entities.mapNotNull { e ->
-            mediaDao.getByIdOnly(e.id)?.let { e.id to it }
-        }.toMap()
+    suspend fun addOrUpdateAllFromApi(newEntities: List<MediaEntity>) {
+        if (newEntities.isEmpty()) return
 
-        val finalEntities = entities.map { e ->
-            val old = existingMap[e.id]
-            if (old != null) {
-                e.copy(
-                    isFavorite = old.isFavorite,
-                    isInWatchlist = old.isInWatchlist
-                )
-            } else e
+        try {
+            val currentCachedItems = mediaDao.getAllMediaOnce()
+            val currentMap = currentCachedItems.associateBy { it.id }
+
+            val finalEntities = newEntities.map { newItem ->
+                val oldItem = currentMap[newItem.id]
+                if (oldItem != null) {
+                    newItem.copy(
+                        isFavorite = oldItem.isFavorite,
+                        isInWatchlist = oldItem.isInWatchlist
+                    )
+                } else {
+                    newItem
+                }
+            }
+            mediaDao.insertAll(finalEntities)
+            Log.d("RepoDebug", "💾 Successfully saved/updated ${finalEntities.size} items in DB.")
+
+        } catch (e: Exception) {
+            Log.e("RepoDebug", "❌ Error saving to DB: ${e.message}")
+            e.printStackTrace()
         }
-
-        mediaDao.insertAll(finalEntities)
     }
 
     suspend fun addOrUpdateAll(entities: List<MediaEntity>) =
@@ -67,13 +81,8 @@ class LocalRepository(
     suspend fun isFavorite(id: Int): Boolean = mediaDao.isFavorite(id) ?: false
     suspend fun getById(id: Int): MediaEntity? = mediaDao.getByIdOnly(id)
 
-    // ---------------- NEW: helpers for sync (TMDb <> local) ----------------
+    // ---------------- SYNC HELPERS ----------------
 
-    /**
-     * Clear all favorites flag locally.
-     * Implementation: read current favorites then set their flag to false
-     * using existing DAO updateFavoriteStatus(id, false).
-     */
     suspend fun clearAllFavorites() {
         val currentFavorites = mediaDao.getFavorites().first()
         currentFavorites.forEach { entity ->
@@ -81,18 +90,10 @@ class LocalRepository(
         }
     }
 
-    /**
-     * Mark a single media item as favorite (or remove favorite).
-     * Uses the existing DAO updateFavoriteStatus.
-     */
     suspend fun setFavorite(id: Int, isFavorite: Boolean) {
         mediaDao.updateFavoriteStatus(id, isFavorite)
     }
 
-    /**
-     * Mark many ids as favorite. Items that don't exist in DB will be ignored.
-     * If you want to insert missing items you can use addOrUpdate(...) before calling this.
-     */
     suspend fun setFavorites(ids: List<Int>) {
         ids.forEach { id ->
             mediaDao.updateFavoriteStatus(id, true)
@@ -109,8 +110,22 @@ class LocalRepository(
 
     suspend fun clearSearchHistory() = searchHistoryDao.deleteAll()
 
-    // ---------------- VIEW HISTORY (TODO) ----------------
-    // TODO: لما تعمل ViewHistoryDao اضف:
-    // fun getViewHistory(): Flow<List<ViewHistoryEntity>>
-    // suspend fun addViewHistory(entity: ViewHistoryEntity)
+
+    // ---------------- 🔥 VIEWED HISTORY (القسم الجديد) ----------------
+
+    // لاستخدامه في شاشات العرض (Flow)
+    fun getMovieHistoryFlow(): Flow<List<MoviesViewedEntitty>> = movieHistoryDao.getHistory()
+
+    // لاستخدامه في اللوجيك (Smart Recommendations)
+    suspend fun getMovieHistoryOnce(): List<MoviesViewedEntitty> = movieHistoryDao.getHistoryOnce()
+
+    // إضافة فيلم للسجل
+    suspend fun addToViewedHistory(item: MoviesViewedEntitty) {
+        movieHistoryDao.insertViewedMovie(item)
+    }
+
+    // مسح السجل
+    suspend fun clearViewedHistory() {
+        movieHistoryDao.clearHistory()
+    }
 }

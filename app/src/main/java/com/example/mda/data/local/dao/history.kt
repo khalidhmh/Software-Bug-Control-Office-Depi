@@ -23,6 +23,8 @@ interface HistoryDao {
 }
 @Dao
 interface MovieHistoryDao {
+    @Query("SELECT * FROM Movies_history ORDER BY viewedAt DESC LIMIT 10")
+    suspend fun getHistoryOnce(): List<MoviesViewedEntitty>
 
     @Query("SELECT * FROM Movies_history ORDER BY viewedAt DESC")
     fun getHistory(): Flow<List<MoviesViewedEntitty>>

@@ -90,6 +90,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.work.runtime.ktx)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
@@ -118,6 +119,7 @@ dependencies {
     // =============================================================
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
+    implementation("io.coil-kt:coil-gif:2.5.0")       // ⬅️ دعم ملفات GIF
 
     // =============================================================
     // 🔹 ROOM DATABASE
