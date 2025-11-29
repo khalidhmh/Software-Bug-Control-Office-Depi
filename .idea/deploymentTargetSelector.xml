@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-11-24T17:13:08.201093300Z">
+        <DropdownSelection timestamp="2025-11-28T20:13:26.828902100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=RF8R317FQAN" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=4f72d4c80507" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -17,6 +17,9 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="PeopleScreenTest">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="Tests in 'com.example.mda'">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

@@ -10,15 +10,18 @@ import com.example.mda.data.remote.model.MovieResponse
 import com.example.mda.data.remote.model.getKnownForTitles
 import com.example.mda.data.repository.mappers.toMediaEntity
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 
 class MoviesRepository(
     private val api: TmdbApi,
     private val localRepo: LocalRepository
 ) {
 
+    companion object {
+        private const val TAG = "RepoDebug"
+    }
+
     /** ---------------------------------------------------------------------
-     *  SAFE API CALL  (يحافظ على الكاش في حالة فشل الاتصال)
+     *  SAFE API CALL
      *  --------------------------------------------------------------------*/
     private suspend fun safeApiCall(
         apiCall: suspend () -> MovieResponse?,
@@ -29,9 +32,19 @@ class MoviesRepository(
         return try {
             val response = apiCall()
             if (response != null && !response.results.isNullOrEmpty()) {
-                var entities = response.results
-                    .filter { it.adult != true }
-                    .map { it.toMediaEntity(typeFilter) }
+
+                Log.d(TAG, "✅ API Success: Fetched ${response.results.size} items. Processing...")
+
+                // 🔥 التعديل: فلترة النتائج لإزالة العناصر السيئة (بدون صور أو أسماء)
+                val rawResults = response.results
+                    .filter { it.adult != true } // استبعاد المحتوى غير اللائق
+                    .filter { !it.posterPath.isNullOrBlank() } // ✅ استبعاد العناصر اللي من غير صورة (أهم خطوة)
+                    .filter { !it.title.isNullOrBlank() || !it.name.isNullOrBlank() } // ✅ استبعاد العناصر اللي من غير اسم
+
+                // تم إزالة sortedByDescending { it.popularity } لأن المتغير غير موجود في الموديل عندك
+                // الفلترة بالأعلى كافية جداً لتنظيف البحث
+
+                var entities = rawResults.map { it.toMediaEntity(typeFilter) }
 
                 // إجبار الـ mediaType لو ناقص
                 entities = entities.map {
@@ -42,16 +55,20 @@ class MoviesRepository(
 
                 // فلترة إضافية عند الحاجة
                 if (typeFilter != null) entities = entities.filter { it.mediaType == typeFilter }
-                if (genreId != null) entities =
-                    entities.filter { it.genreIds?.contains(genreId) == true }
+                if (genreId != null) entities = entities.filter { it.genreIds?.contains(genreId) == true }
 
-                // حفظ في الكاش المحلي
-                localRepo.addOrUpdateAllFromApi(entities)
+                // 🔥 حفظ في الكاش المحلي
+                if (entities.isNotEmpty()) {
+                    localRepo.addOrUpdateAllFromApi(entities)
+                }
+
                 entities
             } else {
+                Log.w(TAG, "⚠️ API returned null or empty. Using Fallback.")
                 fallback()
             }
         } catch (e: Exception) {
+            Log.e(TAG, "❌ API Call Failed: ${e.message}. Using Fallback.")
             e.printStackTrace()
             fallback()
         }
@@ -100,7 +117,6 @@ class MoviesRepository(
         }
     }
 
-    // ✅ Fixed: Using safeApiCall instead of manual API call
     suspend fun getTvShowsByGenre(genreId: Int, page: Int = 1): List<MediaEntity> = safeApiCall(
         apiCall = {
             val res = api.getTvShowsByGenre(genreId, page)
@@ -122,7 +138,7 @@ class MoviesRepository(
         },
         fallback = { localRepo.getAll().first().filter { it.mediaType == "tv" } },
         typeFilter = "tv"
-    ).also { Log.d("MoviesRepository", "✅ TV Shows fetched: ${it.size}") }
+    )
 
     // ---------------------- Trending ----------------------
     suspend fun getTrendingMedia(
@@ -184,24 +200,27 @@ class MoviesRepository(
                     val res = api.searchPeople(query)
                     if (res.isSuccessful) {
                         val body = res.body()
-                        body?.results?.map {
-                            MediaEntity(
-                                id = it.id,
-                                name = it.name,
-                                title = it.name,
-                                overview = it.getKnownForTitles(),
-                                posterPath = it.profilePath,
-                                backdropPath = null,
-                                voteAverage = null,
-                                releaseDate = null,
-                                firstAirDate = null,
-                                mediaType = "person",
-                                adult = false,
-                                genreIds = emptyList(),
-                                isFavorite = false,
-                                isInWatchlist = false
-                            )
-                        } ?: emptyList()
+                        body?.results
+                            ?.filter { !it.profilePath.isNullOrBlank() } // ✅ إزالة من ليس له صورة
+                            // تم إزالة الترتيب هنا أيضاً لتجنب الخطأ
+                            ?.map {
+                                MediaEntity(
+                                    id = it.id,
+                                    name = it.name,
+                                    title = it.name,
+                                    overview = it.getKnownForTitles(),
+                                    posterPath = it.profilePath,
+                                    backdropPath = null,
+                                    voteAverage = null,
+                                    releaseDate = null,
+                                    firstAirDate = null,
+                                    mediaType = "person",
+                                    adult = false,
+                                    genreIds = emptyList(),
+                                    isFavorite = false,
+                                    isInWatchlist = false
+                                )
+                            } ?: emptyList()
                     } else emptyList()
                 } catch (e: Exception) {
                     emptyList()
@@ -225,61 +244,112 @@ class MoviesRepository(
     // ---------------------- Smart Recommendations ----------------------
     suspend fun getSmartRecommendations(accountId: Int, sessionId: String): List<MediaEntity> = try {
 
-        val collected = mutableListOf<Movie>()
+        val collected = mutableListOf<MediaEntity>()
 
-        // 1️⃣ Rated Movies & TV Shows
+        // =================================================
+        // 1️⃣ Viewed History & Similar (سجل المشاهدة)
+        // =================================================
+        // ✅ تصحيح: استخدام الدالة المساعدة في LocalRepo
+        val historyList = localRepo.getMovieHistoryOnce()
+
+        if (historyList.isNotEmpty()) {
+            // أ) إضافة آخر 5 أفلام شاهدها المستخدم
+            val mappedHistory = historyList.take(5).map { it.toMediaEntity() }
+            collected.addAll(mappedHistory)
+
+            // ب) جلب توصيات لآخر فيلم تمت مشاهدته
+            val lastViewed = historyList.first()
+            val isTv = lastViewed.mediaType == "tv" || lastViewed.mediaType.isNullOrBlank() // تحوط للنوع
+
+            val recResponse = if (isTv) {
+                api.getSimilarTvShows(lastViewed.id)
+            } else {
+                api.getSimilarMovies(lastViewed.id)
+            }
+
+            if (recResponse.isSuccessful) {
+                val similarItems = recResponse.body()?.results.orEmpty()
+                    .filterNot { it.id == lastViewed.id }
+                    .take(5)
+                    .map {
+                        // استخدام الـ mapper الموجود لديك
+                        it.toMediaEntity(defaultType = lastViewed.mediaType)
+                    }
+                collected.addAll(similarItems)
+            }
+        }
+
+        // =================================================
+        // 2️⃣ Rated Movies & TV (التقييمات)
+        // =================================================
         val ratedMoviesRes = api.getRatedMovies(accountId, sessionId)
         val ratedTvRes = api.getRatedTvShows(accountId, sessionId)
 
-        val ratedMovies = ratedMoviesRes.body()?.results.orEmpty()
-        val ratedTv = ratedTvRes.body()?.results.orEmpty()
+        val ratedMovies = ratedMoviesRes.body()?.results.orEmpty().take(3)
+        val ratedTv = ratedTvRes.body()?.results.orEmpty().take(3)
 
-        ratedMovies.take(3).forEach { rated ->
+        ratedMovies.forEach { rated ->
             val rec = api.getMovieRecommendations(rated.id)
             if (rec.isSuccessful) {
                 val related = rec.body()?.results.orEmpty()
-                    .filterNot { r -> r.id == rated.id }
-                    .map { m -> m.copy(mediaType = "movie") }
-                collected += related
+                    .take(3)
+                    .map { it.toMediaEntity(defaultType = "movie") }
+                collected.addAll(related)
             }
         }
 
-        ratedTv.take(3).forEach { rated ->
+        ratedTv.forEach { rated ->
             val rec = api.getTvRecommendations(rated.id)
             if (rec.isSuccessful) {
                 val related = rec.body()?.results.orEmpty()
-                    .filterNot { r -> r.id == rated.id }
-                    .map { m -> m.copy(mediaType = "tv") }
-                collected += related
+                    .take(3)
+                    .map { it.toMediaEntity(defaultType = "tv") }
+                collected.addAll(related)
             }
         }
 
-        // 2️⃣ Search History
+        // =================================================
+        // 3️⃣ Search History (سجل البحث)
+        // =================================================
+        // ✅ تصحيح: استخدام الدالة المساعدة بدلاً من الوصول المباشر للـ DAO
         val searchHistory = localRepo.getSearchHistoryOnce()
+
         if (searchHistory.isNotEmpty()) {
-            for (item in searchHistory.take(5)) {
+            searchHistory.take(3).forEach { item ->
                 val response = api.searchMulti(item.query)
                 if (response.isSuccessful) {
                     val results = response.body()?.results.orEmpty()
                         .filter { it.mediaType == "movie" || it.mediaType == "tv" }
-                        .take(5)
-                        .map {
-                            if (it.mediaType.isNullOrBlank()) it.copy(mediaType = "movie") else it
-                        }
-                    collected += results
+                        .take(3)
+                        .map { it.toMediaEntity() }
+                    collected.addAll(results)
                 }
             }
         }
 
-        // 3️⃣ Fallback
-        if (collected.isEmpty()) getGeneralFallback()
-        else collected.distinctBy { it.id }
-            .sortedByDescending { it.voteAverage ?: 0.0 }
-            .map { it.toMediaEntity() }
+        // =================================================
+        // 4️⃣ Final Processing
+        // =================================================
+        val finalList = if (collected.isEmpty()) {
+            getGeneralFallback()
+        } else {
+            val distinctList = collected
+                .distinctBy { it.id }
+                .shuffled()
+
+            // ✅ تصحيح: استخدام دالة الحفظ الذكية للحفاظ على المفضلة
+            localRepo.addOrUpdateAllFromApi(distinctList)
+
+            distinctList
+        }
+
+        finalList
 
     } catch (e: Exception) {
         e.printStackTrace()
-        getGeneralFallback()
+        // ✅ تصحيح: استخدام الدالة المساعدة للجلب من الكاش
+        val cached = localRepo.getAllOnce()
+        if (cached.isNotEmpty()) cached.shuffled().take(20) else getGeneralFallback()
     }
 
     // ---------------------- Fallback ----------------------
@@ -307,10 +377,16 @@ class MoviesRepository(
 
             val allList = trendingMovies + trendingTv + topMovies + topTv + popularMovies
 
-            allList.distinctBy { it.id }
+            val finalEntities = allList.distinctBy { it.id }
                 .sortedByDescending { it.voteAverage ?: 0.0 }
                 .take(25)
                 .map { it.toMediaEntity() }
+
+            // 🔥 Save Fallback to DB
+            Log.d(TAG, "💾 Saving Fallback data to DB (${finalEntities.size} items)")
+            localRepo.addOrUpdateAllFromApi(finalEntities)
+
+            finalEntities
 
         } catch (e: Exception) {
             e.printStackTrace()

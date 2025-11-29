@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -36,11 +35,21 @@ fun HomeScreen(
     favoritesViewModel: FavoritesViewModel,
     authViewModel: AuthViewModel
 ) {
-    val trending = viewModel.trendingMedia.collectAsState(initial = emptyList()).value
-    val movies = viewModel.popularMovies.collectAsState(initial = emptyList()).value
-    val tv = viewModel.popularTvShows.collectAsState(initial = emptyList()).value
-    val mixed = viewModel.popularMixed.collectAsState(initial = emptyList()).value
-    val recommendations = viewModel.recommendedMedia.collectAsState(initial = emptyList()).value
+    // 1️⃣ تجميع البيانات من الـ ViewModel
+    val trendingEntities by viewModel.trendingMedia.collectAsState()
+    val mixedEntities by viewModel.popularMixed.collectAsState()
+
+    // ✅ استخدام القوائم المفلترة الجديدة لحل مشكلة التبويبات
+    val recMoviesEntities by viewModel.recommendedMovies.collectAsState()
+    val recTvEntities by viewModel.recommendedTvShows.collectAsState()
+
+    // 2️⃣ تحويل MediaEntity إلى Movie (بما أن مكونات الـ UI تتوقع Movie)
+    // نستخدم remember لتحسين الأداء
+    val trendingList = remember(trendingEntities) { trendingEntities.map { it.toMovie() } }
+    val bannerList = remember(mixedEntities) { mixedEntities.map { it.toMovie() } }
+
+    val recommendedMoviesList = remember(recMoviesEntities) { recMoviesEntities.map { it.toMovie() } }
+    val recommendedTvShowsList = remember(recTvEntities) { recTvEntities.map { it.toMovie() } }
 
     val scrollState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
@@ -67,7 +76,7 @@ fun HomeScreen(
                 viewModel.loadTrending("day")
                 viewModel.loadPopularData()
                 viewModel.loadTopRated()
-                // ✅ تحدّث التوصيات الذكية مع كل Refresh
+                // ✅ تحديث التوصيات الذكية عند السحب
                 viewModel.onUserActivityDetected(forceRefresh = true)
                 delay(1500)
                 refreshing = false
@@ -95,29 +104,26 @@ fun HomeScreen(
             // ---------------- Banner ----------------
             item {
                 AnimatedVisibility(
-                    visible = mixed.isNotEmpty(),
+                    visible = bannerList.isNotEmpty(),
                     enter = fadeIn() + slideInVertically()
                 ) {
-                    BannerSection(movies = mixed.map { it.toMovie() })
+                    BannerSection(movies = bannerList)
                 }
             }
 
-            // ---------------- For You Section ----------------
+            // ---------------- For You Section (التوصيات الذكية) ----------------
             item {
-                val recommendedMovies = recommendations
-                    .filter { it.mediaType == "movie" }
-                    .map { it.toMovie() }
-                val recommendedTvShows = recommendations
-                    .filter { it.mediaType == "tv" }
-                    .map { it.toMovie() }
+                // نظهر القسم لو فيه أي توصيات سواء أفلام أو مسلسلات
+                val showRecommendations = recommendedMoviesList.isNotEmpty() || recommendedTvShowsList.isNotEmpty()
 
                 AnimatedVisibility(
-                    visible = recommendations.isNotEmpty(),
+                    visible = showRecommendations,
                     enter = fadeIn()
                 ) {
                     ForYouSection(
-                        recommendedMovies = recommendedMovies,
-                        recommendedTvShows = recommendedTvShows,
+                        // ✅ نمرر القوائم المجهزة والمفلترة
+                        recommendedMovies = recommendedMoviesList,
+                        recommendedTvShows = recommendedTvShowsList,
                         onMovieClick = { m ->
                             navController.navigate("detail/${m.mediaType}/${m.id}")
                         },
@@ -131,7 +137,7 @@ fun HomeScreen(
             // ---------------- Trending ----------------
             item {
                 TrendingSection(
-                    trendingMovies = trending.map { it.toMovie() },
+                    trendingMovies = trendingList,
                     selectedWindow = viewModel.selectedTimeWindow,
                     onTimeWindowChange = viewModel::loadTrending,
                     onMovieClick = { m ->
@@ -146,7 +152,7 @@ fun HomeScreen(
             // ---------------- Popular ----------------
             item {
                 PopularSection(
-                    popularMovies = mixed.map { it.toMovie() },
+                    popularMovies = bannerList, // نستخدم الـ Mixed هنا
                     onMovieClick = { m ->
                         navController.navigate("detail/${m.mediaType}/${m.id}")
                     },
