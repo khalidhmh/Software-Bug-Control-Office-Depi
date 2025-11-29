@@ -2,15 +2,18 @@ package com.example.mda.data.local
 
 import android.util.Log
 import com.example.mda.data.local.dao.MediaDao
+import com.example.mda.data.local.dao.MovieHistoryDao // ✅ إضافة Import
 import com.example.mda.data.local.dao.SearchHistoryDao
 import com.example.mda.data.local.entities.MediaEntity
+import com.example.mda.data.local.entities.MoviesViewedEntitty // ✅ إضافة Import
 import com.example.mda.data.local.entities.SearchHistoryEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
 class LocalRepository(
     private val mediaDao: MediaDao,
-    private val searchHistoryDao: SearchHistoryDao
+    private val searchHistoryDao: SearchHistoryDao,
+    val movieHistoryDao: MovieHistoryDao // 🔥 ✅ 1. أضفنا هذا الـ DAO هنا
 ) {
 
     // ---------------- MEDIA DATA ----------------
@@ -36,22 +39,16 @@ class LocalRepository(
     suspend fun delete(item: MediaEntity) = mediaDao.delete(item)
     suspend fun clearNonSaved() = mediaDao.clearNonSaved()
 
-    // 🔥🔥 دالة معدلة بالكامل لتحسين الأداء والحفاظ على المفضلة
     suspend fun addOrUpdateAllFromApi(newEntities: List<MediaEntity>) {
         if (newEntities.isEmpty()) return
 
         try {
-            // 1. جلب كل الداتا الموجودة حالياً مرة واحدة (استعلام واحد سريع)
             val currentCachedItems = mediaDao.getAllMediaOnce()
-
-            // 2. تحويلها لـ Map للبحث السريع (ID -> Entity)
             val currentMap = currentCachedItems.associateBy { it.id }
 
-            // 3. دمج الداتا الجديدة مع القديمة
             val finalEntities = newEntities.map { newItem ->
                 val oldItem = currentMap[newItem.id]
                 if (oldItem != null) {
-                    // لو الفيلم موجود، حافظ على حالة الـ Favorite والـ Watchlist
                     newItem.copy(
                         isFavorite = oldItem.isFavorite,
                         isInWatchlist = oldItem.isInWatchlist
@@ -60,8 +57,6 @@ class LocalRepository(
                     newItem
                 }
             }
-
-            // 4. حفظ الكل مرة واحدة
             mediaDao.insertAll(finalEntities)
             Log.d("RepoDebug", "💾 Successfully saved/updated ${finalEntities.size} items in DB.")
 
@@ -86,11 +81,8 @@ class LocalRepository(
     suspend fun isFavorite(id: Int): Boolean = mediaDao.isFavorite(id) ?: false
     suspend fun getById(id: Int): MediaEntity? = mediaDao.getByIdOnly(id)
 
-    // ---------------- NEW: helpers for sync (TMDb <> local) ----------------
+    // ---------------- SYNC HELPERS ----------------
 
-    /**
-     * Clear all favorites flag locally.
-     */
     suspend fun clearAllFavorites() {
         val currentFavorites = mediaDao.getFavorites().first()
         currentFavorites.forEach { entity ->
@@ -98,16 +90,10 @@ class LocalRepository(
         }
     }
 
-    /**
-     * Mark a single media item as favorite (or remove favorite).
-     */
     suspend fun setFavorite(id: Int, isFavorite: Boolean) {
         mediaDao.updateFavoriteStatus(id, isFavorite)
     }
 
-    /**
-     * Mark many ids as favorite. Items that don't exist in DB will be ignored.
-     */
     suspend fun setFavorites(ids: List<Int>) {
         ids.forEach { id ->
             mediaDao.updateFavoriteStatus(id, true)
@@ -123,4 +109,23 @@ class LocalRepository(
     }
 
     suspend fun clearSearchHistory() = searchHistoryDao.deleteAll()
+
+
+    // ---------------- 🔥 VIEWED HISTORY (القسم الجديد) ----------------
+
+    // لاستخدامه في شاشات العرض (Flow)
+    fun getMovieHistoryFlow(): Flow<List<MoviesViewedEntitty>> = movieHistoryDao.getHistory()
+
+    // لاستخدامه في اللوجيك (Smart Recommendations)
+    suspend fun getMovieHistoryOnce(): List<MoviesViewedEntitty> = movieHistoryDao.getHistoryOnce()
+
+    // إضافة فيلم للسجل
+    suspend fun addToViewedHistory(item: MoviesViewedEntitty) {
+        movieHistoryDao.insertViewedMovie(item)
+    }
+
+    // مسح السجل
+    suspend fun clearViewedHistory() {
+        movieHistoryDao.clearHistory()
+    }
 }

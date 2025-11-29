@@ -32,7 +32,7 @@ class SuggestedMovieWorker(
 
             // 2. الوصول للداتا بيز
             val db = AppDatabase.getInstance(applicationContext)
-            val repo = LocalRepository(db.mediaDao(), db.searchHistoryDao())
+            val repo = LocalRepository(mediaDao = db.mediaDao(), movieHistoryDao = db.MoviehistoryDao(), searchHistoryDao = db.searchHistoryDao())
 
             // جلب البيانات
             val cached = repo.getAllOnce()

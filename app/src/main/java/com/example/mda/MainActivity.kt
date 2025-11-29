@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
 
         // ======= Room Database Setup =======
         database = AppDatabase.getInstance(applicationContext)
-        localRepository = LocalRepository(database.mediaDao(), database.searchHistoryDao())
+        localRepository = LocalRepository(mediaDao = database.mediaDao(), movieHistoryDao = database.MoviehistoryDao(), searchHistoryDao = database.searchHistoryDao())
         moviesRepository = MoviesRepository(RetrofitInstance.api, localRepository)
         movieDetailsRepository = MovieDetailsRepository(RetrofitInstance.api, database.mediaDao())
         actorRepository = ActorsRepository(RetrofitInstance.api, database.actorDao())

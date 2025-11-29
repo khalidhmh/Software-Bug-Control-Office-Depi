@@ -244,70 +244,112 @@ class MoviesRepository(
     // ---------------------- Smart Recommendations ----------------------
     suspend fun getSmartRecommendations(accountId: Int, sessionId: String): List<MediaEntity> = try {
 
-        val collected = mutableListOf<Movie>()
+        val collected = mutableListOf<MediaEntity>()
 
-        // 1️⃣ Rated Movies & TV Shows
+        // =================================================
+        // 1️⃣ Viewed History & Similar (سجل المشاهدة)
+        // =================================================
+        // ✅ تصحيح: استخدام الدالة المساعدة في LocalRepo
+        val historyList = localRepo.getMovieHistoryOnce()
+
+        if (historyList.isNotEmpty()) {
+            // أ) إضافة آخر 5 أفلام شاهدها المستخدم
+            val mappedHistory = historyList.take(5).map { it.toMediaEntity() }
+            collected.addAll(mappedHistory)
+
+            // ب) جلب توصيات لآخر فيلم تمت مشاهدته
+            val lastViewed = historyList.first()
+            val isTv = lastViewed.mediaType == "tv" || lastViewed.mediaType.isNullOrBlank() // تحوط للنوع
+
+            val recResponse = if (isTv) {
+                api.getSimilarTvShows(lastViewed.id)
+            } else {
+                api.getSimilarMovies(lastViewed.id)
+            }
+
+            if (recResponse.isSuccessful) {
+                val similarItems = recResponse.body()?.results.orEmpty()
+                    .filterNot { it.id == lastViewed.id }
+                    .take(5)
+                    .map {
+                        // استخدام الـ mapper الموجود لديك
+                        it.toMediaEntity(defaultType = lastViewed.mediaType)
+                    }
+                collected.addAll(similarItems)
+            }
+        }
+
+        // =================================================
+        // 2️⃣ Rated Movies & TV (التقييمات)
+        // =================================================
         val ratedMoviesRes = api.getRatedMovies(accountId, sessionId)
         val ratedTvRes = api.getRatedTvShows(accountId, sessionId)
 
-        val ratedMovies = ratedMoviesRes.body()?.results.orEmpty()
-        val ratedTv = ratedTvRes.body()?.results.orEmpty()
+        val ratedMovies = ratedMoviesRes.body()?.results.orEmpty().take(3)
+        val ratedTv = ratedTvRes.body()?.results.orEmpty().take(3)
 
-        ratedMovies.take(3).forEach { rated ->
+        ratedMovies.forEach { rated ->
             val rec = api.getMovieRecommendations(rated.id)
             if (rec.isSuccessful) {
                 val related = rec.body()?.results.orEmpty()
-                    .filterNot { r -> r.id == rated.id }
-                    .map { m -> m.copy(mediaType = "movie") }
-                collected += related
+                    .take(3)
+                    .map { it.toMediaEntity(defaultType = "movie") }
+                collected.addAll(related)
             }
         }
 
-        ratedTv.take(3).forEach { rated ->
+        ratedTv.forEach { rated ->
             val rec = api.getTvRecommendations(rated.id)
             if (rec.isSuccessful) {
                 val related = rec.body()?.results.orEmpty()
-                    .filterNot { r -> r.id == rated.id }
-                    .map { m -> m.copy(mediaType = "tv") }
-                collected += related
+                    .take(3)
+                    .map { it.toMediaEntity(defaultType = "tv") }
+                collected.addAll(related)
             }
         }
 
-        // 2️⃣ Search History
+        // =================================================
+        // 3️⃣ Search History (سجل البحث)
+        // =================================================
+        // ✅ تصحيح: استخدام الدالة المساعدة بدلاً من الوصول المباشر للـ DAO
         val searchHistory = localRepo.getSearchHistoryOnce()
+
         if (searchHistory.isNotEmpty()) {
-            for (item in searchHistory.take(5)) {
+            searchHistory.take(3).forEach { item ->
                 val response = api.searchMulti(item.query)
                 if (response.isSuccessful) {
                     val results = response.body()?.results.orEmpty()
                         .filter { it.mediaType == "movie" || it.mediaType == "tv" }
-                        .take(5)
-                        .map {
-                            if (it.mediaType.isNullOrBlank()) it.copy(mediaType = "movie") else it
-                        }
-                    collected += results
+                        .take(3)
+                        .map { it.toMediaEntity() }
+                    collected.addAll(results)
                 }
             }
         }
 
-        // 3️⃣ Final List & Cache
+        // =================================================
+        // 4️⃣ Final Processing
+        // =================================================
         val finalList = if (collected.isEmpty()) {
-            getGeneralFallback() // Fallback already handles caching
+            getGeneralFallback()
         } else {
-            val mapped = collected.distinctBy { it.id                } // إغلاق distinctBy
-                .sortedByDescending { it.voteAverage ?: 0.0 }
-                .map { it.toMediaEntity() }
+            val distinctList = collected
+                .distinctBy { it.id }
+                .shuffled()
 
-            // 🔥 Save Smart Recs to DB as well
-            localRepo.addOrUpdateAllFromApi(mapped)
-            mapped
+            // ✅ تصحيح: استخدام دالة الحفظ الذكية للحفاظ على المفضلة
+            localRepo.addOrUpdateAllFromApi(distinctList)
+
+            distinctList
         }
 
         finalList
 
     } catch (e: Exception) {
         e.printStackTrace()
-        getGeneralFallback()
+        // ✅ تصحيح: استخدام الدالة المساعدة للجلب من الكاش
+        val cached = localRepo.getAllOnce()
+        if (cached.isNotEmpty()) cached.shuffled().take(20) else getGeneralFallback()
     }
 
     // ---------------------- Fallback ----------------------
