@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
@@ -45,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
+import com.example.mda.ui.kids.search.KidsSearchFiltersRow
 import com.example.mda.ui.screens.search.SearchBarComposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -70,25 +73,31 @@ fun KidsSearchScreen(
     var expanded by remember { mutableStateOf(false) }
     var isFocused by remember { mutableStateOf(false) }
 
+    // متغير لمتابعة انتهاء البحث
+    var isSearchDone by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 20.dp)
     ) {
+
+
         ExposedDropdownMenuBox(
             expanded = expanded && allSuggestions.isNotEmpty(),
             onExpandedChange = { expanded = it }
         ) {
-            // ❤️ نفس شكل السيرش في الشاشة العادية
             SearchBarComposable(
                 query = query,
                 onQueryChange = { q ->
                     query = q
+                    isSearchDone = false
                     expanded = false
                     searchJob?.cancel()
                     searchJob = scope.launch {
                         delay(350)
                         if (q.isNotBlank()) {
+                            isSearchDone = false
                             val remote = withContext(Dispatchers.IO) {
                                 val type = when (selectedFilter.lowercase()) {
                                     "movies" -> "movie"
@@ -97,7 +106,14 @@ fun KidsSearchScreen(
                                 }
                                 moviesRepository.searchByType(q, type)
                             }
-                            results = filterKids(remote)
+                            results = KidsFilter.filterKids(
+                                remote.filterNot {
+                                    it.title.isNullOrBlank() ||
+                                            (it.adult == true) ||
+                                            ((it.genres?.isEmpty() == true) && (it.genreIds?.isEmpty() == true))
+                                }
+                            )
+                            isSearchDone = true
                         } else {
                             results = emptyList()
                         }
@@ -109,6 +125,7 @@ fun KidsSearchScreen(
                         scope.launch { KidsSearchStore.saveQuery(context, query) }
                         searchJob?.cancel()
                         searchJob = scope.launch {
+                            isSearchDone = false
                             val remote = withContext(Dispatchers.IO) {
                                 val type = when (selectedFilter.lowercase()) {
                                     "movies" -> "movie"
@@ -117,12 +134,20 @@ fun KidsSearchScreen(
                                 }
                                 moviesRepository.searchByType(query, type)
                             }
-                            results = filterKids(remote)
+                            results = KidsFilter.filterKids(
+                                remote.filterNot {
+                                    it.title.isNullOrBlank() ||
+                                            (it.adult == true) ||
+                                            ((it.genres?.isEmpty() == true) && (it.genreIds?.isEmpty() == true))
+                                }
+                            )
+                            isSearchDone = true
                         }
                     }
                 },
                 placeholderText = "Search kids-safe content..."
             )
+
 
             val filteredSuggestions = remember(query, allSuggestions) {
                 if (query.isBlank()) allSuggestions else allSuggestions.filter { it.contains(query, true) }
@@ -139,9 +164,9 @@ fun KidsSearchScreen(
                             expanded = false
                             focusManager.clearFocus()
                             scope.launch { KidsSearchStore.saveQuery(context, suggestion) }
-                            // run search for suggestion
                             searchJob?.cancel()
                             searchJob = scope.launch {
+                                isSearchDone = false
                                 val remote = withContext(Dispatchers.IO) {
                                     val type = when (selectedFilter.lowercase()) {
                                         "movies" -> "movie"
@@ -150,15 +175,24 @@ fun KidsSearchScreen(
                                     }
                                     moviesRepository.searchByType(suggestion, type)
                                 }
-                                results = filterKids(remote)
+                                results = KidsFilter.filterKids(
+                                    remote.filterNot {
+                                        it.title.isNullOrBlank() ||
+                                                (it.adult == true) ||
+                                                ((it.genres?.isEmpty() == true) && (it.genreIds?.isEmpty() == true))
+                                    }
+                                )
+                                isSearchDone = true
                             }
                         }
                     )
                 }
             }
         }
+
         Spacer(Modifier.height(8.dp))
-        SearchFiltersRow(
+
+        KidsSearchFiltersRow(
             selectedFilter = selectedFilter,
             onFilterChange = { newFilter ->
                 selectedFilter = newFilter
@@ -166,6 +200,7 @@ fun KidsSearchScreen(
                     searchJob?.cancel()
                     searchJob = scope.launch {
                         delay(150)
+                        isSearchDone = false
                         val remote = withContext(Dispatchers.IO) {
                             val type = when (newFilter.lowercase()) {
                                 "movies" -> "movie"
@@ -174,13 +209,19 @@ fun KidsSearchScreen(
                             }
                             moviesRepository.searchByType(query, type)
                         }
-                        results = filterKids(remote)
+                        results = KidsFilter.filterKids(
+                            remote.filterNot {
+                                it.title.isNullOrBlank() ||
+                                        (it.adult == true) ||
+                                        ((it.genres?.isEmpty() == true) && (it.genreIds?.isEmpty() == true))
+                            }
+                        )
+                        isSearchDone = true
                     }
                 }
             }
         )
-        // Recent searches section when idle (query blank)
-        // 🟢 نفس شكل قائمة الـ Recent Searches من السيرش العادية
+
         if (query.isBlank() && allSuggestions.isNotEmpty()) {
             Column(
                 Modifier
@@ -202,9 +243,7 @@ fun KidsSearchScreen(
                     }
                 }
 
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -218,9 +257,9 @@ fun KidsSearchScreen(
                                     query = record
                                     focusManager.clearFocus()
                                     scope.launch { KidsSearchStore.saveQuery(context, record) }
-                                    // إعادة تنفيذ البحث فورًا
                                     searchJob?.cancel()
                                     searchJob = scope.launch {
+                                        isSearchDone = false
                                         val remote = withContext(Dispatchers.IO) {
                                             val type = when (selectedFilter.lowercase()) {
                                                 "movies" -> "movie"
@@ -229,17 +268,21 @@ fun KidsSearchScreen(
                                             }
                                             moviesRepository.searchByType(record, type)
                                         }
-                                        results = KidsFilter.filterKids(remote)
+                                        results = KidsFilter.filterKids(
+                                            remote.filterNot {
+                                                it.title.isNullOrBlank() ||
+                                                        (it.adult == true) ||
+                                                        ((it.genres?.isEmpty() == true) && (it.genreIds?.isEmpty() == true))
+                                            }
+                                        )
+                                        isSearchDone = true
                                     }
                                 }
                                 .padding(vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                record,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Text(record, color = MaterialTheme.colorScheme.onSurface)
                             IconButton(onClick = { scope.launch { KidsSearchStore.deleteOne(context, record) } }) {
                                 Icon(
                                     Icons.Default.Delete,
@@ -248,29 +291,59 @@ fun KidsSearchScreen(
                                 )
                             }
                         }
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                     }
                 }
             }
         }
-        Spacer(Modifier.height(12.dp))
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(140.dp),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(top = 12.dp, bottom = 106.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(results, key = { it.id }) { media ->
-                MovieCardGridWithFavorite(
-                    movie = media,
-                    onClick = { onItemClick(media) },
-                    favoriteButton = {
-                        KidsFavoriteButton(id = media.id, showBackground = true)
-                    }
-                )
+
+        if (isSearchDone && query.isNotBlank() && results.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 106.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                        modifier = Modifier.size(70.dp)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = "No results found for \"$query\"",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "Try searching for another kids movie ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        }
+
+        if (results.isNotEmpty()) {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(140.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = 12.dp, bottom = 106.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(results, key = { it.id }) { media ->
+                    MovieCardGridWithFavorite(
+                        movie = media,
+                        onClick = { onItemClick(media) },
+                        favoriteButton = {
+                            KidsFavoriteButton(id = media.id, showBackground = true)
+                        }
+                    )
+                }
             }
         }
     }
