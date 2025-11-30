@@ -885,7 +885,7 @@ fun MovieDetailsContent(
                     showBackground = false,
                     modifier = Modifier.size(48.dp),
                     isAuthenticated = isAuthenticated,
-                    onLoginRequired = { navController.navigate("profile") }
+                    onLoginRequired = { navController.navigate("settings") }
                 )
             }
             Spacer(Modifier.height(12.dp))

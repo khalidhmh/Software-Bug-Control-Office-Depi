@@ -46,7 +46,7 @@ fun ExampleSectionWithFavorites(
                         viewModel = favoritesViewModel,
                         showBackground = true,
                         isAuthenticated = isAuthenticated,
-                        onLoginRequired = { navController.navigate("profile") }
+                        onLoginRequired = { navController.navigate("settings") }
                     )
                 }
             )
@@ -84,7 +84,7 @@ fun ExampleGridWithFavorites(
                         viewModel = favoritesViewModel,
                         showBackground = true,
                         isAuthenticated = isAuthenticated,
-                        onLoginRequired = { navController.navigate("profile") }
+                        onLoginRequired = { navController.navigate("settings") }
                     )
                 }
             )

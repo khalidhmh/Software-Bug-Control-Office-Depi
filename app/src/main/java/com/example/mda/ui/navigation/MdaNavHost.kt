@@ -3,7 +3,6 @@ package com.example.mda.ui.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -24,7 +23,6 @@ import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.genreScreen.GenreScreen
 import com.example.mda.ui.screens.genreScreen.GenreViewModel
 import com.example.mda.ui.screens.home.HomeViewModel
-import com.example.mda.ui.screens.home.HomeViewModelFactory
 import com.example.mda.ui.screens.genreDetails.GenreDetailsScreen
 import com.example.mda.ui.screens.movieDetail.MovieDetailsScreen
 import com.example.mda.ui.screens.profile.ProfileScreen
@@ -39,6 +37,7 @@ import com.example.mda.ui.screens.settings.SettingsScreen
 import com.example.mda.ui.screens.onboarding.OnboardingScreen
 import com.example.mda.ui.screens.splash.SplashScreen
 import com.example.mda.ui.kids.KidsRoot
+import com.example.mda.ui.kids.KidsSplashScreen
 import com.example.mda.ui.screens.home.homeScreen.PopularNowScreen
 import com.example.mda.ui.screens.settings.PrivacyPolicyScreen
 
@@ -60,7 +59,8 @@ fun MdaNavHost(
     authRepository: AuthRepository,
     historyViewModel: HistoryViewModel,
     moviesHistoryViewModel: MoviesHistoryViewModel,
-    darkTheme: Boolean
+    darkTheme: Boolean,
+    homeViewModel: HomeViewModel // ✅ نستقبل الـ VM الجاهز هنا
 ) {
     NavHost(
         navController = navController,
@@ -78,15 +78,12 @@ fun MdaNavHost(
 
         // Home
         composable("home") {
-            val homeViewModel: HomeViewModel = viewModel(
-                factory = HomeViewModelFactory(moviesRepository, authRepository)
-            )
             HomeScreen(
-                viewModel = homeViewModel,
+                viewModel = homeViewModel,   // ✅ ممتاز: استخدام النسخة المشتركة (يمنع إعادة التحميل)
                 navController = navController,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
-                authViewModel = authViewModel!!
+                authViewModel = authViewModel
             )
         }
 
@@ -95,7 +92,7 @@ fun MdaNavHost(
             ActorsScreen(
                 navController = navController,
                 actorsRepository = actorsRepository,
-                viewModel = actorViewModel,
+                viewModel = actorViewModel, // ✅ ممتاز: استخدام النسخة المشتركة
                 onTopBarStateChange = onTopBarStateChange
             )
         }
@@ -107,7 +104,7 @@ fun MdaNavHost(
                 viewModel = searchViewModel,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
-                authViewModel = authViewModel!!
+                authViewModel = authViewModel
             )
         }
 
@@ -133,7 +130,7 @@ fun MdaNavHost(
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
                 historyViewModel = historyViewModel,
-                authViewModel = authViewModel!!
+                authViewModel = authViewModel
             )
         }
 
@@ -177,7 +174,7 @@ fun MdaNavHost(
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
                 moviehistoryViewModel = moviesHistoryViewModel,
-                authViewModel = authViewModel!!
+                authViewModel = authViewModel
             )
         }
 
@@ -187,6 +184,8 @@ fun MdaNavHost(
                 navController = navController,
                 favoritesViewModel = favoritesViewModel,
                 authViewModel = authViewModel,
+                moviesHistoryViewModel = moviesHistoryViewModel,
+                historyviewModel = historyViewModel,
                 onTopBarStateChange = onTopBarStateChange
             )
         }
@@ -197,7 +196,7 @@ fun MdaNavHost(
                 navController = navController,
                 favoritesViewModel = favoritesViewModel,
                 onTopBarStateChange = onTopBarStateChange,
-                authViewModel = authViewModel!!
+                authViewModel = authViewModel
             )
         }
 
@@ -219,7 +218,7 @@ fun MdaNavHost(
             )
         }
 
-        // Authentication - Updated with theme parameters
+        // Authentication
         composable("login") {
             LoginScreen(
                 navController = navController,
@@ -249,6 +248,16 @@ fun MdaNavHost(
                 moviesRepository = moviesRepository,
                 favoritesViewModel = favoritesViewModel,
                 localRepository = localRepository
+            )
+        }
+        // Kids Splash Screen
+        composable("kids_splash") {
+            KidsSplashScreen(
+                onFinished = {
+                    navController.navigate("kids") {
+                        popUpTo("kids_splash") { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -284,16 +293,17 @@ fun MdaNavHost(
                 onTopBarStateChange = onTopBarStateChange
             )
         }
+
+        // Popular Movies
         composable("popular_movies") {
-            val homeViewModel: HomeViewModel = viewModel(
-                factory = HomeViewModelFactory(moviesRepository, authRepository)
-            )
+            // 🔥 تحسين هام: نستخدم نفس الـ ViewModel الممرر من الأعلى بدلاً من إنشاء واحد جديد
+            // هذا يمنع إعادة تحميل البيانات عند فتح هذه الشاشة
 
             PopularNowScreen(
                 navController = navController,
-                homeViewModel = homeViewModel,
+                homeViewModel = homeViewModel, // ✅ استخدام النسخة المشتركة
                 favoritesViewModel = favoritesViewModel ,
-                authViewModel = authViewModel!!,
+                authViewModel = authViewModel,
                 onTopBarStateChange = onTopBarStateChange
             )
         }

@@ -66,17 +66,8 @@ fun LoginScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = onToggleTheme) {
-                        Icon(
-                            imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Toggle Theme",
-                            tint = topBarText
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = if (darkTheme) Color(0xFF032541) else Color.White
                 )
             )
         }
@@ -84,7 +75,9 @@ fun LoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(
+                    top = padding.calculateTopPadding()
+                )
         ) {
             when {
                 uiState.isLoading -> {

@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
 
+// Extension property لسهولة الوصول للـ DataStore
 val Context.settingsDataStore by preferencesDataStore(name = "settings_prefs")
 
 class SettingsDataStore(private val context: Context) {
@@ -14,13 +15,19 @@ class SettingsDataStore(private val context: Context) {
         val NOTIFICATION_ENABLED = booleanPreferencesKey("notification_enabled")
     }
 
+    // ---------------------- Flows ----------------------
+
+    // Theme mode: 0 = System, 1 = Light, 2 = Dark
     val themeModeFlow = context.settingsDataStore.data.map { prefs ->
-        prefs[THEME_MODE] ?: 0     // 0 = System, 1 = Light, 2 = Dark
+        prefs[THEME_MODE] ?: 0
     }
 
+    // Notifications enabled flow
     val notificationsFlow = context.settingsDataStore.data.map { prefs ->
         prefs[NOTIFICATION_ENABLED] ?: true
     }
+
+    // ---------------------- Functions ----------------------
 
     suspend fun setThemeMode(mode: Int) {
         context.settingsDataStore.edit { prefs ->

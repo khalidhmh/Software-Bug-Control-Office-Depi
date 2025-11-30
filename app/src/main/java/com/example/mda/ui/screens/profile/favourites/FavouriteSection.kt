@@ -101,7 +101,7 @@ fun FavoritesScreen(
                                 viewModel = favoritesViewModel,
                                 showBackground = true,
                                 isAuthenticated = authUiState.isAuthenticated,
-                                onLoginRequired = { navController.navigate("profile") }
+                                onLoginRequired = { navController.navigate("settings") }
                             )
                         }
                     )

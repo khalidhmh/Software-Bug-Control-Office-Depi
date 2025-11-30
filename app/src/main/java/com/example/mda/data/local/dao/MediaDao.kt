@@ -62,4 +62,7 @@ interface MediaDao {
     @Query("SELECT isFavorite FROM media_items WHERE id = :id LIMIT 1")
     suspend fun isFavorite(id: Int): Boolean?
 
+
+    @Query("SELECT * FROM media_items")
+    suspend fun getAllMediaOnce(): List<MediaEntity>
 }

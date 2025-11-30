@@ -80,7 +80,7 @@ fun TrendingSection(
                                 viewModel = favoritesViewModel,
                                 showBackground = true,
                                 isAuthenticated = isAuthenticated,
-                                onLoginRequired = { navController.navigate("profile") }
+                                onLoginRequired = { navController.navigate("settings") }
                             )
                         }
                     )

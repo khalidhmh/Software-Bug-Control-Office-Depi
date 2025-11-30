@@ -19,8 +19,8 @@ android {
         applicationId = "com.example.mda"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 3
+        versionName = "3.0"
 
         // ✅ قراءة المفتاح من gradle.properties
         val tmdbKey: String? = project.findProperty("TMDB_API_KEY") as? String
@@ -64,7 +64,13 @@ android {
     }
 
     packaging {
-        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE*",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1"
+            )
+        }
     }
 }
 
@@ -90,6 +96,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.work.runtime.ktx)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
@@ -119,6 +126,7 @@ dependencies {
     // =============================================================
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
+    implementation("io.coil-kt:coil-gif:2.5.0")       // ⬅️ دعم ملفات GIF
 
     // =============================================================
     // 🔹 ROOM DATABASE
@@ -150,7 +158,7 @@ dependencies {
     // 🔹 DATASTORE
     // =============================================================
     implementation("androidx.datastore:datastore-preferences:1.1.7")
-
+    implementation("com.airbnb.android:lottie-compose:6.0.0")
     // =============================================================
     // 🔹 TESTING
     // =============================================================
@@ -159,4 +167,12 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.13.11")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.0")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.0")
+    androidTestImplementation("io.mockk:mockk-android:1.13.11")
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
 }
