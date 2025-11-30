@@ -22,6 +22,9 @@ import com.example.mda.ui.screens.home.homeScreen.*
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -39,12 +42,11 @@ fun HomeScreen(
     val trendingEntities by viewModel.trendingMedia.collectAsState()
     val mixedEntities by viewModel.popularMixed.collectAsState()
 
-    // ✅ استخدام القوائم المفلترة الجديدة لحل مشكلة التبويبات
+    // ✅ استخدام القوائم المفلترة الجديدة
     val recMoviesEntities by viewModel.recommendedMovies.collectAsState()
     val recTvEntities by viewModel.recommendedTvShows.collectAsState()
 
-    // 2️⃣ تحويل MediaEntity إلى Movie (بما أن مكونات الـ UI تتوقع Movie)
-    // نستخدم remember لتحسين الأداء
+    // 2️⃣ تحويل MediaEntity إلى Movie
     val trendingList = remember(trendingEntities) { trendingEntities.map { it.toMovie() } }
     val bannerList = remember(mixedEntities) { mixedEntities.map { it.toMovie() } }
 
@@ -58,12 +60,38 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     val authUiState by authViewModel.uiState.collectAsState()
 
-    val greeting = getGreetingMessage()
-    LaunchedEffect(greeting) {
+    // 🚀 التعديل هنا: منع التحميل المتكرر
+    LaunchedEffect(Unit) {
+        // لو القوائم فاضية (أول مرة نفتح)، حمل الداتا
+        if (trendingEntities.isEmpty() || mixedEntities.isEmpty()) {
+            viewModel.onUserActivityDetected(forceRefresh = true)
+        } else {
+            // لو الداتا موجودة، بس حدث التوصيات في الخلفية من غير ما تعمل Loading Spinner
+            // (اختياري: ممكن تخليها false لو مش عايز تحدث خالص)
+            viewModel.onUserActivityDetected(forceRefresh = false)
+        }
+    }
+
+    // 🔹 منطق الترحيب الذكي حسب الوقت + الترجمة
+    val greetingKey = remember {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        when (hour) {
+            in 5..11 -> LocalizationKeys.HOME_GREETING_MORNING
+            in 12..16 -> LocalizationKeys.HOME_GREETING_AFTERNOON
+            in 17..20 -> LocalizationKeys.HOME_GREETING_EVENING
+            else -> LocalizationKeys.HOME_GREETING_MORNING
+        }
+    }
+    
+    val titleText = localizedString(greetingKey)
+    val subtitleText = localizedString(LocalizationKeys.HOME_SUBTITLE)
+
+    // ده لازم يفضل موجود عشان يرجع العنوان لما نرجع من صفحة تانية
+    LaunchedEffect(titleText, subtitleText) {
         onTopBarStateChange(
             TopBarState(
-                title = greeting,
-                subtitle = "What do you want to watch?"
+                title = titleText,
+                subtitle = subtitleText
             )
         )
     }
@@ -76,7 +104,7 @@ fun HomeScreen(
                 viewModel.loadTrending("day")
                 viewModel.loadPopularData()
                 viewModel.loadTopRated()
-                // ✅ تحديث التوصيات الذكية عند السحب
+                // هنا بنجبر التحديث عشان المستخدم سحب الشاشة بنفسه
                 viewModel.onUserActivityDetected(forceRefresh = true)
                 delay(1500)
                 refreshing = false
@@ -111,9 +139,8 @@ fun HomeScreen(
                 }
             }
 
-            // ---------------- For You Section (التوصيات الذكية) ----------------
+            // ---------------- For You Section ----------------
             item {
-                // نظهر القسم لو فيه أي توصيات سواء أفلام أو مسلسلات
                 val showRecommendations = recommendedMoviesList.isNotEmpty() || recommendedTvShowsList.isNotEmpty()
 
                 AnimatedVisibility(
@@ -121,7 +148,6 @@ fun HomeScreen(
                     enter = fadeIn()
                 ) {
                     ForYouSection(
-                        // ✅ نمرر القوائم المجهزة والمفلترة
                         recommendedMovies = recommendedMoviesList,
                         recommendedTvShows = recommendedTvShowsList,
                         onMovieClick = { m ->
@@ -152,7 +178,7 @@ fun HomeScreen(
             // ---------------- Popular ----------------
             item {
                 PopularSection(
-                    popularMovies = bannerList, // نستخدم الـ Mixed هنا
+                    popularMovies = bannerList,
                     onMovieClick = { m ->
                         navController.navigate("detail/${m.mediaType}/${m.id}")
                     },
@@ -165,18 +191,5 @@ fun HomeScreen(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun getGreetingMessage(): String {
-    val calendar = remember { Calendar.getInstance() }
-    val hour = calendar.get(Calendar.HOUR_OF_DAY)
-
-    return when (hour) {
-        in 5..11 -> "Good Morning"
-        in 12..16 -> "Good Afternoon"
-        in 17..20 -> "Good Evening"
-        else -> "Good Night"
     }
 }

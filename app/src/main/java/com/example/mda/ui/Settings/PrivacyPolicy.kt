@@ -23,6 +23,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 import com.example.mda.ui.navigation.TopBarState
 
 @Composable
@@ -32,24 +34,17 @@ fun PrivacyPolicyScreen(
 ) {
     onTopBarStateChange(
         TopBarState(
-            title = "Privacy Policy",
+            title = localizedString(LocalizationKeys.PRIVACY_TITLE),
             showBackButton = true
         )
     )
     val context = LocalContext.current
 
     val policies = listOf(
-        "Our Privacy Commitment" to
-                "We value your privacy and handle your data responsibly. " +
-                "Our app uses The Movie Database (TMDb) API for movie data and account integration only.",
-        "What Data We Use" to
-                "We do not collect or store any of your personal data locally. " +
-                "All data such as favorites or account info come directly from your TMDb account.",
-        "How Your Data is Managed" to
-                "Your account interactions are handled securely via TMDb. " +
-                "We do not share or sell your data to any third parties.",
-        "Learn More" to
-                "Click the section below to visit TMDb’s official privacy policy for full details."
+        localizedString(LocalizationKeys.PRIVACY_COMMITMENT_TITLE) to localizedString(LocalizationKeys.PRIVACY_COMMITMENT_DESC),
+        localizedString(LocalizationKeys.PRIVACY_DATA_TITLE) to localizedString(LocalizationKeys.PRIVACY_DATA_DESC),
+        localizedString(LocalizationKeys.PRIVACY_MANAGEMENT_TITLE) to localizedString(LocalizationKeys.PRIVACY_MANAGEMENT_DESC),
+        localizedString(LocalizationKeys.PRIVACY_LEARN_MORE_TITLE) to localizedString(LocalizationKeys.PRIVACY_LEARN_MORE_DESC)
     )
 
     Box(
@@ -147,7 +142,7 @@ fun PrivacyItem(
                     ) {
                         Icon(Icons.Default.Policy, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
-                        Text("View TMDb Privacy Policy")
+                        Text(localizedString(LocalizationKeys.PRIVACY_VIEW_TMDB))
                     }
                 }
             }

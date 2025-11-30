@@ -13,6 +13,7 @@ import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.repository.*
 import com.example.mda.ui.Settings.AboutScreen
 import com.example.mda.ui.Settings.HelpScreen
+import com.example.mda.ui.Settings.LanguageSettingsScreen
 import com.example.mda.ui.home.HomeScreen
 import com.example.mda.ui.screens.actordetails.ActorDetailsScreen
 import com.example.mda.ui.screens.actors.ActorsScreen
@@ -267,6 +268,13 @@ fun MdaNavHost(
                 onTopBarStateChange = onTopBarStateChange,
                 authViewModel = authViewModel,
                 FavoritesViewModel = favoritesViewModel
+            )
+        }
+        // Language Settings
+        composable("language_settings") {
+            LanguageSettingsScreen(
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange
             )
         }
         composable("about_app") {

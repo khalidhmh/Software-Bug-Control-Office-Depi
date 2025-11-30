@@ -23,6 +23,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -37,6 +39,11 @@ import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.local.database.AppDatabase
 import com.example.mda.data.remote.RetrofitInstance
 import com.example.mda.data.repository.*
+// Merged Imports
+import com.example.mda.localization.LocalizationManager
+import com.example.mda.localization.LanguageProvider
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 import com.example.mda.ui.home.getGreetingMessage
 import com.example.mda.ui.navigation.*
 import com.example.mda.ui.screens.actors.ActorViewModel
@@ -60,6 +67,7 @@ import com.example.mda.util.ConnectivityObserver
 import com.example.mda.util.GenreViewModelFactory
 import com.example.mda.util.NetworkConnectivityObserver
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.key
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -80,11 +88,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var favoritesViewModel: FavoritesViewModel
     private lateinit var authViewModel: com.example.mda.ui.screens.auth.AuthViewModel
 
-    // ✅ OPTIMIZATION: Define static sets here to avoid reallocation on every frame
+    // ✅ OPTIMIZATION: Define static sets here (Merged from Main & Fares)
     companion object {
         val HIDE_BAR_ROUTES = setOf(
             "splash", "ActorDetails/{personId}", "detail/{mediaType}/{id}",
-            "onboarding", "login", "signup", "account", "kids"
+            "onboarding", "login", "signup", "account", "kids" // Added 'kids' from fares
         )
         // Reset titles for specific settings pages
         val RESET_TOP_BAR_ROUTES = setOf("about_app", "help_faq", "privacy_policy")
@@ -183,201 +191,228 @@ class MainActivity : ComponentActivity() {
                 derivedStateOf { currentRoute != null && currentRoute !in HIDE_BAR_ROUTES }
             }
 
-            // ✅ OPTIMIZATION 3: Remember static button list
-            val navButtons = remember {
-                listOf(
-                    ButtonData("home", "Home", Icons.Default.Home),
-                    ButtonData("movies", "Movies", Icons.Default.Movie),
-                    ButtonData("actors", "People", Icons.Default.People),
-                    ButtonData("search", "Search", Icons.Default.Search),
-                    ButtonData("settings", "Settings", Icons.Default.Settings)
-                )
-            }
-
             MovieAppTheme(darkTheme = darkTheme) {
+                val compContext = LocalContext.current
+                val locManager = remember { LocalizationManager(compContext) }
+                val appLanguage by locManager.currentLanguage.collectAsState(initial = LocalizationManager.Language.ENGLISH)
+                
+                // Update global LanguageProvider when language changes
+                LaunchedEffect(appLanguage) { LanguageProvider.currentCode = appLanguage.code }
 
-                if (networkStatus == ConnectivityObserver.Status.Lost || networkStatus == ConnectivityObserver.Status.Unavailable) {
-                    NoInternetScreen(
-                        isDarkTheme = darkTheme,
-                        onRetry = {
-                            try {
-                                val intent = android.content.Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                context.startActivity(android.content.Intent(android.provider.Settings.ACTION_SETTINGS))
-                            }
-                        }
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(AppBackgroundGradient(darkTheme))
-                    ) {
-                        when (isIntroShown) {
-                            null -> {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator()
+                // 🌈 Gradient Background + RTL Support (Merged Logic)
+                val layoutDir = if (appLanguage == LocalizationManager.Language.ARABIC) LayoutDirection.Rtl else LayoutDirection.Ltr
+                
+                CompositionLocalProvider(LocalLayoutDirection provides layoutDir) {
+                    
+                    // ✅ Merged: Check Network inside the RTL Provider
+                    if (networkStatus == ConnectivityObserver.Status.Lost || networkStatus == ConnectivityObserver.Status.Unavailable) {
+                        NoInternetScreen(
+                            isDarkTheme = darkTheme,
+                            onRetry = {
+                                try {
+                                    val intent = android.content.Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    context.startActivity(android.content.Intent(android.provider.Settings.ACTION_SETTINGS))
                                 }
                             }
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(AppBackgroundGradient(darkTheme))
+                        ) {
+                            when (isIntroShown) {
+                                null -> {
+                                    // ⏳ Loading (Kept 32dp padding from fares for better UI)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) { CircularProgressIndicator() }
+                                }
 
-                            false -> {
-                                OnboardingScreen(navController)
-                            }
+                                false -> {
+                                    OnboardingScreen(navController)
+                                }
 
-                            true -> {
-                                val mediaDao = remember { database.mediaDao() }
+                                true -> {
+                                    val mediaDao = remember { database.mediaDao() }
 
-                                // Initializing ViewModels
-                                val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(moviesRepository, authRepository))
-                                val genreViewModel: GenreViewModel = viewModel(factory = GenreViewModelFactory(moviesRepository))
-                                val searchVM: SearchViewModel = viewModel(factory = searchViewModelFactory)
-                                searchViewModel = searchVM
+                                    // Initializing ViewModels (Merged for cleaner syntax)
+                                    val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(moviesRepository, authRepository))
+                                    val genreViewModel: GenreViewModel = viewModel(factory = GenreViewModelFactory(moviesRepository))
+                                    val searchVM: SearchViewModel = viewModel(factory = searchViewModelFactory)
+                                    searchViewModel = searchVM
 
-                                val favoritesVM: FavoritesViewModel = viewModel(factory = FavoritesViewModelFactory(favoritesRepository))
-                                favoritesViewModel = favoritesVM
+                                    val favoritesVM: FavoritesViewModel = viewModel(factory = FavoritesViewModelFactory(favoritesRepository))
+                                    favoritesViewModel = favoritesVM
 
-                                val historyVM: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(historyRepository))
-                                historyViewModel = historyVM
+                                    val historyVM: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(historyRepository))
+                                    historyViewModel = historyVM
 
-                                val moviesHistoryVM: MoviesHistoryViewModel = viewModel(factory = MoviesHistoryViewModelFactory(moviesHistoryRepository))
-                                moviesHistoryViewModel = moviesHistoryVM
+                                    val moviesHistoryVM: MoviesHistoryViewModel = viewModel(factory = MoviesHistoryViewModelFactory(moviesHistoryRepository))
+                                    moviesHistoryViewModel = moviesHistoryVM
 
-                                val actorvm: ActorViewModel = viewModel(factory = ActorViewModelFactory(actorRepository))
-                                actorViewModel = actorvm
+                                    val actorvm: ActorViewModel = viewModel(factory = ActorViewModelFactory(actorRepository))
+                                    actorViewModel = actorvm
 
-                                var topBarState by remember { mutableStateOf(TopBarState()) }
+                                    var topBarState by remember { mutableStateOf(TopBarState()) }
 
-                                Scaffold(
-                                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                                    containerColor = Color.Transparent,
-                                    topBar = {
-                                        if (showBars) {
-                                            val (topBarBg, topBarText) = AppTopBarColors(darkTheme = darkTheme)
+                                    Scaffold(
+                                        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                                        containerColor = Color.Transparent,
+                                        topBar = {
+                                            if (showBars) {
+                                                val (topBarBg, topBarText) = AppTopBarColors(darkTheme = darkTheme)
+                                                val route = currentRoute ?: ""
+                                                val isResetRoute = route in RESET_TOP_BAR_ROUTES
 
-                                            // Optimized Title Logic
-                                            val route = currentRoute ?: ""
-                                            val isResetRoute = route in RESET_TOP_BAR_ROUTES
-
-                                            val titleToShow = if (isResetRoute) {
-                                                when (route) {
-                                                    "about_app" -> "About"
-                                                    "help_faq" -> "Help & FAQ"
-                                                    "privacy_policy" -> "Privacy Policy"
-                                                    else -> ""
-                                                }
-                                            } else {
-                                                topBarState.title.ifEmpty {
+                                                // Merged: Localization logic + Optimization
+                                                val titleToShow = if (isResetRoute) {
                                                     when (route) {
-                                                        "home" -> "Home"
-                                                        "movies" -> "Movies"
-                                                        "actors" -> "People"
-                                                        "search" -> "Search"
-                                                        "HistoryScreen" -> "History"
-                                                        "settings" -> "Settings"
+                                                        "about_app" -> localizedString(LocalizationKeys.ABOUT_TITLE)
+                                                        "help_faq" -> localizedString(LocalizationKeys.HELP_TITLE)
+                                                        "privacy_policy" -> localizedString(LocalizationKeys.PRIVACY_TITLE)
+                                                        else -> ""
+                                                    }
+                                                } else {
+                                                    if (topBarState.title.isNotEmpty()) topBarState.title
+                                                    else when (route) {
+                                                        "home" -> localizedString(LocalizationKeys.NAV_HOME)
+                                                        "movies" -> localizedString(LocalizationKeys.NAV_MOVIES)
+                                                        "actors" -> localizedString(LocalizationKeys.NAV_ACTORS)
+                                                        "search" -> localizedString(LocalizationKeys.NAV_SEARCH)
+                                                        "HistoryScreen" -> localizedString(LocalizationKeys.NAV_HISTORY)
+                                                        "settings" -> localizedString(LocalizationKeys.NAV_SETTINGS)
                                                         else -> ""
                                                     }
                                                 }
-                                            }
 
-                                            if (route == "home") {
-                                                Surface(
-                                                    color = topBarBg,
-                                                    modifier = Modifier.fillMaxWidth().statusBarsPadding()
-                                                ) {
-                                                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
-                                                        Text(
-                                                            text = titleToShow,
-                                                            style = MaterialTheme.typography.headlineSmall.copy(color = topBarText)
-                                                        )
-                                                        topBarState.subtitle?.let {
+                                                if (route == "home") {
+                                                    Surface(
+                                                        color = topBarBg,
+                                                        modifier = Modifier.fillMaxWidth().statusBarsPadding()
+                                                    ) {
+                                                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
                                                             Text(
-                                                                text = it,
-                                                                style = MaterialTheme.typography.bodyMedium.copy(color = topBarText.copy(alpha = 0.6f)),
-                                                                modifier = Modifier.padding(top = 2.dp)
+                                                                text = titleToShow,
+                                                                style = MaterialTheme.typography.headlineSmall.copy(color = topBarText)
                                                             )
-                                                        }
-                                                    }
-                                                }
-                                            } else {
-                                                TopAppBar(
-                                                    title = { Text(titleToShow, color = topBarText) },
-                                                    colors = TopAppBarDefaults.topAppBarColors(
-                                                        containerColor = topBarBg,
-                                                        titleContentColor = topBarText,
-                                                        navigationIconContentColor = topBarText,
-                                                        actionIconContentColor = topBarText
-                                                    ),
-                                                    navigationIcon = {
-                                                        if (topBarState.showBackButton) {
-                                                            IconButton(onClick = { navController.navigateUp() }) {
-                                                                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                                            topBarState.subtitle?.let {
+                                                                Text(
+                                                                    text = it,
+                                                                    style = MaterialTheme.typography.bodyMedium.copy(color = topBarText.copy(alpha = 0.6f)),
+                                                                    modifier = Modifier.padding(top = 2.dp)
+                                                                )
                                                             }
                                                         }
-                                                    },
-                                                    actions = { topBarState.actions(this) }
-                                                )
+                                                    }
+                                                } else {
+                                                    TopAppBar(
+                                                        title = { Text(titleToShow, color = topBarText) },
+                                                        colors = TopAppBarDefaults.topAppBarColors(
+                                                            containerColor = topBarBg,
+                                                            titleContentColor = topBarText,
+                                                            navigationIconContentColor = topBarText,
+                                                            actionIconContentColor = topBarText
+                                                        ),
+                                                        navigationIcon = {
+                                                            if (topBarState.showBackButton) {
+                                                                IconButton(onClick = { navController.navigateUp() }) {
+                                                                    // Merged: Updated Icon but kept Localized Description
+                                                                    Icon(
+                                                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                                        contentDescription = localizedString(LocalizationKeys.COMMON_BACK)
+                                                                    )
+                                                                }
+                                                            }
+                                                        },
+                                                        actions = { topBarState.actions(this) }
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        bottomBar = {
+                                            if (showBars) {
+                                                val (topBarBg) = AppTopBarColors(darkTheme = darkTheme)
+                                                
+                                                // Merged: Dynamic buttons based on Language
+                                                val buttons = remember(appLanguage) {
+                                                    listOf(
+                                                        ButtonData("home", localizedString(LocalizationKeys.NAV_HOME), Icons.Default.Home),
+                                                        ButtonData("movies", localizedString(LocalizationKeys.NAV_MOVIES), Icons.Default.Movie),
+                                                        ButtonData("actors", localizedString(LocalizationKeys.NAV_ACTORS), Icons.Default.People),
+                                                        ButtonData("search", localizedString(LocalizationKeys.NAV_SEARCH), Icons.Default.Search),
+                                                        ButtonData("settings", localizedString(LocalizationKeys.NAV_SETTINGS), Icons.Default.Settings)
+                                                    )
+                                                }
+                                                
+                                                val isArabic = appLanguage == LocalizationManager.Language.ARABIC
+                                                // RTL Logic from fares (Manual reverse if needed by AnimatedNavigationBar)
+                                                val finalButtons = if (isArabic) buttons.reversed() else buttons
+
+                                                key(appLanguage) {
+                                                    AnimatedNavigationBar(
+                                                        navController = navController,
+                                                        buttons = finalButtons,
+                                                        barColor = topBarBg,
+                                                        circleColor = MaterialTheme.colorScheme.background,
+                                                        selectedColor = MaterialTheme.colorScheme.primary,
+                                                        unselectedColor = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
                                             }
                                         }
-                                    },
-                                    bottomBar = {
-                                        if (showBars) {
-                                            val (topBarBg) = AppTopBarColors(darkTheme = darkTheme)
-                                            AnimatedNavigationBar(
-                                                navController = navController,
-                                                buttons = navButtons, // Using remembered list
-                                                barColor = topBarBg,
-                                                circleColor = MaterialTheme.colorScheme.background,
-                                                selectedColor = MaterialTheme.colorScheme.primary,
-                                                unselectedColor = MaterialTheme.colorScheme.onSurface
+                                    ) { innerPadding ->
+                                        val navBarInsets = WindowInsets.navigationBars.asPaddingValues()
+                                        // Merged: Logic for 'kids' route padding
+                                        val isKidsRoute = currentRoute == "kids"
+
+                                        Box(
+                                            modifier = Modifier.padding(
+                                                top = innerPadding.calculateTopPadding(),
+                                                bottom = if (isKidsRoute) 0.dp else navBarInsets.calculateBottomPadding(),
+                                                start = innerPadding.calculateLeftPadding(LayoutDirection.Ltr),
+                                                end = innerPadding.calculateRightPadding(LayoutDirection.Ltr)
                                             )
-                                        }
-                                    }
-                                ) { innerPadding ->
-                                    val navBarInsets = WindowInsets.navigationBars.asPaddingValues()
-                                    val isKidsRoute = currentRoute == "kids"
+                                        ) {
+                                            MdaNavHost(
+                                                navController = navController,
+                                                moviesRepository = moviesRepository,
+                                                actorsRepository = actorRepository,
+                                                movieDetailsRepository = movieDetailsRepository,
+                                                localDao = mediaDao,
+                                                localRepository = localRepository,
+                                                onTopBarStateChange = { newState -> topBarState = newState },
+                                                genreViewModel = genreViewModel,
+                                                searchViewModel = searchViewModel,
+                                                actorViewModel = actorViewModel,
+                                                favoritesViewModel = favoritesViewModel,
+                                                authViewModel = authViewModel,
+                                                historyViewModel = historyViewModel,
+                                                moviesHistoryViewModel = moviesHistoryViewModel,
+                                                authRepository = authRepository,
+                                                darkTheme = darkTheme,
+                                                homeViewModel = homeViewModel // Merged: Added this back
+                                            )
 
-                                    Box(
-                                        modifier = Modifier.padding(
-                                            top = innerPadding.calculateTopPadding(),
-                                            bottom = if (isKidsRoute) 0.dp else navBarInsets.calculateBottomPadding(),
-                                            start = innerPadding.calculateLeftPadding(LayoutDirection.Ltr),
-                                            end = innerPadding.calculateRightPadding(LayoutDirection.Ltr)
-                                        )
-                                    ) {
-                                        MdaNavHost(
-                                            navController = navController,
-                                            moviesRepository = moviesRepository,
-                                            actorsRepository = actorRepository,
-                                            movieDetailsRepository = movieDetailsRepository,
-                                            localDao = mediaDao,
-                                            localRepository = localRepository,
-                                            onTopBarStateChange = { newState -> topBarState = newState },
-                                            genreViewModel = genreViewModel,
-                                            searchViewModel = searchViewModel,
-                                            actorViewModel = actorViewModel,
-                                            favoritesViewModel = favoritesViewModel,
-                                            authViewModel = authViewModel,
-                                            historyViewModel = historyViewModel,
-                                            moviesHistoryViewModel = moviesHistoryViewModel,
-                                            authRepository = authRepository,
-                                            darkTheme = darkTheme,
-                                            homeViewModel = homeViewModel
-                                        )
+                                            // ✅✅ OPTIMIZATION 4: Efficient Deep Link Handling (From Main)
+                                            LaunchedEffect(Unit) {
+                                                val intent = (context as? Activity)?.intent
+                                                if (intent?.getStringExtra("target_screen") == "details") {
+                                                    val id = intent.getIntExtra("movie_id", -1)
+                                                    val type = intent.getStringExtra("media_type") ?: "movie"
 
-                                        // ✅✅ OPTIMIZATION 4: Efficient Deep Link Handling (No Delay)
-                                        LaunchedEffect(Unit) {
-                                            val intent = (context as? Activity)?.intent
-                                            if (intent?.getStringExtra("target_screen") == "details") {
-                                                val id = intent.getIntExtra("movie_id", -1)
-                                                val type = intent.getStringExtra("media_type") ?: "movie"
-
-                                                if (id != -1) {
-                                                    intent.removeExtra("target_screen")
-                                                    try {
-                                                        navController.navigate("detail/$type/$id")
-                                                    } catch (e: Exception) {
-                                                        e.printStackTrace()
+                                                    if (id != -1) {
+                                                        intent.removeExtra("target_screen")
+                                                        try {
+                                                            navController.navigate("detail/$type/$id")
+                                                        } catch (e: Exception) {
+                                                            e.printStackTrace()
+                                                        }
                                                     }
                                                 }
                                             }

@@ -28,6 +28,8 @@ import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.actors.ActorGridItem
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.auth.AuthViewModel
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,100 +49,99 @@ fun SearchScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 20.dp)
-        ) {
-            // ===== Search TextField =====
-            SearchBarComposable(
-                query = query,
-                onQueryChange = { viewModel.onQueryChange(it) },
-                onSearch = {
-                    focusManager.clearFocus()
-                    viewModel.submitSearch()
-                },
-                placeholderText = "Search movies, shows, people..."
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 20.dp)
+    ) {
+        // ===== Search TextField =====
+        SearchBarComposable(
+            query = query,
+            onQueryChange = { viewModel.onQueryChange(it) },
+            onSearch = {
+                focusManager.clearFocus()
+                viewModel.submitSearch()
+            },
+            placeholderText = localizedString(LocalizationKeys.SEARCH_PLACEHOLDER)
+        )
 
-            Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(10.dp))
 
-            SearchFiltersRow(selectedFilter = selectedFilter) {
-                viewModel.onFilterSelected(it)
-            }
+        SearchFiltersRow(selectedFilter = selectedFilter) {
+            viewModel.onFilterSelected(it)
+        }
 
-            Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
-            Box(modifier = Modifier.weight(1f)) {
-                when (val state = uiState) {
-                    UiState.Loading -> Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-
-                    is UiState.Success -> {
-                        if (selectedFilter == "people") {
-                            LazyVerticalGrid(
-                                columns = GridCells.Adaptive(140.dp),
-                                contentPadding = PaddingValues(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                state = gridScrollState
-                            ) {
-                                items(state.results) { person ->
-                                    ActorGridItem(
-                                        actor = person.toActorModel(),
-                                        navController = navController
-                                    )
-                                }
-                            }
-                        } else {
-                            SearchResultsGrid(
-                                results = state.results,
-                                onItemClick = {
-                                    navController.navigate("detail/${it.mediaType}/${it.id}")
-                                },
-                                favoritesViewModel = favoritesViewModel,
-                                navController = navController,
-                                isAuthenticated = authUiState.isAuthenticated
-                            )
-                        }
-                    }
-
-                    is UiState.History -> {
-                        if (state.items.isNotEmpty()) {
-                            RecentSearchesList(state.items, viewModel)
-                        }
-                    }
-
-                    UiState.Empty -> Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "No results found",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    is UiState.Error -> Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "Error: ${state.message}",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-
-                    else -> {}
+        Box(modifier = Modifier.weight(1f)) {
+            when (val state = uiState) {
+                UiState.Loading -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
+
+                is UiState.Success -> {
+                    if (selectedFilter == "people") {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(140.dp),
+                            contentPadding = PaddingValues(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            state = gridScrollState
+                        ) {
+                            items(state.results) { person ->
+                                ActorGridItem(
+                                    actor = person.toActorModel(),
+                                    navController = navController
+                                )
+                            }
+                        }
+                    } else {
+                        SearchResultsGrid(
+                            results = state.results,
+                            onItemClick = {
+                                navController.navigate("detail/${it.mediaType}/${it.id}")
+                            },
+                            favoritesViewModel = favoritesViewModel,
+                            navController = navController,
+                            isAuthenticated = authUiState.isAuthenticated
+                        )
+                    }
+                }
+
+                is UiState.History -> {
+                    if (state.items.isNotEmpty()) {
+                        RecentSearchesList(state.items, viewModel)
+                    }
+                }
+
+                UiState.Empty -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        localizedString(LocalizationKeys.SEARCH_NO_RESULTS),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                is UiState.Error -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        localizedString(LocalizationKeys.SEARCH_ERROR, "error", state.message ?: ""),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                else -> {}
             }
         }
     }
-
+}
 
 private fun MediaEntity.toActorModel() =
     com.example.mda.data.remote.model.Actor(
@@ -170,12 +171,12 @@ fun RecentSearchesList(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Recent Searches",
+                localizedString(LocalizationKeys.SEARCH_RECENT_TITLE),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
             TextButton(onClick = { viewModel.clearHistory() }) {
-                Text("Clear all", color = MaterialTheme.colorScheme.error)
+                Text(localizedString(LocalizationKeys.SEARCH_CLEAR_ALL), color = MaterialTheme.colorScheme.error)
             }
         }
 
@@ -206,7 +207,7 @@ fun RecentSearchesList(
                     IconButton(onClick = { viewModel.deleteOne(record.query) }) {
                         Icon(
                             Icons.Default.Delete,
-                            contentDescription = "Delete",
+                            contentDescription = localizedString(LocalizationKeys.COMMON_DELETE),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

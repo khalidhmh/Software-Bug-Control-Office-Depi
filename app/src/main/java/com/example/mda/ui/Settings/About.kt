@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mda.ui.navigation.TopBarState
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @Composable
 fun AboutScreen(
@@ -34,7 +36,7 @@ fun AboutScreen(
     val colorScheme = MaterialTheme.colorScheme
     onTopBarStateChange(
         TopBarState(
-            title = "About",
+            title = localizedString(LocalizationKeys.ABOUT_TITLE),
             showBackButton = true
         )
     )
@@ -52,45 +54,45 @@ fun AboutScreen(
         ) {
             HeroSection(dark)
             InfoCard(
-                title = "Objectives",
+                title = localizedString(LocalizationKeys.ABOUT_OBJECTIVES),
                 icon = Icons.Default.Star,
                 items = listOf(
-                    "Explore trending, popular, and upcoming movies.",
-                    "Integrate TMDB API for real-time data.",
-                    "Smart search for fast & relevant results.",
-                    "Save & sync favorites with Room & Firebase.",
-                    "Elegant UI & smooth UX with Jetpack Compose and Material 3."
+                    localizedString(LocalizationKeys.ABOUT_OBJ_1),
+                    localizedString(LocalizationKeys.ABOUT_OBJ_2),
+                    localizedString(LocalizationKeys.ABOUT_OBJ_3),
+                    localizedString(LocalizationKeys.ABOUT_OBJ_4),
+                    localizedString(LocalizationKeys.ABOUT_OBJ_5)
                 )
             )
             InfoCard(
-                title = "Team SBCO",
+                title = localizedString(LocalizationKeys.ABOUT_TEAM),
                 icon = Icons.Default.Group,
                 items = listOf(
-                    "Khalid Hussien – Team Leader / Developer",
-                    "Saleh Mohamed – UI/UX Designer / Developer",
-                    "Fares Diaa – Developer",
-                    "Omar Atallah – Developer",
-                    "Sara Essam – Developer"
+                    localizedString(LocalizationKeys.ABOUT_TEAM_MEMBER_1),
+                    localizedString(LocalizationKeys.ABOUT_TEAM_MEMBER_2),
+                    localizedString(LocalizationKeys.ABOUT_TEAM_MEMBER_3),
+                    localizedString(LocalizationKeys.ABOUT_TEAM_MEMBER_4),
+                    localizedString(LocalizationKeys.ABOUT_TEAM_MEMBER_5)
 
                 )
             )
 
             InfoCard(
-                title = "Technologies Used",
+                title = localizedString(LocalizationKeys.ABOUT_TECH_TITLE),
                 icon = Icons.Default.Code,
                 items = listOf(
-                    "Kotlin, Jetpack Compose, MVVM",
-                    "Room & Firebase Realtime Database",
-                    "Retrofit + Coroutines",
-                    "Navigation Component",
-                    "Figma, Coil, Material 3",
-                    "Git & GitHub, Gradle, Android Studio"
+                    localizedString(LocalizationKeys.ABOUT_TECH_ITEM_1),
+                    localizedString(LocalizationKeys.ABOUT_TECH_ITEM_2),
+                    localizedString(LocalizationKeys.ABOUT_TECH_ITEM_3),
+                    localizedString(LocalizationKeys.ABOUT_TECH_ITEM_4),
+                    localizedString(LocalizationKeys.ABOUT_TECH_ITEM_5),
+                    localizedString(LocalizationKeys.ABOUT_TECH_ITEM_6)
                 )
             )
 
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "© 2025 SBCO – All Rights Reserved",
+                text = localizedString(LocalizationKeys.ABOUT_COPYRIGHT),
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                 color = colorScheme.onBackground.copy(alpha = 0.7f),
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -153,14 +155,14 @@ fun HeroSection(dark: Boolean) {
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Movie Discovery App",
+                    text = localizedString(LocalizationKeys.ABOUT_APP_NAME),
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Discover trending, popular & upcoming movies effortlessly.",
+                    text = localizedString(LocalizationKeys.ABOUT_APP_DESC),
                     style = MaterialTheme.typography.bodyMedium.copy(color = colorScheme.onSurfaceVariant),
                     textAlign = TextAlign.Center
                 )
