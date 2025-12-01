@@ -2,10 +2,10 @@ package com.example.mda.data.local
 
 import android.util.Log
 import com.example.mda.data.local.dao.MediaDao
-import com.example.mda.data.local.dao.MovieHistoryDao // ✅ إضافة Import
+import com.example.mda.data.local.dao.MovieHistoryDao
 import com.example.mda.data.local.dao.SearchHistoryDao
 import com.example.mda.data.local.entities.MediaEntity
-import com.example.mda.data.local.entities.MoviesViewedEntitty // ✅ إضافة Import
+import com.example.mda.data.local.entities.MoviesViewedEntitty
 import com.example.mda.data.local.entities.SearchHistoryEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.first
 class LocalRepository(
     private val mediaDao: MediaDao,
     private val searchHistoryDao: SearchHistoryDao,
-    val movieHistoryDao: MovieHistoryDao // 🔥 ✅ 1. أضفنا هذا الـ DAO هنا
+    val movieHistoryDao: MovieHistoryDao
 ) {
 
     // ---------------- MEDIA DATA ----------------
@@ -58,10 +58,10 @@ class LocalRepository(
                 }
             }
             mediaDao.insertAll(finalEntities)
-            Log.d("RepoDebug", "💾 Successfully saved/updated ${finalEntities.size} items in DB.")
+            Log.d("RepoDebug", " Successfully saved/updated ${finalEntities.size} items in DB.")
 
         } catch (e: Exception) {
-            Log.e("RepoDebug", "❌ Error saving to DB: ${e.message}")
+            Log.e("RepoDebug", " Error saving to DB: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -100,31 +100,29 @@ class LocalRepository(
         }
     }
 
-    // ---------------- SEARCH HISTORY ----------------
-    fun getSearchHistory(): Flow<List<SearchHistoryEntity>> = searchHistoryDao.getRecentHistory()
-    suspend fun getSearchHistoryOnce(): List<SearchHistoryEntity> = searchHistoryDao.getRecentHistoryOnce()
+    // ---------------- SEARCH HISTORY (للـ user المحدد) ----------------
 
-    suspend fun addSearchQuery(query: String) {
-        searchHistoryDao.upsertSafe(SearchHistoryEntity(query = query))
+    fun getSearchHistory(userId: String?): Flow<List<SearchHistoryEntity>> =
+        searchHistoryDao.getRecentHistory(userId)
+
+    suspend fun getSearchHistoryOnce(userId: String?): List<SearchHistoryEntity> =
+        searchHistoryDao.getRecentHistoryOnce(userId)
+
+    suspend fun addSearchQuery(query: String, userId: String?) {
+        searchHistoryDao.upsertSafe(SearchHistoryEntity(query = query, userId = userId))
     }
 
-    suspend fun clearSearchHistory() = searchHistoryDao.deleteAll()
+    suspend fun clearSearchHistory(userId: String?) =
+        searchHistoryDao.deleteAll(userId)
 
-
-    // ---------------- 🔥 VIEWED HISTORY (القسم الجديد) ----------------
-
-    // لاستخدامه في شاشات العرض (Flow)
     fun getMovieHistoryFlow(): Flow<List<MoviesViewedEntitty>> = movieHistoryDao.getHistory()
 
-    // لاستخدامه في اللوجيك (Smart Recommendations)
     suspend fun getMovieHistoryOnce(): List<MoviesViewedEntitty> = movieHistoryDao.getHistoryOnce()
 
-    // إضافة فيلم للسجل
     suspend fun addToViewedHistory(item: MoviesViewedEntitty) {
         movieHistoryDao.insertViewedMovie(item)
     }
 
-    // مسح السجل
     suspend fun clearViewedHistory() {
         movieHistoryDao.clearHistory()
     }

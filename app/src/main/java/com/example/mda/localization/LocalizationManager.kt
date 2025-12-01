@@ -78,6 +78,7 @@ object StringsEN {
         "home_top_rated" to "Top Rated",
 
         // Search Screen
+        "search_title" to "Search",
         "search_filter_all" to "All",
         "search_placeholder" to "Search movies, shows, people...",
         "search_filter_movies" to "Movies",
@@ -221,6 +222,7 @@ object StringsEN {
         "about_tech_5" to "Figma, Coil, Material 3",
         "about_tech_6" to "Git & GitHub, Gradle, Android Studio",
         "about_copyright" to "© 2025 SBCO – All Rights Reserved",
+         "developer_tools" to "Developer Tools",
 
         // Kids Mode
         "kids_title" to "Kids Mode",
@@ -343,8 +345,9 @@ object StringsAR {
         "home_popular_movies" to "الأفلام الشهيرة",
         "home_popular_tv" to "المسلسلات الشهيرة",
         "home_top_rated" to "الأعلى تقييماً",
-
+        "developer_tools" to "أدوات المطورين",
         // Search Screen
+        "search_title" to "البحث",
         "search_filter_all" to "الكل",
         "search_placeholder" to "ابحث عن أفلام أو مسلسلات أو ممثلين...",
         "search_filter_movies" to "أفلام",
@@ -516,6 +519,7 @@ object StringsDE {
     private val strings = mapOf(
         // ... (rest of the code remains the same)
 // -------------------- Search --------------------
+        "search_title" to "Suche",
         "search_filter_all" to "Alle",
         "search_placeholder" to "Nach Filmen, Serien oder Personen suchen...",
         "search_filter_movies" to "Filme",
@@ -594,7 +598,7 @@ object StringsDE {
         "privacy_learn_more_title" to "Mehr erfahren",
         "privacy_learn_more_desc" to "Klicken Sie unten, um die offizielle Datenschutzrichtlinie von TMDb anzuzeigen.",
         "privacy_view_tmdb" to "TMDb-Datenschutzrichtlinie anzeigen",
-
+        "developer_tools" to "Developer Tools",
         // -------------------- Kids --------------------
         // -------------------- Kids Mode --------------------
         "kids_title" to "Kindermodus",

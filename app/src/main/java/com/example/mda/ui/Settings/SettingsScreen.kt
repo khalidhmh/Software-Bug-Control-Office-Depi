@@ -53,7 +53,6 @@ fun SettingsScreen(
     val theme by viewModel.themeMode.collectAsState()
     val notifications by viewModel.notificationsEnabled.collectAsState()
 
-    // 🟢 قراءات مباشرة من SessionManager
     val sessionManager = remember { com.example.mda.data.datastore.SessionManager(context) }
     val uiState by authViewModel?.uiState?.collectAsState()
         ?: remember { mutableStateOf(AuthUiState()) }
@@ -64,10 +63,8 @@ fun SettingsScreen(
     val isLoggedIn = uiState.isAuthenticated
     val account = uiState.accountDetails
 
-    // ✅ استخدام الترجمة للعنوان
     val settingsTitle = localizedString(LocalizationKeys.SETTINGS_TITLE)
 
-    // ✅ تحديث العنوان عند تغيير اللغة (Recomposition)
     LaunchedEffect(settingsTitle) {
         onTopBarStateChange(
             TopBarState(
@@ -106,7 +103,6 @@ fun SettingsScreen(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        // ================= Group 1: Favorites & History =================
         SettingsGroupCard {
             SettingsItem(
                 Icons.Default.Favorite,
@@ -127,7 +123,6 @@ fun SettingsScreen(
             )
         }
 
-        // ================= Group 2: Account & Display =================
         SettingsGroupCard {
             SettingsItem(Icons.Default.Lock, localizedString(LocalizationKeys.SETTINGS_PASSWORD)) {
                 // not implemented yet
@@ -164,74 +159,12 @@ fun SettingsScreen(
             Divider()
             SettingsItem(Icons.Default.Info, localizedString(LocalizationKeys.SETTINGS_ABOUT)) { navController.navigate("about_app") }
 
-            // 👇👇👇 Developer / Testing Section (Merged from Main) 👇👇👇
             Divider()
-
-            // 🔔 Notification Test
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                Button(
-                    onClick = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            NotificationHelper.sendNotification(
-                                context,
-                                "تست الإشعارات 🔔",
-                                "ده إشعار تجريبي عشان نتأكد إن الدنيا شغالة!"
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Test Notification Now")
-                }
-            }
-
-            Divider()
-
-            // 🛠️ Trending Worker Test
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Button(
-                    onClick = {
-                        val request = OneTimeWorkRequestBuilder<TrendingReminderWorker>().build()
-                        WorkManager.getInstance(context).enqueue(request)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Force Start: Trending Worker")
-                }
-            }
-
-            // 🛠️ Suggested Movie Worker Test
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Button(
-                    onClick = {
-                        val request = OneTimeWorkRequestBuilder<SuggestedMovieWorker>().build()
-                        WorkManager.getInstance(context).enqueue(request)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Force Start: Suggested Movie")
-                }
-            }
-
-            // 🛠️ Inactive User Worker Test
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Button(
-                    onClick = {
-                        // Hack logic
-                        val prefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-                        val threeDaysAgo = System.currentTimeMillis() - (72L * 60 * 60 * 1000)
-                        prefs.edit { putLong("last_open", threeDaysAgo) }
-
-                        val request = OneTimeWorkRequestBuilder<InactiveUserWorker>().build()
-                        WorkManager.getInstance(context).enqueue(request)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63))
-                ) {
-                    Text("Test Inactive User (Hack Time)")
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+            SettingsItem(
+                Icons.Default.DeveloperMode,
+                "Developer Tools",
+                onClick = { navController.navigate("developer_tools") }
+            )
         }
         Spacer(Modifier.height(80.dp))
     }
