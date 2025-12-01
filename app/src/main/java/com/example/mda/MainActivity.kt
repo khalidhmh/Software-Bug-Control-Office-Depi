@@ -44,7 +44,6 @@ import com.example.mda.localization.LocalizationManager
 import com.example.mda.localization.LanguageProvider
 import com.example.mda.localization.LocalizationKeys
 import com.example.mda.localization.localizedString
-import com.example.mda.ui.home.getGreetingMessage
 import com.example.mda.ui.navigation.*
 import com.example.mda.ui.screens.actors.ActorViewModel
 import com.example.mda.ui.screens.actors.ActorViewModelFactory
@@ -338,20 +337,18 @@ class MainActivity : ComponentActivity() {
                                         bottomBar = {
                                             if (showBars) {
                                                 val (topBarBg) = AppTopBarColors(darkTheme = darkTheme)
-                                                
-                                                // Merged: Dynamic buttons based on Language
-                                                val buttons = remember(appLanguage) {
-                                                    listOf(
-                                                        ButtonData("home", localizedString(LocalizationKeys.NAV_HOME), Icons.Default.Home),
-                                                        ButtonData("movies", localizedString(LocalizationKeys.NAV_MOVIES), Icons.Default.Movie),
-                                                        ButtonData("actors", localizedString(LocalizationKeys.NAV_ACTORS), Icons.Default.People),
-                                                        ButtonData("search", localizedString(LocalizationKeys.NAV_SEARCH), Icons.Default.Search),
-                                                        ButtonData("settings", localizedString(LocalizationKeys.NAV_SETTINGS), Icons.Default.Settings)
-                                                    )
-                                                }
-                                                
+
                                                 val isArabic = appLanguage == LocalizationManager.Language.ARABIC
-                                                // RTL Logic from fares (Manual reverse if needed by AnimatedNavigationBar)
+                                                val isRtl = layoutDir == LayoutDirection.Rtl
+
+                                                val buttons = listOf(
+                                                    ButtonData("home", localizedString(LocalizationKeys.NAV_HOME), Icons.Default.Home),
+                                                    ButtonData("movies", localizedString(LocalizationKeys.NAV_MOVIES), Icons.Default.Movie),
+                                                    ButtonData("actors", localizedString(LocalizationKeys.NAV_ACTORS), Icons.Default.People),
+                                                    ButtonData("search", localizedString(LocalizationKeys.NAV_SEARCH), Icons.Default.Search),
+                                                    ButtonData("settings", localizedString(LocalizationKeys.NAV_SETTINGS), Icons.Default.Settings)
+                                                )
+
                                                 val finalButtons = if (isArabic) buttons.reversed() else buttons
 
                                                 key(appLanguage) {

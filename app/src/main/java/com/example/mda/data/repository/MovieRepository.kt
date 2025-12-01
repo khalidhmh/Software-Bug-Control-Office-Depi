@@ -5,11 +5,11 @@ import com.example.mda.data.local.LocalRepository
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.remote.api.TmdbApi
 import com.example.mda.data.remote.model.Genre
-import com.example.mda.data.remote.model.Movie
 import com.example.mda.data.remote.model.MovieResponse
 import com.example.mda.data.remote.model.getKnownForTitles
 import com.example.mda.data.repository.mappers.toMediaEntity
 import kotlinx.coroutines.flow.first
+import com.example.mda.ui.kids.KidsFilter
 
 class MoviesRepository(
     private val api: TmdbApi,
@@ -166,7 +166,7 @@ class MoviesRepository(
 
     /** 🔹 بحث بنوع محدد (Movie / TV / Person) */
     suspend fun searchByType(query: String, type: String): List<MediaEntity> {
-        return when (type.lowercase()) {
+        val rawResults: List<MediaEntity> = when (type.lowercase()) {
             "movie" -> safeApiCall(
                 apiCall = {
                     val res = api.searchMovies(query)
@@ -201,8 +201,7 @@ class MoviesRepository(
                     if (res.isSuccessful) {
                         val body = res.body()
                         body?.results
-                            ?.filter { !it.profilePath.isNullOrBlank() } // ✅ إزالة من ليس له صورة
-                            // تم إزالة الترتيب هنا أيضاً لتجنب الخطأ
+                            ?.filter { !it.profilePath.isNullOrBlank() }
                             ?.map {
                                 MediaEntity(
                                     id = it.id,
@@ -239,6 +238,19 @@ class MoviesRepository(
                 }
             )
         }
+
+        // 🔎 فلترة خاصة بالأطفال
+        val filteredResults = KidsFilter.filterKids(
+            rawResults.filterNot {
+                it.title.isNullOrBlank() ||
+                        (it.adult == true) ||
+                        ((it.genres?.isEmpty() == true) && (it.genreIds?.isEmpty() == true))
+            }
+        )
+
+        Log.d("RepoDebug", "🔍 KidsFilter applied: ${rawResults.size} -> ${filteredResults.size} items kept")
+
+        return filteredResults
     }
 
     // ---------------------- Smart Recommendations ----------------------

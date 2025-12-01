@@ -3,33 +3,33 @@ package com.example.mda.ui.screens.search
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.local.entities.SearchHistoryEntity
-import com.example.mda.ui.navigation.TopBarState
-import com.example.mda.ui.screens.actors.ActorGridItem
-import com.example.mda.ui.screens.favorites.FavoritesViewModel
-import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.localization.LocalizationKeys
 import com.example.mda.localization.localizedString
+import com.example.mda.ui.navigation.TopBarState
+import com.example.mda.ui.screens.actors.ActorGridItem
+import com.example.mda.ui.screens.auth.AuthViewModel
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,8 +46,9 @@ fun SearchScreen(
     val focusManager = LocalFocusManager.current
     val gridScrollState = rememberLazyGridState()
     val authUiState by authViewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
 
-    val snackbarHostState = remember { SnackbarHostState() }
+    var isSearchDone by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -57,10 +58,18 @@ fun SearchScreen(
         // ===== Search TextField =====
         SearchBarComposable(
             query = query,
-            onQueryChange = { viewModel.onQueryChange(it) },
+            onQueryChange = {
+                viewModel.onQueryChange(it)
+                isSearchDone = false
+            },
             onSearch = {
                 focusManager.clearFocus()
-                viewModel.submitSearch()
+                isSearchDone = false
+                scope.launch {
+                    viewModel.submitSearch()
+                    delay(300)
+                    isSearchDone = true
+                }
             },
             placeholderText = localizedString(LocalizationKeys.SEARCH_PLACEHOLDER)
         )
@@ -73,16 +82,65 @@ fun SearchScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        Box(modifier = Modifier.weight(1f)) {
-            when (val state = uiState) {
-                UiState.Loading -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
+        when (val state = uiState) {
 
-                is UiState.Success -> {
+            UiState.Loading -> Box(
+                Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+
+            // Recent Searches (History) – نفس سلوك Kids Mode
+            is UiState.History -> {
+                if (query.isBlank() && state.items.isNotEmpty()) {
+                    RecentSearchesList(state.items, viewModel)
+                }
+            }
+
+            // نتائج البحث
+            is UiState.Success -> {
+                val results = state.results
+                isSearchDone = true
+
+                if (results.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 86.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                modifier = Modifier.size(70.dp)
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                text = localizedString(LocalizationKeys.SEARCH_NO_RESULTS) + " \"$query\"",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = localizedString(LocalizationKeys.SEARCH_TRY_ANOTHER),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(40.dp))
+                        }
+                    }
+                } else {
                     if (selectedFilter == "people") {
                         LazyVerticalGrid(
                             columns = GridCells.Adaptive(140.dp),
@@ -91,7 +149,7 @@ fun SearchScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             state = gridScrollState
                         ) {
-                            items(state.results) { person ->
+                            items(results) { person ->
                                 ActorGridItem(
                                     actor = person.toActorModel(),
                                     navController = navController
@@ -100,7 +158,7 @@ fun SearchScreen(
                         }
                     } else {
                         SearchResultsGrid(
-                            results = state.results,
+                            results = results,
                             onItemClick = {
                                 navController.navigate("detail/${it.mediaType}/${it.id}")
                             },
@@ -110,35 +168,79 @@ fun SearchScreen(
                         )
                     }
                 }
+            }
 
-                is UiState.History -> {
-                    if (state.items.isNotEmpty()) {
-                        RecentSearchesList(state.items, viewModel)
+            // رسالة الخطأ
+            is UiState.Error -> Box(
+                Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    localizedString(LocalizationKeys.SEARCH_ERROR, "error", state.message ?: ""),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            // حالة فارغة أول فتح أو مافيش نتائج بعد بحث
+            UiState.Empty -> {
+                if (isSearchDone && query.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 86.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                modifier = Modifier.size(70.dp)
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                text = localizedString(LocalizationKeys.SEARCH_NO_RESULTS) + " \"$query\"",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = localizedString(LocalizationKeys.SEARCH_TRY_ANOTHER),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(40.dp))
+                        }
+                    }
+                } else if (query.isBlank()) {
+                    when (val history = uiState) {
+                        is UiState.History -> {
+                            if (history.items.isNotEmpty()) {
+                                RecentSearchesList(history.items, viewModel)
+                            }
+                        }
+                        else -> Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                localizedString(LocalizationKeys.SEARCH_START_TYPING),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-
-                UiState.Empty -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        localizedString(LocalizationKeys.SEARCH_NO_RESULTS),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                is UiState.Error -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        localizedString(LocalizationKeys.SEARCH_ERROR, "error", state.message ?: ""),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                else -> {}
             }
+
+            else -> Unit
         }
     }
 }
@@ -200,10 +302,7 @@ fun RecentSearchesList(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        record.query,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Text(record.query, color = MaterialTheme.colorScheme.onSurface)
                     IconButton(onClick = { viewModel.deleteOne(record.query) }) {
                         Icon(
                             Icons.Default.Delete,
