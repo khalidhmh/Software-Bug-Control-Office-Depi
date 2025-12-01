@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.theme.AppBackgroundGradient
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @Composable
 fun HelpScreen(
@@ -43,23 +45,17 @@ fun HelpScreen(
 ) {
     onTopBarStateChange(
         TopBarState(
-            title = "Help & FAQ",
+            title = localizedString(LocalizationKeys.HELP_TITLE),
             showBackButton = true
         )
     )
     val faqs = listOf(
-        "How does the movie search work?" to
-                "You can search for any movie by typing its title in the search bar. The results update instantly as you type.",
-        "How can I save movies to favorites?" to
-                "Open any movie and tap the heart icon to add it to your favorites list.",
-        "Are my favorites synced across devices?" to
-                "Yes, once you sign in using TMDb, your favorites are synced using Firebase.",
-        "Why do I need to log in?" to
-                "Logging in allows you to sync favorites and personalize your experience safely.",
-        "Why are some movies not appearing?" to
-                "This may happen if the movie is not available in TMDb or due to network issues.",
-        "Data loading is slow. What can I do?" to
-                "Check your internet connection or swipe down to refresh the page."
+        localizedString(LocalizationKeys.HELP_FAQ_Q1) to localizedString(LocalizationKeys.HELP_FAQ_A1),
+        localizedString(LocalizationKeys.HELP_FAQ_Q2) to localizedString(LocalizationKeys.HELP_FAQ_A2),
+        localizedString(LocalizationKeys.HELP_FAQ_Q3) to localizedString(LocalizationKeys.HELP_FAQ_A3),
+        localizedString(LocalizationKeys.HELP_FAQ_Q4) to localizedString(LocalizationKeys.HELP_FAQ_A4),
+        localizedString(LocalizationKeys.HELP_FAQ_Q5) to localizedString(LocalizationKeys.HELP_FAQ_A5),
+        localizedString(LocalizationKeys.HELP_FAQ_Q6) to localizedString(LocalizationKeys.HELP_FAQ_A6)
     )
 
     Box(

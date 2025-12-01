@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @Composable
 fun SearchFiltersRow(
@@ -36,7 +38,13 @@ fun SearchFiltersRow(
                 onClick = { onFilterChange(filter) },
                 label = {
                     Text(
-                        filter.replaceFirstChar { it.uppercaseChar() },
+                        when (filter) {
+                            "all" -> localizedString(LocalizationKeys.SEARCH_FILTER_ALL)
+                            "movies" -> localizedString(LocalizationKeys.SEARCH_FILTER_MOVIES)
+                            "tv" -> localizedString(LocalizationKeys.SEARCH_FILTER_TV)
+                            "people" -> localizedString(LocalizationKeys.SEARCH_FILTER_PEOPLE)
+                            else -> filter.replaceFirstChar { it.uppercaseChar() }
+                        },
                         color = if (selected)
                             MaterialTheme.colorScheme.onPrimary
                         else

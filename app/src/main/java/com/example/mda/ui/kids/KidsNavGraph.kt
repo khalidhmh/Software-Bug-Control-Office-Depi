@@ -1,6 +1,7 @@
 package com.example.mda.ui.kids
 
-import android.util.LayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
@@ -45,6 +47,9 @@ import com.example.mda.data.repository.MoviesRepository
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.theme.AppBackgroundGradient
 import com.example.mda.ui.theme.AppTopBarColors
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
+import com.example.mda.localization.LanguageProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,18 +133,28 @@ fun KidsRoot(
             bottomBar = {
                 if (showBars && currentRoute != KidsScreens.Splash.route) {
                     val (topBarBg) = AppTopBarColors(darkTheme)
-                    AnimatedNavigationBar(
-                        navController = kidsNavController,
-                        buttons = listOf(
-                            ButtonData(KidsScreens.Home.route, "Home", Icons.Default.Home),
-                            ButtonData(KidsScreens.Search.route, "Search", Icons.Default.Search),
-                            ButtonData(KidsScreens.Favorites.route, "Favorites", Icons.Default.Favorite),
-                        ),
-                        barColor = topBarBg,
-                        circleColor = MaterialTheme.colorScheme.background,
-                        selectedColor = MaterialTheme.colorScheme.primary,
-                        unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    val buttons = listOf(
+                        ButtonData(KidsScreens.Home.route, localizedString(LocalizationKeys.NAV_HOME), Icons.Default.Home),
+                        ButtonData(KidsScreens.Search.route, localizedString(LocalizationKeys.NAV_SEARCH), Icons.Default.Search),
+                        ButtonData(KidsScreens.Favorites.route, localizedString(LocalizationKeys.NAV_FAVORITES), Icons.Default.Favorite),
                     )
+                    val isArabic = LanguageProvider.currentCode == "ar"
+                    val finalButtons = if (isArabic) buttons.reversed() else buttons
+                    val content: @Composable () -> Unit = {
+                        AnimatedNavigationBar(
+                            navController = kidsNavController,
+                            buttons = finalButtons,
+                            barColor = topBarBg,
+                            circleColor = MaterialTheme.colorScheme.background,
+                            selectedColor = MaterialTheme.colorScheme.primary,
+                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                    if (isArabic) {
+                        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) { content() }
+                    } else {
+                        content()
+                    }
                 }
             }
 

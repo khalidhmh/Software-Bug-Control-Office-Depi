@@ -15,13 +15,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @Composable
 fun KidsSearchFiltersRow(
     selectedFilter: String,
     onFilterChange: (String) -> Unit
 ) {
-    val filters = listOf("all", "movies", "tv")
+    val filters = listOf(
+        localizedString(LocalizationKeys.SEARCH_FILTER_ALL),
+        localizedString(LocalizationKeys.KIDS_FILTER_MOVIES),
+        localizedString(LocalizationKeys.KIDS_FILTER_TV)
+    )
 
     Row(
         Modifier

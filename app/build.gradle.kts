@@ -19,8 +19,8 @@ android {
         applicationId = "com.example.mda"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 3
+        versionName = "3.0"
 
         // ✅ قراءة المفتاح من gradle.properties
         val tmdbKey: String? = project.findProperty("TMDB_API_KEY") as? String
@@ -111,6 +111,7 @@ dependencies {
     // =============================================================
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
     implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
+
 
     // =============================================================
     // 🔹 NETWORK - Retrofit + Gson + OkHttp

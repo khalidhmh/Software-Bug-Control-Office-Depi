@@ -34,29 +34,24 @@ object KidsFilter {
         val lcOverview = (item.overview ?: "").lowercase()
         val genreNames = item.genres?.map { it.lowercase() } ?: emptyList()
 
-        // ❌ محتوى للكبار
         if (item.adult == true) {
-            Log.d("KidsFilter", "${item.title} ❌ Rejected: adult flag true")
+            Log.d("KidsFilter", "${item.title}  Rejected: adult flag true")
             return false
         }
 
-        // ❌ كلمات خطيرة في العنوان أو الوصف
         if (blockedKeywords.any { kw ->
                 lcTitle.contains(kw) || lcOverview.contains(kw)
             }) {
-            Log.d("KidsFilter", "${item.title} ❌ Rejected: blocked keyword")
+            Log.d("KidsFilter", "${item.title}  Rejected: blocked keyword")
             return false
         }
 
-        // ❌ تصنيفات غير مناسبة للأطفال
         if (genreNames.any { g ->
                 blockedGenres.any { bad -> g.contains(bad) }
             }) {
-            Log.d("KidsFilter", "${item.title} ❌ Rejected: blocked genre $genreNames")
+            Log.d("KidsFilter", "${item.title}  Rejected: blocked genre $genreNames")
             return false
         }
-
-        // ✅ السماح فقط لو Family أو Kids أو Animation بدون كلمات خطيرة
         val byGenreId = item.genreIds?.any {
             it == GENRE_ANIMATION_ID || it == GENRE_FAMILY_ID || it == GENRE_KIDS_TV_ID
         } == true
@@ -69,9 +64,9 @@ object KidsFilter {
 
         val safe = byGenreId || byGenreName || byTitle
         if (!safe) {
-            Log.d("KidsFilter", "${item.title} ❌ Rejected: not matching allowed genre")
+            Log.d("KidsFilter", "${item.title} Rejected: not matching allowed genre")
         } else {
-            Log.d("KidsFilter", "${item.title} ✅ Accepted")
+            Log.d("KidsFilter", "${item.title} Accepted")
         }
         return safe
     }

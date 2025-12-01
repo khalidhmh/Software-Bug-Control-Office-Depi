@@ -1,6 +1,6 @@
 package com.example.mda.ui.screens.settings
 
-import android.os.Build // ✅ تم إضافة هذا
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -23,7 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.mda.data.SettingsDataStore
-import com.example.mda.notifications.NotificationHelper // ✅ تم إضافة هذا
+// 🟢 Imports from Fares (Localization)
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
+// 🟢 Imports from Main (Notification & Workers)
+import com.example.mda.notifications.NotificationHelper
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthUiState
 import com.example.mda.ui.screens.auth.AuthViewModel
@@ -33,7 +37,7 @@ import androidx.work.WorkManager
 import com.example.mda.work.InactiveUserWorker
 import com.example.mda.work.SuggestedMovieWorker
 import com.example.mda.work.TrendingReminderWorker
-import androidx.core.content.edit // عشان التعديل السهل
+import androidx.core.content.edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,10 +64,14 @@ fun SettingsScreen(
     val isLoggedIn = uiState.isAuthenticated
     val account = uiState.accountDetails
 
-    LaunchedEffect(Unit) {
+    // ✅ استخدام الترجمة للعنوان
+    val settingsTitle = localizedString(LocalizationKeys.SETTINGS_TITLE)
+
+    // ✅ تحديث العنوان عند تغيير اللغة (Recomposition)
+    LaunchedEffect(settingsTitle) {
         onTopBarStateChange(
             TopBarState(
-                title = "Settings",
+                title = settingsTitle,
                 showBackButton = false
             )
         )
@@ -74,7 +82,6 @@ fun SettingsScreen(
         }
     }
 
-    // يفضل عدم استدعاء الدوال الثقيلة مباشرة هنا، لكن سنبقيها كما طلبت
     FavoritesViewModel.syncFavoritesFromTmdb()
 
     Column(
@@ -89,89 +96,81 @@ fun SettingsScreen(
             userName = account?.name?.ifEmpty { account.username }
                 ?: localName?.ifEmpty { localUsername },
             userEmail = "@${account?.username ?: localUsername}",
-
             onClick = { navController.navigate("profile") },
             onLoginClick = { navController.navigate("login") }
         )
 
         Text(
-            "Other settings",
+            localizedString(LocalizationKeys.SETTINGS_OTHER),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
 
+        // ================= Group 1: Favorites & History =================
         SettingsGroupCard {
-
             SettingsItem(
                 Icons.Default.Favorite,
-                "Favorite Movies",
-                onClick = {
-                    navController.navigate("Favprofile")
-                }
+                localizedString(LocalizationKeys.SETTINGS_FAVORITES),
+                onClick = { navController.navigate("Favprofile") }
             )
             Divider()
-
             SettingsItem(
                 Icons.Default.Person,
-                "Actors Viewed",
-                onClick = {
-                    navController.navigate("HistoryScreen")
-                }
+                localizedString(LocalizationKeys.SETTINGS_ACTORS_VIEWED),
+                onClick = { navController.navigate("HistoryScreen") }
             )
             Divider()
-
             SettingsItem(
                 Icons.Default.Movie,
-                "Movies Viewed",
-                onClick = {
-                    navController.navigate("MovieHistoryScreen")
-                }
+                localizedString(LocalizationKeys.SETTINGS_MOVIES_VIEWED),
+                onClick = { navController.navigate("MovieHistoryScreen") }
             )
         }
 
+        // ================= Group 2: Account & Display =================
         SettingsGroupCard {
-            SettingsItem(Icons.Default.Lock, "Password") {
+            SettingsItem(Icons.Default.Lock, localizedString(LocalizationKeys.SETTINGS_PASSWORD)) {
                 // not implemented yet
                 // navController.navigate("change_password")
             }
             Divider()
             SettingsItem(
-                Icons.Default.Notifications, "Notifications",
+                Icons.Default.Notifications, localizedString(LocalizationKeys.SETTINGS_NOTIFICATIONS),
                 isToggle = true,
                 toggleState = notifications,
                 onToggleChange = { viewModel.updateNotifications(it) }
             )
             Divider()
             SettingsItem(
-                Icons.Default.DarkMode, "Dark Mode",
+                Icons.Default.DarkMode, localizedString(LocalizationKeys.SETTINGS_DARK_MODE),
                 isToggle = true,
                 toggleState = theme == 2,
                 onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
             )
         }
 
+        // ================= Group 3: App Info & Dev Tools =================
         SettingsGroupCard {
-            SettingsItem(Icons.Default.Language, "Language") { navController.navigate("language_settings") }
+            SettingsItem(Icons.Default.Language, localizedString(LocalizationKeys.SETTINGS_LANGUAGE)) { navController.navigate("language_settings") }
             Divider()
             SettingsItem(
                 icon = Icons.Default.ChildCare,
-                title = "Kids Mode"
+                title = localizedString(LocalizationKeys.SETTINGS_KIDS_MODE)
             ) { navController.navigate("kids") }
             Divider()
-            SettingsItem(Icons.Default.Security, "Privacy Policy") { navController.navigate("privacy_policy") }
-
+            SettingsItem(Icons.Default.Security, localizedString(LocalizationKeys.SETTINGS_PRIVACY_POLICY)) { navController.navigate("privacy_policy") }
             Divider()
-            SettingsItem(Icons.Default.Help, "Help / FAQ") { navController.navigate("help_faq") }
+            SettingsItem(Icons.Default.Help, localizedString(LocalizationKeys.SETTINGS_HELP_FAQ)) { navController.navigate("help_faq") }
             Divider()
-            SettingsItem(Icons.Default.Info, "About") { navController.navigate("about_app") }
+            SettingsItem(Icons.Default.Info, localizedString(LocalizationKeys.SETTINGS_ABOUT)) { navController.navigate("about_app") }
 
+            // 👇👇👇 Developer / Testing Section (Merged from Main) 👇👇👇
             Divider()
 
-            // ✅ تم تصحيح مكان الزر وتنسيقه
-            Box(modifier = Modifier.padding(16.dp)) {
+            // 🔔 Notification Test
+            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                 Button(
                     onClick = {
-                        // تجربة مباشرة لـ NotificationHelper
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             NotificationHelper.sendNotification(
                                 context,
@@ -185,53 +184,54 @@ fun SettingsScreen(
                     Text("Test Notification Now")
                 }
             }
-            // ... (تحت زرار Test Notification Now)
 
             Divider()
 
-            // 1. زرار اختبار Trending Worker (بيشتغل علطول)
-            Button(
-                onClick = {
-                    val request = OneTimeWorkRequestBuilder<TrendingReminderWorker>().build()
-                    WorkManager.getInstance(context).enqueue(request)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Force Start: Trending Worker")
+            // 🛠️ Trending Worker Test
+            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Button(
+                    onClick = {
+                        val request = OneTimeWorkRequestBuilder<TrendingReminderWorker>().build()
+                        WorkManager.getInstance(context).enqueue(request)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Force Start: Trending Worker")
+                }
             }
 
+            // 🛠️ Suggested Movie Worker Test
+            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Button(
+                    onClick = {
+                        val request = OneTimeWorkRequestBuilder<SuggestedMovieWorker>().build()
+                        WorkManager.getInstance(context).enqueue(request)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Force Start: Suggested Movie")
+                }
+            }
+
+            // 🛠️ Inactive User Worker Test
+            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Button(
+                    onClick = {
+                        // Hack logic
+                        val prefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                        val threeDaysAgo = System.currentTimeMillis() - (72L * 60 * 60 * 1000)
+                        prefs.edit { putLong("last_open", threeDaysAgo) }
+
+                        val request = OneTimeWorkRequestBuilder<InactiveUserWorker>().build()
+                        WorkManager.getInstance(context).enqueue(request)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63))
+                ) {
+                    Text("Test Inactive User (Hack Time)")
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
-
-            // 2. زرار اختبار Suggested Movie (بيشتغل علطول)
-            Button(
-                onClick = {
-                    val request = OneTimeWorkRequestBuilder<SuggestedMovieWorker>().build()
-                    WorkManager.getInstance(context).enqueue(request)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Force Start: Suggested Movie")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 3. زرار اختبار Inactive User (مع خدعة الوقت)
-            Button(
-                onClick = {
-                    // أ. نخدع التطبيق إننا فتحناه آخر مرة من 3 أيام (72 ساعة)
-                    val prefs = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-                    val threeDaysAgo = System.currentTimeMillis() - (72L * 60 * 60 * 1000)
-                    prefs.edit { putLong("last_open", threeDaysAgo) }
-
-                    // ب. نشغل الـ Worker
-                    val request = OneTimeWorkRequestBuilder<InactiveUserWorker>().build()
-                    WorkManager.getInstance(context).enqueue(request)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63)) // لون مميز عشان تلاحظه
-            ) {
-                Text("Test Inactive User (Hack Time)")
-            }
         }
         Spacer(Modifier.height(80.dp))
     }
@@ -332,13 +332,11 @@ fun ProfileCard(
                         color = Color.Gray
                     )
                 }
-
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
                     tint = Color.Gray
                 )
-
             } else {
                 Column {
                     Text(

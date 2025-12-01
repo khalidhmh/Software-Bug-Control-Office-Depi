@@ -3,7 +3,10 @@ package com.example.mda.ui.screens.search
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -13,15 +16,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.local.entities.SearchHistoryEntity
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.actors.ActorGridItem
-import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.auth.AuthViewModel
+import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -49,7 +55,7 @@ fun SearchScreen(
             .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 20.dp)
     ) {
-
+        // ===== Search TextField =====
         SearchBarComposable(
             query = query,
             onQueryChange = {
@@ -65,7 +71,7 @@ fun SearchScreen(
                     isSearchDone = true
                 }
             },
-            placeholderText = "Search movies, shows, people..."
+            placeholderText = localizedString(LocalizationKeys.SEARCH_PLACEHOLDER)
         )
 
         Spacer(Modifier.height(10.dp))
@@ -85,13 +91,14 @@ fun SearchScreen(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
 
+            // Recent Searches (History) – نفس سلوك Kids Mode
             is UiState.History -> {
                 if (query.isBlank() && state.items.isNotEmpty()) {
                     RecentSearchesList(state.items, viewModel)
                 }
             }
 
-            /** 🔵 عرض نتائج البحث */
+            // نتائج البحث
             is UiState.Success -> {
                 val results = state.results
                 isSearchDone = true
@@ -100,10 +107,16 @@ fun SearchScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = 106.dp),
+                            .padding(bottom = 86.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = null,
@@ -112,16 +125,19 @@ fun SearchScreen(
                             )
                             Spacer(Modifier.height(12.dp))
                             Text(
-                                text = "No results found for \"$query\"",
+                                text = localizedString(LocalizationKeys.SEARCH_NO_RESULTS) + " \"$query\"",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
                             )
-                            Spacer(Modifier.height(6.dp))
+                            Spacer(Modifier.height(8.dp))
                             Text(
-                                text = "Try searching for another movie, show or person 🎬",
+                                text = localizedString(LocalizationKeys.SEARCH_TRY_ANOTHER),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center
                             )
+                            Spacer(Modifier.height(40.dp))
                         }
                     }
                 } else {
@@ -154,23 +170,24 @@ fun SearchScreen(
                 }
             }
 
-
+            // رسالة الخطأ
             is UiState.Error -> Box(
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "Error: ${state.message}",
+                    localizedString(LocalizationKeys.SEARCH_ERROR, "error", state.message ?: ""),
                     color = MaterialTheme.colorScheme.error
                 )
             }
 
+            // حالة فارغة أول فتح أو مافيش نتائج بعد بحث
             UiState.Empty -> {
-                if (query.isNotBlank()) {
+                if (isSearchDone && query.isNotBlank()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = 76.dp),
+                            .padding(bottom = 86.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -188,24 +205,22 @@ fun SearchScreen(
                             )
                             Spacer(Modifier.height(12.dp))
                             Text(
-                                text = "No results found for \"$query\"",
+                                text = localizedString(LocalizationKeys.SEARCH_NO_RESULTS) + " \"$query\"",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                textAlign = TextAlign.Center
                             )
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                text = "Try searching for another movie or person ",
+                                text = localizedString(LocalizationKeys.SEARCH_TRY_ANOTHER),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                textAlign = TextAlign.Center
                             )
                             Spacer(Modifier.height(40.dp))
                         }
                     }
-                }
-                // 🟢 لو المستخدم لسه ما كتبش حاجة خالص → يعرض Recent Searches
-                else {
+                } else if (query.isBlank()) {
                     when (val history = uiState) {
                         is UiState.History -> {
                             if (history.items.isNotEmpty()) {
@@ -217,7 +232,7 @@ fun SearchScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "Start typing to search ",
+                                localizedString(LocalizationKeys.SEARCH_START_TYPING),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -229,7 +244,6 @@ fun SearchScreen(
         }
     }
 }
-
 
 private fun MediaEntity.toActorModel() =
     com.example.mda.data.remote.model.Actor(
@@ -259,12 +273,12 @@ fun RecentSearchesList(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Recent Searches",
+                localizedString(LocalizationKeys.SEARCH_RECENT_TITLE),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
             TextButton(onClick = { viewModel.clearHistory() }) {
-                Text("Clear all", color = MaterialTheme.colorScheme.error)
+                Text(localizedString(LocalizationKeys.SEARCH_CLEAR_ALL), color = MaterialTheme.colorScheme.error)
             }
         }
 
@@ -288,14 +302,11 @@ fun RecentSearchesList(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        record.query,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Text(record.query, color = MaterialTheme.colorScheme.onSurface)
                     IconButton(onClick = { viewModel.deleteOne(record.query) }) {
                         Icon(
                             Icons.Default.Delete,
-                            contentDescription = "Delete",
+                            contentDescription = localizedString(LocalizationKeys.COMMON_DELETE),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
