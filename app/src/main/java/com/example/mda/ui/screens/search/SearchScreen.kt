@@ -40,6 +40,15 @@ fun SearchScreen(
     favoritesViewModel: FavoritesViewModel,
     authViewModel: AuthViewModel
 ) {
+    val searchTitle = localizedString(LocalizationKeys.SEARCH_TITLE)
+    LaunchedEffect(Unit) {
+        onTopBarStateChange(
+            TopBarState(
+                title = searchTitle,
+                showBackButton = false,
+            )
+        )
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val selectedFilter by viewModel.selectedFilter.collectAsStateWithLifecycle()
@@ -49,13 +58,25 @@ fun SearchScreen(
     val scope = rememberCoroutineScope()
 
     var isSearchDone by remember { mutableStateOf(false) }
+    LaunchedEffect(authUiState.accountDetails?.id, authUiState.isAuthenticated) {
+        val userIdAsString = authUiState.accountDetails?.id?.toString()
+        viewModel.currentUserId = userIdAsString
+
+        if (authUiState.isAuthenticated && userIdAsString != null) {
+            viewModel.observeHistory()
+        } else {
+            viewModel.currentUserId = null
+            viewModel.clearHistory()
+            viewModel.emitIdleHistory()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 20.dp)
     ) {
-        // ===== Search TextField =====
+        // Search bar
         SearchBarComposable(
             query = query,
             onQueryChange = {
@@ -83,7 +104,6 @@ fun SearchScreen(
         Spacer(Modifier.height(16.dp))
 
         when (val state = uiState) {
-
             UiState.Loading -> Box(
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -91,55 +111,17 @@ fun SearchScreen(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
 
-            // Recent Searches (History) – نفس سلوك Kids Mode
             is UiState.History -> {
                 if (query.isBlank() && state.items.isNotEmpty()) {
                     RecentSearchesList(state.items, viewModel)
                 }
             }
 
-            // نتائج البحث
             is UiState.Success -> {
                 val results = state.results
                 isSearchDone = true
-
                 if (results.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 86.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                modifier = Modifier.size(70.dp)
-                            )
-                            Spacer(Modifier.height(12.dp))
-                            Text(
-                                text = localizedString(LocalizationKeys.SEARCH_NO_RESULTS) + " \"$query\"",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = localizedString(LocalizationKeys.SEARCH_TRY_ANOTHER),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(Modifier.height(40.dp))
-                        }
-                    }
+                    NoResultsContent(query)
                 } else {
                     if (selectedFilter == "people") {
                         LazyVerticalGrid(
@@ -170,7 +152,6 @@ fun SearchScreen(
                 }
             }
 
-            // رسالة الخطأ
             is UiState.Error -> Box(
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -181,53 +162,14 @@ fun SearchScreen(
                 )
             }
 
-            // حالة فارغة أول فتح أو مافيش نتائج بعد بحث
             UiState.Empty -> {
                 if (isSearchDone && query.isNotBlank()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 86.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                modifier = Modifier.size(70.dp)
-                            )
-                            Spacer(Modifier.height(12.dp))
-                            Text(
-                                text = localizedString(LocalizationKeys.SEARCH_NO_RESULTS) + " \"$query\"",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = localizedString(LocalizationKeys.SEARCH_TRY_ANOTHER),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(Modifier.height(40.dp))
-                        }
-                    }
+                    NoResultsContent(query)
                 } else if (query.isBlank()) {
-                    when (val history = uiState) {
-                        is UiState.History -> {
-                            if (history.items.isNotEmpty()) {
-                                RecentSearchesList(history.items, viewModel)
-                            }
-                        }
-                        else -> Box(
+                    if (state is UiState.History && state.items.isNotEmpty()) {
+                        RecentSearchesList(state.items, viewModel)
+                    } else {
+                        Box(
                             Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
@@ -241,6 +183,41 @@ fun SearchScreen(
             }
 
             else -> Unit
+        }
+    }
+}
+
+
+@Composable
+private fun NoResultsContent(query: String) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(bottom = 86.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                modifier = Modifier.size(70.dp)
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                localizedString(LocalizationKeys.SEARCH_NO_RESULTS) + " \"$query\"",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                localizedString(LocalizationKeys.SEARCH_TRY_ANOTHER),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(40.dp))
         }
     }
 }
@@ -278,13 +255,14 @@ fun RecentSearchesList(
                 color = MaterialTheme.colorScheme.onBackground
             )
             TextButton(onClick = { viewModel.clearHistory() }) {
-                Text(localizedString(LocalizationKeys.SEARCH_CLEAR_ALL), color = MaterialTheme.colorScheme.error)
+                Text(
+                    localizedString(LocalizationKeys.SEARCH_CLEAR_ALL),
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
 
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -311,9 +289,7 @@ fun RecentSearchesList(
                         )
                     }
                 }
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
             }
         }
     }

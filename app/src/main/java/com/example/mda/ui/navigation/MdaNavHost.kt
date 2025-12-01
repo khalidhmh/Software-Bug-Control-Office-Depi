@@ -39,6 +39,7 @@ import com.example.mda.ui.screens.splash.SplashScreen
 import com.example.mda.ui.kids.KidsRoot
 import com.example.mda.ui.kids.KidsSplashScreen
 import com.example.mda.ui.screens.home.homeScreen.PopularNowScreen
+import com.example.mda.ui.screens.settings.DeveloperToolsScreen
 import com.example.mda.ui.screens.settings.PrivacyPolicyScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -259,6 +260,9 @@ fun MdaNavHost(
                     }
                 }
             )
+        }
+        composable("developer_tools") {
+            DeveloperToolsScreen(navController, onTopBarStateChange)
         }
 
         // Settings

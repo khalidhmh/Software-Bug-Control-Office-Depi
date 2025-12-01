@@ -14,30 +14,19 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SearchHistoryDao {
 
-    /** آخر 10 عمليات بحث - لحظيًا عبر Flow */
-    @Query(
-        "SELECT * FROM search_history ORDER BY timestamp DESC LIMIT 10"
-    )
-    fun getRecentHistory(): Flow<List<SearchHistoryEntity>>
+    // ✅ هيرجع فقط السجلات الخاصة بالمستخدم الحالي
+    @Query("SELECT * FROM search_history WHERE userId = :userId ORDER BY timestamp DESC LIMIT 10")
+    fun getRecentHistory(userId: String?): Flow<List<SearchHistoryEntity>>
 
-    /** آخر 10 عمليات بحث مرة واحدة للاقتراحات */
-    @Query(
-        "SELECT * FROM search_history ORDER BY timestamp DESC LIMIT 10"
-    )
-    suspend fun getRecentHistoryOnce(): List<SearchHistoryEntity>
+    @Query("SELECT * FROM search_history WHERE userId = :userId ORDER BY timestamp DESC LIMIT 10")
+    suspend fun getRecentHistoryOnce(userId: String?): List<SearchHistoryEntity>
 
-    /** إدراج بدون تكرار */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(entity: SearchHistoryEntity): Long
 
-    /** تحديث timestamp لعناصر موجودة */
     @Update
     suspend fun update(entity: SearchHistoryEntity)
 
-    /**
-     * Upsert يدوي لمنع التكرار:
-     * في حالة وجود الاستعلام بالفعل، يتم تحديث timestamp.
-     */
     @Transaction
     suspend fun upsertSafe(entity: SearchHistoryEntity) {
         val id = insert(entity)
@@ -46,11 +35,9 @@ interface SearchHistoryDao {
         }
     }
 
-    /** حذف عنصر معين مع تجاهل حالة الأحرف */
-    @Query("DELETE FROM search_history WHERE query = :query COLLATE NOCASE")
-    suspend fun delete(query: String)
+    @Query("DELETE FROM search_history WHERE `query` COLLATE NOCASE = :query AND userId = :userId")
+    suspend fun delete(query: String, userId: String?)
 
-    /** حذف جميع السجلات */
-    @Query("DELETE FROM search_history")
-    suspend fun deleteAll()
+    @Query("DELETE FROM search_history WHERE userId = :userId")
+    suspend fun deleteAll(userId: String?)
 }
