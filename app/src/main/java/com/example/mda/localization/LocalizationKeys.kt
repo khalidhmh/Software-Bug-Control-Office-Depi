@@ -26,6 +26,8 @@ object LocalizationKeys {
     const val HOME_TOP_RATED = "home_top_rated"
 
     // ==================== SEARCH SCREEN ====================
+    const val SEARCH_TITLE = "search_title"
+    const val DEVELOPER_TOOLS = "developer_tools"
     const val SEARCH_FILTER_ALL = "search_filter_all"
     const val SEARCH_PLACEHOLDER = "search_placeholder"
     const val SEARCH_FILTER_MOVIES = "search_filter_movies"
@@ -35,6 +37,7 @@ object LocalizationKeys {
     const val SEARCH_CLEAR_ALL = "search_clear_all"
     const val SEARCH_NO_RESULTS = "search_no_results"
     const val SEARCH_ERROR = "search_error"
+
     const val SEARCH_TRY_ANOTHER = "search_try_another"
     const val SEARCH_START_TYPING = "search_start_typing"
 

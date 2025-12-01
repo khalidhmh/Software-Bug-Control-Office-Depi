@@ -19,6 +19,8 @@ import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @Composable
 fun ActorsScreen(

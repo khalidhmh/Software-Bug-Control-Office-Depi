@@ -240,15 +240,19 @@ class MoviesRepository(
         }
 
         // 🔎 فلترة خاصة بالأطفال
-        val filteredResults = KidsFilter.filterKids(
-            rawResults.filterNot {
-                it.title.isNullOrBlank() ||
-                        (it.adult == true) ||
-                        ((it.genres?.isEmpty() == true) && (it.genreIds?.isEmpty() == true))
-            }
-        )
+        // ✅ إصلاح: تخطي فلترة الأطفال عند البحث عن ممثلين "people"
+        val filteredResults = if (type.lowercase() == "people") {
+            rawResults // نرجّعهم زي ما هم بدون فلترة genres/adult
+        } else {
+            KidsFilter.filterKids(
+                rawResults.filterNot {
+                    it.title.isNullOrBlank() ||
+                            (it.adult == true) ||
+                            ((it.genres?.isEmpty() == true) && (it.genreIds?.isEmpty() == true))
+                }
+            )
+        }
 
-        Log.d("RepoDebug", "🔍 KidsFilter applied: ${rawResults.size} -> ${filteredResults.size} items kept")
 
         return filteredResults
     }
@@ -324,8 +328,7 @@ class MoviesRepository(
         // 3️⃣ Search History (سجل البحث)
         // =================================================
         // ✅ تصحيح: استخدام الدالة المساعدة بدلاً من الوصول المباشر للـ DAO
-        val searchHistory = localRepo.getSearchHistoryOnce()
-
+        val searchHistory = localRepo.getSearchHistoryOnce(accountId.toString())
         if (searchHistory.isNotEmpty()) {
             searchHistory.take(3).forEach { item ->
                 val response = api.searchMulti(item.query)
