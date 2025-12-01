@@ -24,8 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -44,6 +46,7 @@ fun AnimatedNavigationBar(
     unselectedColor: Color,
     modifier: Modifier = Modifier
 ) {
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -65,23 +68,39 @@ fun AnimatedNavigationBar(
         shadowElevation = 8.dp,
         tonalElevation = 8.dp
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp), // قللت الهوامش الداخلية عشان العناصر متموتش بعض
-            // 🔥 حل المشكلة رقم 1: SpaceAround بتوزعهم بالتساوي من غير ما حد يقع بره
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            buttons.forEachIndexed { index, button ->
-                val isSelected = index == selectedItem
+// نحدد إذا كانت اللغة عربية ولا لأ
+        val layoutDir = LocalLayoutDirection.current
+        val isArabic = layoutDir == LayoutDirection.Rtl
 
-                PillItem(
-                    button = button,
-                    isSelected = isSelected,
-                    selectedColor = selectedColor,
-                    unselectedColor = unselectedColor,
-                    onItemClick = {
+        Surface(
+            modifier = modifier
+                .padding(horizontal = 12.dp)
+                .navigationBarsPadding()
+                .fillMaxWidth()
+                .height(79.dp),
+            color = barColor,
+            shape = RoundedCornerShape(20.dp),
+            tonalElevation = 8.dp,
+            shadowElevation = 8.dp
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // نخلي الترتيب يتقلب لو العربية
+                val toDisplay = if (isArabic) buttons.reversed() else buttons
+
+                toDisplay.forEach { button ->
+                    val isSelected = button.route == currentRoute
+                    PillItem(
+                        button = button,
+                        isSelected = isSelected,
+                        selectedColor = selectedColor,
+                        unselectedColor = unselectedColor
+                    ) {
                         if (!isSelected) {
                             navController.navigate(button.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -92,12 +111,11 @@ fun AnimatedNavigationBar(
                             }
                         }
                     }
-                )
+                }
             }
         }
     }
 }
-
 @Composable
 fun PillItem(
     button: ButtonData,

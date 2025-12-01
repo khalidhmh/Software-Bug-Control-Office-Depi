@@ -35,6 +35,8 @@ object LocalizationKeys {
     const val SEARCH_CLEAR_ALL = "search_clear_all"
     const val SEARCH_NO_RESULTS = "search_no_results"
     const val SEARCH_ERROR = "search_error"
+    const val SEARCH_TRY_ANOTHER = "search_try_another"
+    const val SEARCH_START_TYPING = "search_start_typing"
 
     // ==================== MOVIE DETAIL SCREEN ====================
     const val DETAIL_PRODUCTION_DETAILS = "detail_production_details"
@@ -160,6 +162,9 @@ object LocalizationKeys {
     const val KIDS_FILTER_MOVIES = "kids_filter_movies"
     const val KIDS_FILTER_TV = "kids_filter_tv"
     const val KIDS_RECENT_SEARCHES = "kids_recent_searches"
+    const val KIDS_CLEAR_ALL = "kids_clear_all"
+    const val KIDS_NO_RESULTS = "kids_no_results"
+    const val KIDS_TRY_ANOTHER = "kids_try_another"
 
     // ==================== GENRE DETAILS ====================
     const val GENRE_TITLE = "genre_title"

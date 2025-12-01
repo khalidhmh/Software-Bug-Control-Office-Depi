@@ -79,7 +79,9 @@ object StringsEN {
         "search_filter_people" to "People",
         "search_recent_title" to "Recent Searches",
         "search_clear_all" to "Clear all",
-        "search_no_results" to "No results found",
+        "search_no_results" to "No results found for",
+        "search_try_another" to "Try searching for another movie or person ",
+        "search_start_typing" to "Start typing to search ",
         "search_error" to "Error: {error}",
 
         // Movie Detail Screen
@@ -213,6 +215,10 @@ object StringsEN {
         "kids_filter_movies" to "Movies",
         "kids_filter_tv" to "TV Shows",
         "kids_recent_searches" to "Recent Searches",
+        "kids_try_another" to "Try searching for another kids movie or TV show",
+        "kids_no_results" to "No results found for",
+        "kids_clear_all" to "Clear all",
+
 
         // Genre Details
         "genre_title" to "{genre}",
@@ -334,7 +340,19 @@ object StringsAR {
         "search_recent_title" to "عمليات البحث الأخيرة",
         "search_clear_all" to "حذف الكل",
         "search_no_results" to "لم يتم العثور على نتائج",
+        "search_try_another" to "جرّب البحث عن فيلم أو مسلسل آخر",
         "search_error" to "خطأ: {error}",
+        // -------------------- Kids Mode --------------------
+        "kids_title" to "وضع الأطفال",
+        "kids_search_placeholder" to "ابحث عن محتوى آمن للأطفال...",
+        "kids_filter_all" to "الكل",
+        "kids_filter_movies" to "أفلام",
+        "kids_filter_tv" to "مسلسلات",
+        "kids_recent_searches" to "عمليات البحث الأخيرة",
+        "kids_no_results" to "لم يتم العثور على نتائج لـ",
+        "kids_try_another" to "جرّب البحث عن فيلم أطفال آخر ",
+        "kids_clear_all" to "مسح الكل",
+
 
         // Movie Detail Screen
         "detail_production_details" to "تفاصيل الإنتاج",
@@ -472,7 +490,18 @@ object StringsAR {
 object StringsDE {
     private val strings = mapOf(
         // ... (rest of the code remains the same)
-
+// -------------------- Search --------------------
+        "search_filter_all" to "Alle",
+        "search_placeholder" to "Nach Filmen, Serien oder Personen suchen...",
+        "search_filter_movies" to "Filme",
+        "search_filter_tv" to "Serien",
+        "search_filter_people" to "Personen",
+        "search_recent_title" to "Letzte Suchanfragen",
+        "search_clear_all" to "Alles löschen",
+        "search_no_results" to "Keine Ergebnisse gefunden für",
+        "search_try_another" to "Versuchen Sie, nach einem anderen Film oder einer Serie zu suchen ",
+        "search_start_typing" to "Beginnen Sie mit der Eingabe, um zu suchen ",
+        "search_error" to "Fehler: {error}",
         // Detail Screen (extras)
         "detail_discover" to "Entdecken",
         "detail_recommendations_count" to "Empfehlungen {count}",
@@ -534,12 +563,19 @@ object StringsDE {
         "privacy_learn_more_desc" to "Klicken Sie unten, um die offizielle Datenschutzrichtlinie von TMDb anzuzeigen.",
         "privacy_view_tmdb" to "TMDb-Datenschutzrichtlinie anzeigen",
 
-        // Kids Mode
+        // -------------------- Kids --------------------
+        // -------------------- Kids Mode --------------------
         "kids_title" to "Kindermodus",
         "kids_search_placeholder" to "Kinderfreundliche Inhalte durchsuchen...",
+        "kids_filter_all" to "Alle",
         "kids_filter_movies" to "Filme",
         "kids_filter_tv" to "Serien",
         "kids_recent_searches" to "Letzte Suchanfragen",
+        "kids_no_results" to "Keine Ergebnisse gefunden für",
+        "kids_try_another" to "Versuchen Sie, nach einem anderen Kinderfilm zu suchen ",
+        "kids_clear_all" to "Alles löschen",
+
+
 
         // Genre Details
         "genre_title" to "{genre}",
