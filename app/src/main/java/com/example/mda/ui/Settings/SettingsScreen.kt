@@ -340,12 +340,12 @@ fun ProfileCard(
             } else {
                 Column {
                     Text(
-                        text = "Login or Sign up",
+                        text = localizedString(LocalizationKeys.SETTINGS_LOGIN_PROMPT),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "Access your account to sync settings",
+                        text = localizedString(LocalizationKeys.SETTINGS_LOGIN_SUBTITLE),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )

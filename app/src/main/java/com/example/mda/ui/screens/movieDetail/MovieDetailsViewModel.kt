@@ -70,18 +70,36 @@ class MovieDetailsViewModel(
                 val fresh = if (isTv) repository.getTvById(id) else repository.getMovieById(id)
 
                 if (fresh != null) {
+                    // اعرض التفاصيل فوراً
                     _details.value = fresh
-                    val similarItems = if (isTv) repository.getSimilarTvShows(id) else repository.getSimilarMovies(id)
-                    _similar.value = similarItems.filter { !it.posterPath.isNullOrBlank() }
 
-                    val recItems = if (isTv) repository.getRecommendedTvShows(id) else repository.getRecommendedMovies(id)
-                    _recommendations.value = recItems.filter { !it.posterPath.isNullOrBlank() }
+                    // اعتبر التحميل الأساسي انتهى
+                    _isLoading.value = false
 
-                    _providers.value = if (isTv) repository.getTvProviders(id) else repository.getMovieProviders(id)
-
-                    _reviews.value = if (isTv) repository.getTvReviews(id) else repository.getMovieReviews(id)
-                    _keywords.value = if (isTv) repository.getTvKeywords(id) else repository.getMovieKeywords(id)
-                    _releaseSummary.value = if (isTv) null else repository.getMovieReleaseSummary(id)
+                    // باقي الأقسام تتجاب في الخلفية بشكل متوازي
+                    viewModelScope.launch { // similar
+                        val similarItems = if (isTv) repository.getSimilarTvShows(id) else repository.getSimilarMovies(id)
+                        _similar.value = similarItems.filter { !it.posterPath.isNullOrBlank() }
+                    }
+                    viewModelScope.launch { // recommendations
+                        val recItems = if (isTv) repository.getRecommendedTvShows(id) else repository.getRecommendedMovies(id)
+                        _recommendations.value = recItems.filter { !it.posterPath.isNullOrBlank() }
+                    }
+                    viewModelScope.launch { // providers
+                        _providers.value = if (isTv) repository.getTvProviders(id) else repository.getMovieProviders(id)
+                    }
+                    viewModelScope.launch { // reviews
+                        _reviews.value = if (isTv) repository.getTvReviews(id) else repository.getMovieReviews(id)
+                    }
+                    viewModelScope.launch { // keywords
+                        _keywords.value = if (isTv) repository.getTvKeywords(id) else repository.getMovieKeywords(id)
+                    }
+                    if (!isTv) {
+                        viewModelScope.launch { // movie release summary
+                            _releaseSummary.value = repository.getMovieReleaseSummary(id)
+                        }
+                    }
+                    return@launch
                 } else if (cached == null) {
                     _error.value = "No data available"
                 }
@@ -89,7 +107,8 @@ class MovieDetailsViewModel(
             } catch (e: Exception) {
                 _error.value = e.message ?: "Unknown error"
             } finally {
-                _isLoading.value = false
+                // لو كنا بالفعل عرضنا التفاصيل ووقفنا التحميل، بلاش نعيد تشغيله
+                if (_details.value == null) _isLoading.value = false
             }
         }
     }

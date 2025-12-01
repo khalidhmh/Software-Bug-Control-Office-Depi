@@ -38,13 +38,19 @@ class LocalizationManager(private val context: Context) {
         LanguageProvider.currentCode = language.code
     }
 
-    // Get string by key and language
+     // Get string by key and language with English fallback if missing
     fun getString(key: String, language: Language): String {
-        return when (language) {
-            Language.ENGLISH -> StringsEN[key] ?: key
-            Language.ARABIC -> StringsAR[key] ?: key
-            Language.GERMAN -> StringsDE[key] ?: key
+        val value = when (language) {
+            Language.ENGLISH -> StringsEN[key]
+            Language.ARABIC -> StringsAR[key]
+            Language.GERMAN -> StringsDE[key]
         }
+        if (value != null) return value
+        // Fallback to English if translation missing
+        val en = StringsEN[key]
+        if (en != null) return en
+        // As a last resort, return the key (useful to detect missing entries during dev)
+        return key
     }
 
     // Get string by key using current language (requires coroutine context)
@@ -105,6 +111,13 @@ object StringsEN {
         "detail_similar_count" to "Similar {count}",
         "detail_no_recommendations" to "No recommendations",
         "detail_no_similar" to "No similar",
+
+        // Detail About extras
+        "detail_about_movie" to "About movie",
+        "detail_status" to "Status",
+        "detail_original_language" to "Original language",
+        "detail_production_country" to "Production country",
+        "detail_production_companies" to "Production companies",
 
         // Authentication
         "auth_login_title" to "Login with TMDb",
@@ -361,7 +374,7 @@ object StringsAR {
         "detail_companies" to "شركات الإنتاج",
         "detail_genres" to "الأنواع",
         "detail_keywords" to "الكلمات المفتاحية",
-        "detail_cast" to "الممثلون",
+        "detail_cast" to "Cast",
         "detail_reviews" to "التقييمات",
         "detail_videos" to "الفيديوهات",
         "detail_runtime" to "المدة الزمنية",
@@ -370,6 +383,18 @@ object StringsAR {
         "detail_revenue" to "الإيرادات",
         "detail_rating" to "التقييم",
         "detail_overview" to "نظرة عامة",
+        "detail_discover" to "اكتشف",
+        "detail_recommendations_count" to "التوصيات {count}",
+        "detail_similar_count" to "مشابهة {count}",
+        "detail_no_recommendations" to "لا توجد توصيات",
+        "detail_no_similar" to "لا توجد أعمال مشابهة",
+
+        // Detail About extras
+        "detail_about_movie" to "عن الفيلم",
+        "detail_status" to "الحالة",
+        "detail_original_language" to "اللغة الأصلية",
+        "detail_production_country" to "بلد الإنتاج",
+        "detail_production_companies" to "شركات الإنتاج",
 
         // Authentication
         "auth_login_title" to "تسجيل الدخول عبر TMDb",
@@ -385,7 +410,7 @@ object StringsAR {
         "settings_title" to "الإعدادات",
         "settings_other" to "إعدادات أخرى",
         "settings_favorites" to "الأفلام المفضلة",
-        "settings_actors_viewed" to "الممثلون المشاهدون",
+        "settings_actors_viewed" to "Actors Viewed",
         "settings_movies_viewed" to "الأفلام المشاهدة",
         "settings_password" to "كلمة المرور",
         "settings_notifications" to "الإشعارات",
@@ -417,7 +442,7 @@ object StringsAR {
         // Navigation
         "nav_home" to "الرئيسية",
         "nav_movies" to "الأفلام",
-        "nav_actors" to "الأشخاص",
+        "nav_actors" to "People",
         "nav_search" to "البحث",
         "nav_favorites" to "المفضلة",
         "nav_settings" to "الإعدادات",
@@ -509,11 +534,18 @@ object StringsDE {
         "detail_no_recommendations" to "Keine Empfehlungen",
         "detail_no_similar" to "Keine Ähnlichen",
 
+        // Detail About extras
+        "detail_about_movie" to "Über den Film",
+        "detail_status" to "Status",
+        "detail_original_language" to "Originalsprache",
+        "detail_production_country" to "Produktionsland",
+        "detail_production_companies" to "Produktionsfirmen",
+
         // Settings Screen
         "settings_title" to "Einstellungen",
         "settings_other" to "Weitere Einstellungen",
         "settings_favorites" to "Lieblingsfilme",
-        "settings_actors_viewed" to "Angesehene Schauspieler",
+        "settings_actors_viewed" to "Actors Viewed",
         "settings_movies_viewed" to "Angesehene Filme",
         "settings_password" to "Passwort",
         "settings_notifications" to "Benachrichtigungen",
@@ -631,7 +663,7 @@ object StringsDE {
         // Navigation
         "nav_home" to "Startseite",
         "nav_movies" to "Filme",
-        "nav_actors" to "Personen",
+        "nav_actors" to "People",
         "nav_search" to "Suche",
         "nav_favorites" to "Favoriten",
         "nav_settings" to "Einstellungen",

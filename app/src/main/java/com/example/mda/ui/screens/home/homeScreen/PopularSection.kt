@@ -34,7 +34,7 @@ fun PopularSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Popular Now",
+                text = com.example.mda.localization.localizedString(com.example.mda.localization.LocalizationKeys.HOME_POPULAR_MOVIES),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp

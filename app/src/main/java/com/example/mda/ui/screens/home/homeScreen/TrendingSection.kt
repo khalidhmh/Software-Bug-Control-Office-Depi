@@ -42,14 +42,17 @@ fun TrendingSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Trending",
+                text = com.example.mda.localization.localizedString(com.example.mda.localization.LocalizationKeys.HOME_TRENDING_TITLE),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
 
             Row {
-                val buttons = listOf("day" to "Day", "week" to "Week")
+                val buttons = listOf(
+                    "day" to com.example.mda.localization.localizedString(com.example.mda.localization.LocalizationKeys.HOME_TRENDING_TODAY),
+                    "week" to com.example.mda.localization.localizedString(com.example.mda.localization.LocalizationKeys.HOME_TRENDING_WEEK)
+                )
                 buttons.forEach { (value, label) ->
                     Button(
                         onClick = { onTimeWindowChange(value) },
@@ -67,7 +70,7 @@ fun TrendingSection(
         Spacer(modifier = Modifier.height(12.dp))
 
         if (trendingMovies.isEmpty()) {
-            Text("Loading...", color = Color.LightGray)
+            Text(com.example.mda.localization.localizedString(com.example.mda.localization.LocalizationKeys.COMMON_LOADING), color = Color.LightGray)
         } else {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(trendingMovies) { m ->

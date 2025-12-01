@@ -569,7 +569,7 @@ fun AboutMovieCard(details: MediaEntity) {
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "About movie",
+                    text = localizedString(LocalizationKeys.DETAIL_ABOUT_MOVIE),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -577,12 +577,12 @@ fun AboutMovieCard(details: MediaEntity) {
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 KeyValueItem(
-                    title = "Status",
+                    title = localizedString(LocalizationKeys.DETAIL_STATUS),
                     value = details.status,
                     modifier = Modifier.weight(1f)
                 )
                 KeyValueItem(
-                    title = "Original language",
+                    title = localizedString(LocalizationKeys.DETAIL_ORIGINAL_LANGUAGE),
                     value = details.spokenLanguages?.firstOrNull(),
                     modifier = Modifier.weight(1f)
                 )
@@ -590,12 +590,12 @@ fun AboutMovieCard(details: MediaEntity) {
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 KeyValueItem(
-                    title = "Budget",
+                    title = localizedString(LocalizationKeys.DETAIL_BUDGET),
                     value = details.budget?.takeIf { it > 0 }?.let { "$it" },
                     modifier = Modifier.weight(1f)
                 )
                 KeyValueItem(
-                    title = "Revenue",
+                    title = localizedString(LocalizationKeys.DETAIL_REVENUE),
                     value = details.revenue?.takeIf { it > 0 }?.let { "$it" },
                     modifier = Modifier.weight(1f)
                 )
@@ -603,13 +603,13 @@ fun AboutMovieCard(details: MediaEntity) {
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 KeyValueItem(
-                    title = "Production country",
+                    title = localizedString(LocalizationKeys.DETAIL_PRODUCTION_COUNTRY_SINGLE),
                     value = details.productionCountries?.firstOrNull(),
                     modifier = Modifier.weight(1f)
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Production companies",
+                        text = localizedString(LocalizationKeys.DETAIL_PRODUCTION_COMPANIES),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -662,7 +662,7 @@ fun MovieDetailsContent(
         )
     }
     val scroll = rememberScrollState()
-    val bgUrl = "https://image.tmdb.org/t/p/original${details.backdropPath ?: details.posterPath ?: ""}"
+    val bgUrl = "https://image.tmdb.org/t/p/w780${details.backdropPath ?: details.posterPath ?: ""}"
     val context = LocalContext.current
     var isDarkBackdrop by remember(bgUrl) { mutableStateOf<Boolean?>(null) }
     val isDarkTheme = isSystemInDarkTheme()
@@ -1200,53 +1200,20 @@ fun MovieDetailsScreen(
                 .fillMaxSize()
         ) {
             when {
-                // --- UPDATED LOADING STATE ---
-                isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        // 1. Back Button (So user is not stuck)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .statusBarsPadding() // Handle safe area
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f), // Glassmorphism effect
-                                contentColor = Color.White, // Forced White for visibility on dark bg
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                IconButton(onClick = { navController.popBackStack() }) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Back",
-                                        tint = Color.White // Forced White
-                                    )
-                                }
-                            }
-                        }
-
-                        // 2. Centered Loading Content
-                        Column(
-                            modifier = Modifier.align(Alignment.Center),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            CircularProgressIndicator(
-                                color = PrimaryBlue, // Explicitly use PrimaryBlue
-                                trackColor = Color.White.copy(alpha = 0.1f), // Light track
-                                strokeWidth = 4.dp,
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Loading details...",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = TextSecondaryDark // Explicit light color
-                            )
-                        }
-                    }
+                // --- SUCCESS HAS PRIORITY: show content even while loading ---
+                details != null -> AnimatedVisibility(visible = true, enter = fadeIn()) {
+                    MovieDetailsContent(
+                        details = details!!,
+                        navController = navController,
+                        favoritesViewModel = favoritesViewModel,
+                        moviehistoryViewModel = moviehistoryViewModel,
+                        similar = similar,
+                        recommendations = recommendations,
+                        providers = providers,
+                        reviews = reviews?.results ?: emptyList(),
+                        keywords = keywords?.keywords ?: emptyList(),
+                        isAuthenticated = authUiState.isAuthenticated
+                    )
                 }
 
                 // --- ERROR STATE (Updated to match theme) ---
@@ -1262,14 +1229,14 @@ fun MovieDetailsScreen(
                             Surface(
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                                contentColor = Color.White,
+                                contentColor = Color.White, // Forced White for visibility on dark bg
                                 modifier = Modifier.size(40.dp)
                             ) {
                                 IconButton(onClick = { navController.popBackStack() }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                         contentDescription = "Back",
-                                        tint = Color.White
+                                        tint = Color.White // Forced White
                                     )
                                 }
                             }
@@ -1320,27 +1287,37 @@ fun MovieDetailsScreen(
                     }
                 }
 
-                // --- SUCCESS STATE ---
-                details != null -> AnimatedVisibility(visible = true, enter = fadeIn()) {
-                    MovieDetailsContent(
-                        details = details!!,
-                        navController = navController,
-                        favoritesViewModel = favoritesViewModel,
-                        moviehistoryViewModel = moviehistoryViewModel,
-                        similar = similar,
-                        recommendations = recommendations,
-                        providers = providers,
-                        reviews = reviews?.results ?: emptyList(),
-                        keywords = keywords?.keywords ?: emptyList(),
-                        isAuthenticated = authUiState.isAuthenticated
-                    )
+                else -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                        ) {}
+                        Spacer(Modifier.height(16.dp))
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .width(200.dp)
+                                .height(22.dp)
+                        ) {}
+                        Spacer(Modifier.height(12.dp))
+                        Surface(
+                            shape = MaterialTheme.shapes.large,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp)
+                        ) {}
+                    }
                 }
-
-                else -> Text(
-                    "No details available",
-                    color = TextSecondaryDark,
-                    modifier = Modifier.align(Alignment.Center)
-                )
             }
         }
     }

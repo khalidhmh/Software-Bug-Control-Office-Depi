@@ -60,6 +60,13 @@ object LocalizationKeys {
     const val DETAIL_NO_RECOMMENDATIONS = "detail_no_recommendations"
     const val DETAIL_NO_SIMILAR = "detail_no_similar"
 
+    // Extra labels for About section
+    const val DETAIL_ABOUT_MOVIE = "detail_about_movie"
+    const val DETAIL_STATUS = "detail_status"
+    const val DETAIL_ORIGINAL_LANGUAGE = "detail_original_language"
+    const val DETAIL_PRODUCTION_COUNTRY_SINGLE = "detail_production_country"
+    const val DETAIL_PRODUCTION_COMPANIES = "detail_production_companies"
+
     // ==================== AUTHENTICATION ====================
     const val AUTH_LOGIN_TITLE = "auth_login_title"
     const val AUTH_SIGNUP_TITLE = "auth_signup_title"
