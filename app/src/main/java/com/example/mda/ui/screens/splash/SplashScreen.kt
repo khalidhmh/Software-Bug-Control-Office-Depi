@@ -10,11 +10,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.mda.R
+import com.example.mda.data.datastore.KidsSecurityDataStore
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SplashScreen(navController: NavController) {
@@ -31,9 +34,14 @@ fun SplashScreen(navController: NavController) {
         )
     )
 
+    val context = LocalContext.current
+    val kidsStore = remember { KidsSecurityDataStore(context) }
+
     LaunchedEffect(Unit) {
+        val isKidsActive = try { kidsStore.activeFlow.first() } catch (e: Exception) { false }
         delay(2000)
-        navController.navigate("home") {
+        val target = if (isKidsActive) "kids" else "home"
+        navController.navigate(target) {
             popUpTo("splash") { inclusive = true }
         }
     }

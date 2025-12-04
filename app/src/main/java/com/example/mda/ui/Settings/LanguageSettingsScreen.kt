@@ -47,54 +47,72 @@ fun LanguageSettingsScreen(
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = localizedString(LocalizationKeys.SETTINGS_LANGUAGE_SELECT_TITLE),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        // Language Options
-        LocalizationManager.Language.values().forEach { language ->
-            LanguageOptionCard(
-                language = language,
-                isSelected = currentLanguage == language,
-                onClick = {
-                    scope.launch {
-                        manager.setLanguage(language)
-                    }
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Info Card
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            ),
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 560.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Text(
+                text = localizedString(LocalizationKeys.SETTINGS_LANGUAGE_SELECT_TITLE),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // Language Options
+            LocalizationManager.Language.values().forEach { language ->
+                LanguageOptionCard(
+                    language = language,
+                    isSelected = currentLanguage == language,
+                    onClick = {
+                        scope.launch {
+                            manager.setLanguage(language)
+                        }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Info Card
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = localizedString(LocalizationKeys.SETTINGS_LANGUAGE_INFO_TITLE),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = localizedString(LocalizationKeys.SETTINGS_LANGUAGE_INFO_BODY),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = localizedString(LocalizationKeys.SETTINGS_LANGUAGE_INFO_TITLE),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = localizedString(LocalizationKeys.SETTINGS_LANGUAGE_INFO_BODY),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { navController.navigateUp() },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors()
+            ) {
+                Text(text = localizedString(LocalizationKeys.COMMON_BACK))
             }
         }
 
