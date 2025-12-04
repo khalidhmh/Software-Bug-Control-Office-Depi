@@ -30,6 +30,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -39,8 +42,15 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.TextButton
+import com.example.mda.data.datastore.KidsSecurityDataStore
+import com.example.mda.ui.screens.settings.password.PinDots
+import com.example.mda.ui.screens.settings.password.PinPad
 import androidx.datastore.dataStore
 import com.example.mda.data.SettingsDataStore
 import com.example.mda.data.repository.MoviesRepository
@@ -68,7 +78,10 @@ fun KidsRoot(
     val sectionArg = currentArgs?.getString("category")
     val context = LocalContext.current
     val settingsDataStore = remember { SettingsDataStore(context) }
+    val kidsSecurityStore = remember { KidsSecurityDataStore(context) }
     val themeMode by settingsDataStore.themeModeFlow.collectAsState(initial = 0)
+    val lockEnabled by kidsSecurityStore.lockEnabledFlow.collectAsState(initial = false)
+    val savedPin by kidsSecurityStore.pinFlow.collectAsState(initial = null)
     val darkTheme = when (themeMode) {
         2 -> true
         1 -> false
@@ -81,6 +94,31 @@ fun KidsRoot(
         else -> "Section"
     }
     val topTitle = if (isSection) "Kids - $sectionTitle" else "Kids Mode"
+
+    // Exit PIN dialog state
+    var showExitPin by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var pinInput by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    var pinError by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+
+    fun requestExit() {
+        if (lockEnabled && !savedPin.isNullOrEmpty()) {
+            showExitPin = true
+            pinInput = ""
+            pinError = null
+        } else {
+            parentNavController.popBackStack()
+        }
+    }
+
+    // Handle system back: if at root of kids and lock is on, require PIN
+    val atKidsRoot = currentRoute == KidsScreens.Home.route
+    BackHandler(enabled = atKidsRoot) {
+        if (lockEnabled && !savedPin.isNullOrEmpty()) {
+            showExitPin = true
+        } else {
+            parentNavController.popBackStack()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -118,7 +156,7 @@ fun KidsRoot(
                         },
                         actions = {
                             IconButton(onClick = {
-                                parentNavController.popBackStack()
+                                requestExit()
                             }) {
                                 Icon(
                                     Icons.Default.ExitToApp,
@@ -174,6 +212,41 @@ fun KidsRoot(
                 )
             }
         }
+    }
+
+    if (showExitPin) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { /* block dismiss */ },
+            title = { Text("Enter PIN to exit") },
+            text = {
+                Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                    PinDots(count = pinInput.length)
+                    if (pinError != null) {
+                        Text(pinError!!, color = MaterialTheme.colorScheme.error)
+                    }
+                    Spacer(modifier = androidx.compose.ui.Modifier.height(12.dp))
+                    PinPad(
+                        onDigit = {
+                            if (pinInput.length < 6) pinInput += it.toString()
+                            if (pinInput.length == 6) {
+                                if (pinInput == savedPin) {
+                                    showExitPin = false
+                                    parentNavController.popBackStack()
+                                } else {
+                                    pinError = "Incorrect PIN"
+                                    pinInput = ""
+                                }
+                            }
+                        },
+                        onDelete = { if (pinInput.isNotEmpty()) pinInput = pinInput.dropLast(1) }
+                    )
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { /* prevent closing */ }) { Text("") }
+            }
+        )
     }
 }
 

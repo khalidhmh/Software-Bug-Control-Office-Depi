@@ -72,6 +72,38 @@ fun MdaNavHost(
             SplashScreen(navController = navController)
         }
 
+        // Password Settings & Kids PIN
+        composable("password_settings") {
+            com.example.mda.ui.screens.settings.password.PasswordSettingsScreen(
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("set_kids_pin") {
+            com.example.mda.ui.screens.settings.password.SetKidsPinScreen(
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("security_questions_setup") {
+            com.example.mda.ui.screens.settings.password.SecurityQuestionsSetupScreen(
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("security_questions_verify") {
+            com.example.mda.ui.screens.settings.password.SecurityQuestionsVerifyScreen(
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+        composable("change_kids_pin") {
+            com.example.mda.ui.screens.settings.password.ChangeKidsPinScreen(
+                navController = navController,
+                onTopBarStateChange = onTopBarStateChange
+            )
+        }
+
         // Onboarding
         composable("onboarding") {
             OnboardingScreen(navController = navController)
@@ -80,7 +112,7 @@ fun MdaNavHost(
         // Home
         composable("home") {
             HomeScreen(
-                viewModel = homeViewModel,   // ✅ ممتاز: استخدام النسخة المشتركة (يمنع إعادة التحميل)
+                viewModel = homeViewModel,   
                 navController = navController,
                 onTopBarStateChange = onTopBarStateChange,
                 favoritesViewModel = favoritesViewModel,
@@ -93,7 +125,7 @@ fun MdaNavHost(
             ActorsScreen(
                 navController = navController,
                 actorsRepository = actorsRepository,
-                viewModel = actorViewModel, // ✅ ممتاز: استخدام النسخة المشتركة
+                viewModel = actorViewModel, 
                 onTopBarStateChange = onTopBarStateChange
             )
         }

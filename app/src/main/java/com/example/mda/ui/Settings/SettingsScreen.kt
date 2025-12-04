@@ -125,8 +125,7 @@ fun SettingsScreen(
 
         SettingsGroupCard {
             SettingsItem(Icons.Default.Lock, localizedString(LocalizationKeys.SETTINGS_PASSWORD)) {
-                // not implemented yet
-                // navController.navigate("change_password")
+                navController.navigate("password_settings")
             }
             Divider()
             SettingsItem(
