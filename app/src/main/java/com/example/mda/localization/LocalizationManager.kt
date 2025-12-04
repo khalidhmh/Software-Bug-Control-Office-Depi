@@ -38,13 +38,19 @@ class LocalizationManager(private val context: Context) {
         LanguageProvider.currentCode = language.code
     }
 
-    // Get string by key and language
+     // Get string by key and language with English fallback if missing
     fun getString(key: String, language: Language): String {
-        return when (language) {
-            Language.ENGLISH -> StringsEN[key] ?: key
-            Language.ARABIC -> StringsAR[key] ?: key
-            Language.GERMAN -> StringsDE[key] ?: key
+        val value = when (language) {
+            Language.ENGLISH -> StringsEN[key]
+            Language.ARABIC -> StringsAR[key]
+            Language.GERMAN -> StringsDE[key]
         }
+        if (value != null) return value
+        // Fallback to English if translation missing
+        val en = StringsEN[key]
+        if (en != null) return en
+        // As a last resort, return the key (useful to detect missing entries during dev)
+        return key
     }
 
     // Get string by key using current language (requires coroutine context)
@@ -106,6 +112,13 @@ object StringsEN {
         "detail_similar_count" to "Similar {count}",
         "detail_no_recommendations" to "No recommendations",
         "detail_no_similar" to "No similar",
+
+        // Detail About extras
+        "detail_about_movie" to "About movie",
+        "detail_status" to "Status",
+        "detail_original_language" to "Original language",
+        "detail_production_country" to "Production country",
+        "detail_production_companies" to "Production companies",
 
         // Authentication
         "auth_login_title" to "Login with TMDb",
@@ -310,7 +323,51 @@ object StringsEN {
         "common_show_more" to "Show more",
         "common_show_less" to "Show less",
         "common_expand" to "Expand",
-        "common_collapse" to "Collapse"
+        "common_collapse" to "Collapse",
+
+        // -------------------- Password / Kids PIN --------------------
+        "pw_manage_desc" to "Manage Kids Mode password and lock settings.",
+        "pw_require_pin_label" to "Require PIN to exit Kids mode",
+        "pw_set_pin_first" to "Set a PIN first",
+        "pw_set_kids_pin" to "Set Kids PIN",
+        "pw_change_kids_pin" to "Change Kids PIN",
+        "pw_clear_kids_pin" to "Clear Kids PIN",
+        "pw_clear_dialog_title" to "Enter PIN to clear",
+        "pw_clear_dialog_desc" to "Clearing will remove the PIN and disable lock.",
+        "pw_incorrect_pin" to "Incorrect PIN",
+        "pw_hint_set" to "Hint: Create a 6-digit PIN. You'll confirm it on the next step.",
+        "pw_enter_pin" to "Enter 6-digit PIN",
+        "pw_confirm_pin" to "Confirm PIN",
+        "pw_pins_mismatch" to "PINs do not match",
+        "pw_pins_mismatch_try_again" to "PINs do not match. Try again.",
+        "pw_hint_change" to "Hint: Enter old PIN, then set and confirm a new 6-digit PIN.",
+        "pw_enter_old_pin" to "Enter old PIN",
+        "pw_enter_new_pin" to "Enter new 6-digit PIN",
+        "pw_confirm_new_pin" to "Confirm new PIN",
+        "pw_incorrect_old_pin" to "Incorrect old PIN",
+        "pw_forgot_pin" to "Forgot PIN?",
+
+        // -------------------- Security Questions --------------------
+        "sq_title" to "Security Questions",
+        "sq_verify_title" to "Verify Identity",
+        "sq_header_setup" to "Answer recovery questions (choose from lists)",
+        "sq_subtext_setup" to "Please select a question and an answer for each. Placeholders are not allowed.",
+        "sq_header_verify" to "Answer your security questions to continue",
+        "sq_hint_verify" to "Hint: Choose the correct answers you picked before. Order is randomized.",
+        "sq_not_set" to "Security questions are not set.",
+        "sq_select_all_questions" to "Please select all three questions",
+        "sq_select_answer_each" to "Please select an answer for each question",
+        "sq_questions_must_differ" to "Questions must be different",
+        "sq_please_select_every_answer" to "Please select an answer for every question",
+        "sq_answers_not_match" to "Answers do not match",
+        "sq_btn_verify" to "Verify",
+        "sq_dialog_reset_title" to "Reset security questions?",
+        "sq_dialog_reset_text" to "Do you want to update your recovery questions before setting a new PIN?",
+        "sq_dialog_yes_update" to "Yes, update",
+        "sq_dialog_no_continue" to "No, continue",
+        "sq_question_1" to "Question 1",
+        "sq_question_2" to "Question 2",
+        "sq_question_3" to "Question 3"
     )
 
     operator fun get(key: String): String? = strings[key]
@@ -356,6 +413,50 @@ object StringsAR {
         "kids_try_another" to "جرّب البحث عن فيلم أطفال آخر ",
         "kids_clear_all" to "مسح الكل",
 
+        // -------------------- Password / Kids PIN --------------------
+        "pw_manage_desc" to "إدارة كلمة مرور وضع الأطفال وإعدادات القفل.",
+        "pw_require_pin_label" to "طلب رمز PIN للخروج من وضع الأطفال",
+        "pw_set_pin_first" to "قم بتعيين رمز PIN أولاً",
+        "pw_set_kids_pin" to "تعيين رمز PIN للأطفال",
+        "pw_change_kids_pin" to "تغيير رمز PIN للأطفال",
+        "pw_clear_kids_pin" to "مسح رمز PIN للأطفال",
+        "pw_clear_dialog_title" to "أدخل رمز PIN للمسح",
+        "pw_clear_dialog_desc" to "سيؤدي المسح إلى إزالة الرمز وتعطيل القفل.",
+        "pw_incorrect_pin" to "رمز PIN غير صحيح",
+        "pw_hint_set" to "تلميح: أنشئ رمز PIN مكون من 6 أرقام. ستقوم بتأكيده في الخطوة التالية.",
+        "pw_enter_pin" to "أدخل رمز PIN من 6 أرقام",
+        "pw_confirm_pin" to "تأكيد الرمز",
+        "pw_pins_mismatch" to "الرمزان غير متطابقين",
+        "pw_pins_mismatch_try_again" to "الرمزان غير متطابقين. حاول مرة أخرى.",
+        "pw_hint_change" to "تلميح: أدخل الرمز القديم، ثم أدخل رمزًا جديدًا من 6 أرقام وأكده.",
+        "pw_enter_old_pin" to "أدخل الرمز القديم",
+        "pw_enter_new_pin" to "أدخل رمزًا جديدًا من 6 أرقام",
+        "pw_confirm_new_pin" to "تأكيد الرمز الجديد",
+        "pw_incorrect_old_pin" to "الرمز القديم غير صحيح",
+        "pw_forgot_pin" to "نسيت الرمز؟",
+
+        // -------------------- Security Questions --------------------
+        "sq_title" to "أسئلة الأمان",
+        "sq_verify_title" to "تحقق من الهوية",
+        "sq_header_setup" to "أجب عن أسئلة الاستعادة (اختر من القوائم)",
+        "sq_subtext_setup" to "يرجى اختيار سؤال وإجابة لكل منهما. لا يُسمح بالقيم الافتراضية.",
+        "sq_header_verify" to "أجب عن أسئلة الأمان للمتابعة",
+        "sq_hint_verify" to "تلميح: اختر الإجابات الصحيحة التي اخترتها سابقًا. الترتيب عشوائي.",
+        "sq_not_set" to "لم يتم إعداد أسئلة الأمان.",
+        "sq_select_all_questions" to "يرجى اختيار الأسئلة الثلاثة",
+        "sq_select_answer_each" to "يرجى اختيار إجابة لكل سؤال",
+        "sq_questions_must_differ" to "يجب أن تكون الأسئلة مختلفة",
+        "sq_please_select_every_answer" to "يرجى اختيار إجابة لكل سؤال",
+        "sq_answers_not_match" to "الإجابات غير متطابقة",
+        "sq_btn_verify" to "تحقق",
+        "sq_dialog_reset_title" to "هل تريد إعادة تعيين أسئلة الأمان؟",
+        "sq_dialog_reset_text" to "هل تريد تحديث أسئلة الاستعادة قبل تعيين رمز PIN جديد؟",
+        "sq_dialog_yes_update" to "نعم، تحديث",
+        "sq_dialog_no_continue" to "لا، متابعة",
+        "sq_question_1" to "السؤال 1",
+        "sq_question_2" to "السؤال 2",
+        "sq_question_3" to "السؤال 3",
+
 
         // Movie Detail Screen
         "detail_production_details" to "تفاصيل الإنتاج",
@@ -364,7 +465,7 @@ object StringsAR {
         "detail_companies" to "شركات الإنتاج",
         "detail_genres" to "الأنواع",
         "detail_keywords" to "الكلمات المفتاحية",
-        "detail_cast" to "الممثلون",
+        "detail_cast" to "Cast",
         "detail_reviews" to "التقييمات",
         "detail_videos" to "الفيديوهات",
         "detail_runtime" to "المدة الزمنية",
@@ -373,6 +474,18 @@ object StringsAR {
         "detail_revenue" to "الإيرادات",
         "detail_rating" to "التقييم",
         "detail_overview" to "نظرة عامة",
+        "detail_discover" to "اكتشف",
+        "detail_recommendations_count" to "التوصيات {count}",
+        "detail_similar_count" to "مشابهة {count}",
+        "detail_no_recommendations" to "لا توجد توصيات",
+        "detail_no_similar" to "لا توجد أعمال مشابهة",
+
+        // Detail About extras
+        "detail_about_movie" to "عن الفيلم",
+        "detail_status" to "الحالة",
+        "detail_original_language" to "اللغة الأصلية",
+        "detail_production_country" to "بلد الإنتاج",
+        "detail_production_companies" to "شركات الإنتاج",
 
         // Authentication
         "auth_login_title" to "تسجيل الدخول عبر TMDb",
@@ -388,7 +501,7 @@ object StringsAR {
         "settings_title" to "الإعدادات",
         "settings_other" to "إعدادات أخرى",
         "settings_favorites" to "الأفلام المفضلة",
-        "settings_actors_viewed" to "الممثلون المشاهدون",
+        "settings_actors_viewed" to "Actors Viewed",
         "settings_movies_viewed" to "الأفلام المشاهدة",
         "settings_password" to "كلمة المرور",
         "settings_notifications" to "الإشعارات",
@@ -420,7 +533,7 @@ object StringsAR {
         // Navigation
         "nav_home" to "الرئيسية",
         "nav_movies" to "الأفلام",
-        "nav_actors" to "الأشخاص",
+        "nav_actors" to "People",
         "nav_search" to "البحث",
         "nav_favorites" to "المفضلة",
         "nav_settings" to "الإعدادات",
@@ -513,11 +626,18 @@ object StringsDE {
         "detail_no_recommendations" to "Keine Empfehlungen",
         "detail_no_similar" to "Keine Ähnlichen",
 
+        // Detail About extras
+        "detail_about_movie" to "Über den Film",
+        "detail_status" to "Status",
+        "detail_original_language" to "Originalsprache",
+        "detail_production_country" to "Produktionsland",
+        "detail_production_companies" to "Produktionsfirmen",
+
         // Settings Screen
         "settings_title" to "Einstellungen",
         "settings_other" to "Weitere Einstellungen",
         "settings_favorites" to "Lieblingsfilme",
-        "settings_actors_viewed" to "Angesehene Schauspieler",
+        "settings_actors_viewed" to "Actors Viewed",
         "settings_movies_viewed" to "Angesehene Filme",
         "settings_password" to "Passwort",
         "settings_notifications" to "Benachrichtigungen",
@@ -574,17 +694,6 @@ object StringsDE {
         "kids_filter_all" to "Alle",
         "kids_filter_movies" to "Filme",
         "kids_filter_tv" to "Serien",
-        "kids_recent_searches" to "Letzte Suchanfragen",
-        "kids_no_results" to "Keine Ergebnisse gefunden für",
-        "kids_try_another" to "Versuchen Sie, nach einem anderen Kinderfilm zu suchen ",
-        "kids_clear_all" to "Alles löschen",
-
-
-
-        // Genre Details
-        "genre_title" to "{genre}",
-        "genre_filter_all" to "Alle Filme",
-        "genre_filter_top_rated" to "Top bewertet",
         "genre_filter_newest" to "Neueste",
         "genre_filter_popular" to "Am beliebtesten",
         "genre_filter_family" to "Familienfreundlich",
@@ -635,7 +744,7 @@ object StringsDE {
         // Navigation
         "nav_home" to "Startseite",
         "nav_movies" to "Filme",
-        "nav_actors" to "Personen",
+        "nav_actors" to "People",
         "nav_search" to "Suche",
         "nav_favorites" to "Favoriten",
         "nav_settings" to "Einstellungen",

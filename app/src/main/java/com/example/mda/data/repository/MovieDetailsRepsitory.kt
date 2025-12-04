@@ -11,6 +11,7 @@ import com.example.mda.data.remote.model.WatchProvidersResponse
 import com.example.mda.data.remote.model.ReviewsResponse
 import com.example.mda.data.remote.model.KeywordsResponse
 import com.example.mda.data.repository.mappers.toMediaEntity
+import com.example.mda.localization.LanguageProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -26,6 +27,13 @@ class MovieDetailsRepository(
         mediaDao.getById(id, type = "movie")
     }
 
+// Only override language-dependent UI text (e.g., overview)
+private fun overrideTextOnly(baseEn: MediaEntity, localized: MediaEntity): MediaEntity {
+    return baseEn.copy(
+        overview = localized.overview?.takeIf { it.isNotBlank() } ?: baseEn.overview
+    )
+}
+
     suspend fun getCachedTv(id: Int): MediaEntity? = withContext(Dispatchers.IO) {
         mediaDao.getById(id, type = "tv")
     }
@@ -33,19 +41,36 @@ class MovieDetailsRepository(
     suspend fun getMovieById(id: Int): MediaEntity? = withContext(Dispatchers.IO) {
         Log.d(TAG, "🎬 Fetching movie details for ID: $id")
         try {
-            val response = apiService.getMovieDetails(
+            // 1) Always get English as the base to keep consistent metadata across languages
+            val enResp = apiService.getMovieDetails(
                 movieId = id,
-                // use defaults that include images
+                language = "en",
                 apiKey = TMDB_API_KEY
             )
 
-            if (response.isSuccessful) {
-                val body: MovieDetailsResponse? = response.body()
-                Log.d(TAG, "✅ Movie API response: ${body?.title}")
-                Log.d(TAG, "📊 Credits: ${body?.credits?.cast?.size ?: 0} cast members")
-                Log.d(TAG, "🎥 Videos: ${body?.videos?.results?.size ?: 0} videos")
+            if (enResp.isSuccessful) {
+                val enBody: MovieDetailsResponse? = enResp.body()
+                Log.d(TAG, "✅ Movie EN response: ${enBody?.title}")
+                Log.d(TAG, "📊 Credits: ${enBody?.credits?.cast?.size ?: 0} cast members")
+                Log.d(TAG, "🎥 Videos: ${enBody?.videos?.results?.size ?: 0} videos")
 
-                val entity = body?.toMediaEntity("movie") ?: return@withContext null
+                var entity = enBody?.toMediaEntity("movie") ?: return@withContext null
+
+                // 2) If current language is not English, fetch localized and override text-only fields
+                if (LanguageProvider.currentCode != "en") {
+                    runCatching {
+                        val locResp = apiService.getMovieDetails(
+                            movieId = id,
+                            // no explicit language -> interceptor adds selected language
+                            apiKey = TMDB_API_KEY
+                        )
+                        if (locResp.isSuccessful) {
+                            locResp.body()?.toMediaEntity("movie")?.let { locEntity ->
+                                entity = overrideTextOnly(entity, locEntity)
+                            }
+                        }
+                    }.onFailure { Log.w(TAG, "Localized fetch failed: ${it.message}") }
+                }
 
                 // الحفاظ على حالة المفضلة و الـ Watchlist
                 val existingEntity = mediaDao.getByIdOnly(id)
@@ -62,8 +87,8 @@ class MovieDetailsRepository(
                 mediaDao.upsert(finalEntity)
                 finalEntity
             } else {
-                Log.e(TAG, "❌ API Error: ${response.code()} - ${response.message()}")
-                throw Exception("Failed to load movie details: ${response.code()}")
+                Log.e(TAG, "❌ API Error: ${enResp.code()} - ${enResp.message()}")
+                throw Exception("Failed to load movie details: ${enResp.code()}")
             }
         } catch (e: Exception) {
             Log.e(TAG, "❌ Exception in getMovieById: ${e.message}", e)
@@ -74,19 +99,35 @@ class MovieDetailsRepository(
     suspend fun getTvById(id: Int): MediaEntity? = withContext(Dispatchers.IO) {
         Log.d(TAG, "📺 Fetching TV details for ID: $id")
         try {
-            val response = apiService.getTvDetails(
+            // 1) Always get English base
+            val enResp = apiService.getTvDetails(
                 tvId = id,
-                // use defaults that include images
+                language = "en",
                 apiKey = TMDB_API_KEY
             )
 
-            if (response.isSuccessful) {
-                val body: MovieDetailsResponse? = response.body()
-                Log.d(TAG, "✅ TV API response: ${body?.title}")
-                Log.d(TAG, "📊 Credits: ${body?.credits?.cast?.size ?: 0} cast members")
-                Log.d(TAG, "🎥 Videos: ${body?.videos?.results?.size ?: 0} videos")
+            if (enResp.isSuccessful) {
+                val enBody: MovieDetailsResponse? = enResp.body()
+                Log.d(TAG, "✅ TV EN response: ${enBody?.title}")
+                Log.d(TAG, "📊 Credits: ${enBody?.credits?.cast?.size ?: 0} cast members")
+                Log.d(TAG, "🎥 Videos: ${enBody?.videos?.results?.size ?: 0} videos")
 
-                val entity = body?.toMediaEntity("tv") ?: return@withContext null
+                var entity = enBody?.toMediaEntity("tv") ?: return@withContext null
+
+                // 2) Overlay localized text-only fields
+                if (LanguageProvider.currentCode != "en") {
+                    runCatching {
+                        val locResp = apiService.getTvDetails(
+                            tvId = id,
+                            apiKey = TMDB_API_KEY
+                        )
+                        if (locResp.isSuccessful) {
+                            locResp.body()?.toMediaEntity("tv")?.let { locEntity ->
+                                entity = overrideTextOnly(entity, locEntity)
+                            }
+                        }
+                    }.onFailure { Log.w(TAG, "Localized fetch (TV) failed: ${it.message}") }
+                }
 
                 // الحفاظ على حالة المفضلة و الـ Watchlist
                 val existingEntity = mediaDao.getByIdOnly(id)
@@ -103,8 +144,8 @@ class MovieDetailsRepository(
                 mediaDao.upsert(finalEntity)
                 finalEntity
             } else {
-                Log.e(TAG, "❌ API Error: ${response.code()} - ${response.message()}")
-                throw Exception("Failed to load tv details: ${response.code()}")
+                Log.e(TAG, "❌ API Error: ${enResp.code()} - ${enResp.message()}")
+                throw Exception("Failed to load tv details: ${enResp.code()}")
             }
         } catch (e: Exception) {
             Log.e(TAG, "❌ Exception in getTvById: ${e.message}", e)
@@ -241,4 +282,22 @@ class MovieDetailsRepository(
 
 
 // 🔹 Mapper لتحويل MovieDetailsResponse لـ MediaEntity
+private fun mergeEntities(primary: MediaEntity, fallback: MediaEntity): MediaEntity {
+    fun <T> pick(p: T?, f: T?): T? = p ?: f
+    fun pickText(p: String?, f: String?): String? = if (!p.isNullOrBlank()) p else f
+    fun <T> pickList(p: List<T>?, f: List<T>?): List<T>? = if (!p.isNullOrEmpty()) p else f
+
+    return primary.copy(
+        title = pickText(primary.title, fallback.title),
+        name = pickText(primary.name, fallback.name),
+        overview = pickText(primary.overview, fallback.overview),
+        genres = pickList(primary.genres, fallback.genres),
+        spokenLanguages = pickList(primary.spokenLanguages, fallback.spokenLanguages),
+        productionCompanies = pickList(primary.productionCompanies, fallback.productionCompanies),
+        productionCountries = pickList(primary.productionCountries, fallback.productionCountries),
+        runtime = pick(primary.runtime, fallback.runtime),
+        tagline = pickText(primary.tagline, fallback.tagline),
+        status = pickText(primary.status, fallback.status)
+    )
+}
 

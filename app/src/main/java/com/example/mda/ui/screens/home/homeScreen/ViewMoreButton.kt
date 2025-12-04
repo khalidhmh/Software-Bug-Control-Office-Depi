@@ -12,7 +12,7 @@ fun ViewMoreButton(onClick: () -> Unit) {
         )
     ) {
         Text(
-            text = "View More",
+            text = com.example.mda.localization.localizedString(com.example.mda.localization.LocalizationKeys.COMMON_SHOW_MORE),
             style = MaterialTheme.typography.labelMedium
         )
     }

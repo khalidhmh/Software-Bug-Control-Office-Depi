@@ -91,7 +91,8 @@ class MainActivity : ComponentActivity() {
     companion object {
         val HIDE_BAR_ROUTES = setOf(
             "splash", "ActorDetails/{personId}", "detail/{mediaType}/{id}",
-            "onboarding", "login", "signup", "account", "kids" // Added 'kids' from fares
+            "onboarding", "login", "signup", "account", "kids", // Added 'kids' from fares
+            "language_settings" // Hide bottom navigation on Language Settings screen
         )
         // Reset titles for specific settings pages
         val RESET_TOP_BAR_ROUTES = setOf("about_app", "help_faq", "privacy_policy")

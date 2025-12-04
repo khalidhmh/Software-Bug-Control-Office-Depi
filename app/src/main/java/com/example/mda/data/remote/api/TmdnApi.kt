@@ -17,7 +17,7 @@ interface TmdbApi {
 
     @GET("movie/popular")
     suspend fun getPopularMovies(
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
@@ -25,7 +25,7 @@ interface TmdbApi {
 
     @GET("movie/top_rated")
     suspend fun getTopRatedMovies(
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
@@ -35,7 +35,7 @@ interface TmdbApi {
     suspend fun getTvShowsByGenre(
         @Query("with_genres") genreId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("include_adult") includeAdult: Boolean = false,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
@@ -45,7 +45,7 @@ interface TmdbApi {
         @Query("with_genres") genreId: Int,
         @Query("page") page: Int = 1,
         @Query("sort_by") sortBy: String = "popularity.desc",
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("include_adult") includeAdult: Boolean = false,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
@@ -53,9 +53,9 @@ interface TmdbApi {
     @GET("movie/{movie_id}")
     suspend fun getMovieDetails(
         @Path("movie_id") movieId: Int,
-        @Query("append_to_response") appendToResponse: String = "videos,credits,images",
+        @Query("append_to_response") appendToResponse: String = "videos,credits",
         @Query("include_image_language") includeImageLanguage: String = "en,null",
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieDetailsResponse>
 
@@ -63,7 +63,7 @@ interface TmdbApi {
     suspend fun getSimilarMovies(
         @Path("movie_id") movieId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
@@ -71,7 +71,7 @@ interface TmdbApi {
     suspend fun getRecommendedMovies(
         @Path("movie_id") movieId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
@@ -91,7 +91,7 @@ interface TmdbApi {
     suspend fun getMovieReviews(
         @Path("movie_id") movieId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<ReviewsResponse>
 
@@ -105,7 +105,7 @@ interface TmdbApi {
 
     @GET("tv/popular")
     suspend fun getPopularTvShows(
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("page") page: Int = 1,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
@@ -113,9 +113,9 @@ interface TmdbApi {
     @GET("tv/{tv_id}")
     suspend fun getTvDetails(
         @Path("tv_id") tvId: Int,
-        @Query("append_to_response") appendToResponse: String = "videos,credits,images",
+        @Query("append_to_response") appendToResponse: String = "videos,credits",
         @Query("include_image_language") includeImageLanguage: String = "en,null",
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieDetailsResponse>
 
@@ -123,7 +123,7 @@ interface TmdbApi {
     suspend fun getSimilarTvShows(
         @Path("tv_id") tvId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
@@ -131,7 +131,7 @@ interface TmdbApi {
     suspend fun getRecommendedTvShows(
         @Path("tv_id") tvId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
@@ -145,7 +145,7 @@ interface TmdbApi {
     suspend fun getTvReviews(
         @Path("tv_id") tvId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<ReviewsResponse>
 
@@ -161,28 +161,28 @@ interface TmdbApi {
     suspend fun getTrendingMedia(
         @Path("media_type") mediaType: String = "all",
         @Path("time_window") timeWindow: String = "day",
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
     // ------------------ Actors / People ------------------
-    // ✅ Khaled Edit: Added endpoint for popular people list (used in ActorsScreen)
+    // Khaled Edit: Added endpoint for popular people list (used in ActorsScreen)
     @GET("person/popular")
     suspend fun getPopularPeople(
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY,
     ): Response<ActorResponse>
 
-    // ✅ Khaled Edit: Search people by name (optional, used for future search feature)
+    // Khaled Edit: Search people by name (optional, used for future search feature)
     @GET("search/person")
     suspend fun searchPeople(
         @Query("query") query: String,
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY,
     ): Response<ActorResponse>
 
@@ -197,7 +197,7 @@ interface TmdbApi {
 
     @GET("genre/movie/list")
     suspend fun getGenres(
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<GenreResponse>
 
@@ -207,7 +207,7 @@ interface TmdbApi {
         @Query("query") query: String,
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
@@ -216,7 +216,7 @@ interface TmdbApi {
         @Query("query") query: String,
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
@@ -225,7 +225,7 @@ interface TmdbApi {
         @Query("query") query: String,
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
@@ -248,14 +248,13 @@ interface TmdbApi {
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<AccountDetails>
 
-
 // -------- Recommendations for Movies & TV --------
 
     @GET("movie/{movie_id}/recommendations")
     suspend fun getMovieRecommendations(
         @Path("movie_id") movieId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 
@@ -263,7 +262,7 @@ interface TmdbApi {
     suspend fun getTvRecommendations(
         @Path("tv_id") tvId: Int,
         @Query("page") page: Int = 1,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String? = null,
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<MovieResponse>
 

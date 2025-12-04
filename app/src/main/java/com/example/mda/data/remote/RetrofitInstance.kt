@@ -42,6 +42,13 @@ object RetrofitInstance {
             if (originalUrl.queryParameter("language") != null) {
                 return chain.proceed(original)
             }
+            // Do not add language for people/actors endpoints to keep original API language
+            val path = originalUrl.encodedPath
+            val isPeopleEndpoint =
+                path.startsWith("/person") || path.startsWith("/search/person") || path.contains("/person/") || path == "/person/popular"
+            if (isPeopleEndpoint) {
+                return chain.proceed(original)
+            }
             val code = when (LanguageProvider.currentCode) {
                 "ar" -> "ar"
                 "de" -> "de"
