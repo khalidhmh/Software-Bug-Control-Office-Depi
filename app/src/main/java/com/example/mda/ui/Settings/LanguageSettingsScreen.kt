@@ -57,9 +57,11 @@ fun LanguageSettingsScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text(
                 text = localizedString(LocalizationKeys.SETTINGS_LANGUAGE_SELECT_TITLE),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -77,7 +79,7 @@ fun LanguageSettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Info Card
             Card(
@@ -143,22 +145,37 @@ private fun LanguageOptionCard(
             null,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp)
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Start
         ) {
+            RadioButton(selected = isSelected, onClick = onClick)
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            val flag = when (language) {
+                LocalizationManager.Language.ENGLISH -> "\uD83C\uDDEC\uD83C\uDDE7" // 🇬🇧
+                LocalizationManager.Language.ARABIC -> "\uD83C\uDDF8\uD83C\uDDE6" // 🇸🇦
+                LocalizationManager.Language.GERMAN -> "\uD83C\uDDE9\uD83C\uDDEA" // 🇩🇪
+            }
+            Text(text = flag, style = MaterialTheme.typography.titleLarge)
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = language.displayName,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -166,15 +183,6 @@ private fun LanguageOptionCard(
                     text = language.code.uppercase(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = localizedString(LocalizationKeys.SETTINGS_LANGUAGE_SELECTED_CD),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
                 )
             }
         }

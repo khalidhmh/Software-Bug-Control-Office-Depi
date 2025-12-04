@@ -100,7 +100,11 @@ fun SetKidsPinScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
+            Spacer(Modifier.height(24.dp))
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            ) {
                 Text(
                     text = localizedString(LocalizationKeys.PW_HINT_SET),
                     style = MaterialTheme.typography.bodySmall,
@@ -109,7 +113,7 @@ fun SetKidsPinScreen(
             }
             Text(
                 text = if (stage == 1) localizedString(LocalizationKeys.PW_ENTER_PIN) else localizedString(LocalizationKeys.PW_CONFIRM_PIN),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             PinDots(count = pin.length)
             Spacer(Modifier.height(8.dp))
