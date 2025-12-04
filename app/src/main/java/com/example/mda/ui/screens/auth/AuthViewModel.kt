@@ -38,9 +38,9 @@ class AuthViewModel(
         }
     }
 
-    /**
-     * Step 1: Start the authentication flow by creating a request token
-     */
+
+    // Start the authentication flow by creating a request token
+
     fun startAuthentication() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -67,9 +67,8 @@ class AuthViewModel(
         }
     }
 
-    /**
-     * Step 2: Complete authentication after user approves in WebView
-     */
+     // Step 2: Complete authentication after user approves in WebView
+
     suspend fun completeAuthentication() {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
@@ -92,7 +91,6 @@ class AuthViewModel(
                     error = null
                 )
 
-                // 🟢 بعد نجاح التسجيل، نستدعي حساب المستخدم بالكامل من TMDB
                 viewModelScope.launch {
                     fetchAccountDetails()
                 }
@@ -107,9 +105,9 @@ class AuthViewModel(
         )
     }
 
-    /**
-     * Fetch account details after login
-     */
+
+    //  Fetch account details after login
+
     fun fetchAccountDetails() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -132,9 +130,9 @@ class AuthViewModel(
         }
     }
 
-    /**
-     * Logout
-     */
+
+    // Logout
+
     fun logout() {
         viewModelScope.launch {
             authRepository.logout()

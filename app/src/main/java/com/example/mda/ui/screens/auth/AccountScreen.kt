@@ -152,7 +152,6 @@ fun AccountScreen(
 
                         Spacer(modifier = Modifier.height(30.dp))
 
-                        // ===== Logout button (Primary color instead of red) =====
                         OutlinedButton(
                             onClick = {
                                 viewModel.logout()

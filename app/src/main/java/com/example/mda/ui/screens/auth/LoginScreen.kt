@@ -32,9 +32,8 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
     var hasCompletedAuth by remember { mutableStateOf(false) }
-    var hasNavigated by remember { mutableStateOf(false) }  // ✅ Add this flag
+    var hasNavigated by remember { mutableStateOf(false) }
 
-    // Theme colors matching MainActivity
     val topBarText = if (darkTheme) Color.White else Color.Black
 
     LaunchedEffect(Unit) {
@@ -42,7 +41,6 @@ fun LoginScreen(
         viewModel.startAuthentication()
     }
 
-    // ✅ Handle navigation separately with a flag to prevent double navigation
     LaunchedEffect(uiState.isAuthenticated) {
         if (uiState.isAuthenticated && !hasNavigated) {
             hasNavigated = true
@@ -119,7 +117,7 @@ fun LoginScreen(
                         Button(
                             onClick = {
                                 hasCompletedAuth = false
-                                hasNavigated = false  // ✅ Reset navigation flag
+                                hasNavigated = false
                                 viewModel.startAuthentication()
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -131,7 +129,6 @@ fun LoginScreen(
                     }
                 }
                 uiState.authUrl != null && !hasCompletedAuth && !uiState.isAuthenticated -> {
-                    // ✅ Added !uiState.isAuthenticated check
                     TMDbWebView(
                         url = uiState.authUrl!!,
                         onAuthComplete = { approved ->
@@ -149,7 +146,6 @@ fun LoginScreen(
                         }
                     )
                 }
-                // ✅ Removed the isAuthenticated case here - it's handled by LaunchedEffect above
             }
         }
     }

@@ -23,7 +23,6 @@ fun SignupScreen(
     darkTheme: Boolean = false,
     onToggleTheme: () -> Unit = {}
 ) {
-    // Theme colors matching MainActivity
     val topBarText = if (darkTheme) Color.White else Color.Black
 
     Scaffold(
