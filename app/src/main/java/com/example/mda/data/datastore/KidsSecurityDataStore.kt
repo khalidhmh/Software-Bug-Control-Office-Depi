@@ -16,6 +16,7 @@ class KidsSecurityDataStore(private val context: Context) {
     companion object {
         private val KEY_PIN = stringPreferencesKey("kids_pin")
         private val KEY_LOCK_ENABLED = intPreferencesKey("kids_lock_enabled") // 1 true, 0 false
+        private val KEY_ACTIVE = intPreferencesKey("kids_active") // 1 active, 0 inactive
         private val KEY_Q1 = intPreferencesKey("kids_sec_q1")
         private val KEY_Q2 = intPreferencesKey("kids_sec_q2")
         private val KEY_Q3 = intPreferencesKey("kids_sec_q3")
@@ -30,6 +31,7 @@ class KidsSecurityDataStore(private val context: Context) {
 
     val pinFlow: Flow<String?> = context.kidsSecurityDataStore.data.map { it[KEY_PIN] }
     val lockEnabledFlow: Flow<Boolean> = context.kidsSecurityDataStore.data.map { (it[KEY_LOCK_ENABLED] ?: 0) == 1 }
+    val activeFlow: Flow<Boolean> = context.kidsSecurityDataStore.data.map { (it[KEY_ACTIVE] ?: 0) == 1 }
 
     data class SecurityQA(
         val q1: Int?, val q2: Int?, val q3: Int?,
@@ -59,6 +61,12 @@ class KidsSecurityDataStore(private val context: Context) {
     suspend fun setLockEnabled(enabled: Boolean) {
         context.kidsSecurityDataStore.edit { prefs ->
             prefs[KEY_LOCK_ENABLED] = if (enabled) 1 else 0
+        }
+    }
+
+    suspend fun setActive(active: Boolean) {
+        context.kidsSecurityDataStore.edit { prefs ->
+            prefs[KEY_ACTIVE] = if (active) 1 else 0
         }
     }
 

@@ -72,6 +72,11 @@ android {
             )
         }
     }
+
+    // Enable Android resources in unit tests (required for Robolectric)
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 dependencies {
@@ -175,4 +180,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.0")
     androidTestImplementation("io.mockk:mockk-android:1.13.11")
     androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
+
+    // For ApplicationProvider in local unit tests and Android framework access
+    testImplementation("androidx.test:core:1.6.1")
+    // Robolectric to run Android-dependent unit tests on the JVM
+    testImplementation("org.robolectric:robolectric:4.12.2")
 }

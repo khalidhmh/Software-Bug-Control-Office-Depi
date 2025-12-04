@@ -119,9 +119,13 @@ fun SecurityQuestionsSetupScreen(
                 .align(Alignment.CenterHorizontally),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(localizedString(LocalizationKeys.SQ_HEADER_SETUP), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                Text(localizedString(LocalizationKeys.SQ_HEADER_SETUP), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
                 Text(
                     localizedString(LocalizationKeys.SQ_SUBTEXT_SETUP),
                     style = MaterialTheme.typography.bodySmall,

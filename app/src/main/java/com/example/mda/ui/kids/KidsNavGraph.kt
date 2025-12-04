@@ -14,6 +14,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.mda.ui.navigation.AnimatedNavigationBar
 import com.example.mda.ui.navigation.ButtonData
+import kotlinx.coroutines.launch
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.IconButton
@@ -79,6 +82,7 @@ fun KidsRoot(
     val context = LocalContext.current
     val settingsDataStore = remember { SettingsDataStore(context) }
     val kidsSecurityStore = remember { KidsSecurityDataStore(context) }
+    val scope = rememberCoroutineScope()
     val themeMode by settingsDataStore.themeModeFlow.collectAsState(initial = 0)
     val lockEnabled by kidsSecurityStore.lockEnabledFlow.collectAsState(initial = false)
     val savedPin by kidsSecurityStore.pinFlow.collectAsState(initial = null)
@@ -99,6 +103,12 @@ fun KidsRoot(
     var showExitPin by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     var pinInput by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
     var pinError by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    val requiredPinLength = remember(savedPin) { (savedPin?.length ?: 6).coerceIn(4, 6) }
+
+    LaunchedEffect(Unit) {
+        // Mark Kids Mode as active when entering KidsRoot
+        kidsSecurityStore.setActive(true)
+    }
 
     fun requestExit() {
         if (lockEnabled && !savedPin.isNullOrEmpty()) {
@@ -106,7 +116,11 @@ fun KidsRoot(
             pinInput = ""
             pinError = null
         } else {
-            parentNavController.popBackStack()
+            scope.launch { kidsSecurityStore.setActive(false) }
+            parentNavController.navigate("home") {
+                popUpTo("kids") { inclusive = true }
+                launchSingleTop = true
+            }
         }
     }
 
@@ -116,7 +130,7 @@ fun KidsRoot(
         if (lockEnabled && !savedPin.isNullOrEmpty()) {
             showExitPin = true
         } else {
-            parentNavController.popBackStack()
+            requestExit()
         }
     }
 
@@ -216,7 +230,7 @@ fun KidsRoot(
 
     if (showExitPin) {
         androidx.compose.material3.AlertDialog(
-            onDismissRequest = { /* block dismiss */ },
+            onDismissRequest = { showExitPin = false },
             title = { Text("Enter PIN to exit") },
             text = {
                 Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
@@ -227,11 +241,20 @@ fun KidsRoot(
                     Spacer(modifier = androidx.compose.ui.Modifier.height(12.dp))
                     PinPad(
                         onDigit = {
-                            if (pinInput.length < 6) pinInput += it.toString()
-                            if (pinInput.length == 6) {
-                                if (pinInput == savedPin) {
+                            if (pinInput.length < requiredPinLength) {
+                                pinInput += it.toString()
+                                if (pinError != null) pinError = null
+                            }
+                            if (pinInput.length == requiredPinLength) {
+                                val entered = pinInput.trim()
+                                val stored = (savedPin ?: "").trim()
+                                if (entered == stored) {
                                     showExitPin = false
-                                    parentNavController.popBackStack()
+                                    scope.launch { kidsSecurityStore.setActive(false) }
+                                    parentNavController.navigate("home") {
+                                        popUpTo("kids") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 } else {
                                     pinError = "Incorrect PIN"
                                     pinInput = ""
@@ -244,7 +267,7 @@ fun KidsRoot(
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { /* prevent closing */ }) { Text("") }
+                TextButton(onClick = { showExitPin = false }) { Text("Cancel") }
             }
         )
     }

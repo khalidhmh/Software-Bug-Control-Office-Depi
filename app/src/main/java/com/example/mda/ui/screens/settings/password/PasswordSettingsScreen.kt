@@ -53,8 +53,10 @@ fun PasswordSettingsScreen(
                 .align(Alignment.CenterHorizontally),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+        Spacer(modifier = Modifier.height(24.dp))
         Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -143,7 +145,7 @@ fun PasswordSettingsScreen(
                     },
                     confirmButton = {},
                     dismissButton = {
-                        TextButton(onClick = { /* prevent closing */ }) { Text("") }
+                        TextButton(onClick = { showClearDialog = false }) { Text(localizedString(LocalizationKeys.COMMON_BACK)) }
                     }
                 )
             }
