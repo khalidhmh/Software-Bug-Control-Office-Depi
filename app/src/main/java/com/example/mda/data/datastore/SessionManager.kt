@@ -18,7 +18,7 @@ class SessionManager(private val context: Context) {
     companion object {
         private val SESSION_ID_KEY = stringPreferencesKey("session_id")
         private val REQUEST_TOKEN_KEY = stringPreferencesKey("request_token")
-        private val ACCOUNT_ID_KEY = intPreferencesKey("account_id")   // 👈 موجود تمام
+        private val ACCOUNT_ID_KEY = intPreferencesKey("account_id")
         private val ACCOUNT_NAME_KEY = stringPreferencesKey("account_name")
         private val ACCOUNT_USERNAME_KEY = stringPreferencesKey("account_username")
     }
@@ -35,7 +35,6 @@ class SessionManager(private val context: Context) {
         }
     }
 
-    // 👇 حفظ الـ account_id
     suspend fun saveAccountId(accountId: Int) {
         context.dataStore.edit { preferences ->
             preferences[ACCOUNT_ID_KEY] = accountId
@@ -50,17 +49,14 @@ class SessionManager(private val context: Context) {
         }
     }
 
-    // 👇 قراءة الـ sessionId
     val sessionId: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[SESSION_ID_KEY]
     }
 
-    // 👇 قراءة الـ requestToken
     val requestToken: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[REQUEST_TOKEN_KEY]
     }
 
-    // 👈 دي اللي كانت ناقصة: قراءة الـ accountId
     val accountId: Flow<Int?> = context.dataStore.data.map { preferences ->
         preferences[ACCOUNT_ID_KEY]
     }

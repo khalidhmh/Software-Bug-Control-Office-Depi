@@ -3,11 +3,10 @@ package com.example.mda.data.repository
 import com.example.mda.data.local.dao.MediaDao
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.remote.api.TmdbApi
-import com.example.mda.data.remote.model.Movie
 import com.example.mda.data.repository.mappers.toMediaEntity
 import kotlinx.coroutines.flow.first
 
-class MoviesByGenreRepository(
+class GenreDetailsRepository(
     private val api: TmdbApi,
     private val dao: MediaDao
 ) {

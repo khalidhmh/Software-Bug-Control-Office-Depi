@@ -5,7 +5,6 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
 
-// Extension property لسهولة الوصول للـ DataStore
 val Context.settingsDataStore by preferencesDataStore(name = "settings_prefs")
 
 class SettingsDataStore(private val context: Context) {
