@@ -36,6 +36,15 @@ class GenreDetailsViewModel(private val repository: MoviesRepository) : ViewMode
     private var allMovies = mutableListOf<MediaEntity>()
     private var currentGenreId: Int = 0
 
+    // Map movie-genre IDs to their TV equivalents when needed
+    private val movieToTvGenreIdMap = mapOf(
+        12 to 10759,  // Adventure -> Action & Adventure (TV)
+        28 to 10759,  // Action -> Action & Adventure
+        14 to 10765,  // Fantasy -> Sci-Fi & Fantasy
+        27 to 9648,   // Horror -> Mystery (approximation)
+        878 to 10765  // Sci-Fi -> Sci-Fi & Fantasy
+    )
+
     fun loadMoviesByGenre(genreId: Int) {
         if (isLoading || !canLoadMore) return
         currentGenreId = genreId
@@ -43,9 +52,16 @@ class GenreDetailsViewModel(private val repository: MoviesRepository) : ViewMode
         viewModelScope.launch {
             isLoading = true
             try {
+                // Choose the correct genre ID based on media type
+                val targetGenreId = if (mediaTypeFilter == MediaTypeFilter.TV_SHOWS) {
+                    movieToTvGenreIdMap[genreId] ?: genreId
+                } else {
+                    genreId
+                }
+
                 val newMovies = when (mediaTypeFilter) {
-                    MediaTypeFilter.MOVIES -> repository.getMoviesByGenre(genreId, currentPage)
-                    MediaTypeFilter.TV_SHOWS -> repository.getTvShowsByGenre(genreId, currentPage)
+                    MediaTypeFilter.MOVIES -> repository.getMoviesByGenre(targetGenreId, currentPage)
+                    MediaTypeFilter.TV_SHOWS -> repository.getTvShowsByGenre(targetGenreId, currentPage)
                 }
 
                 if (newMovies.isNotEmpty()) {
