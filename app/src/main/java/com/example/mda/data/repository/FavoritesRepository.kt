@@ -17,16 +17,13 @@ class FavoritesRepository(
     fun getFavorites(): Flow<List<MediaEntity>> = localRepo.getFavorites()
 
     suspend fun toggleFavorite(movie: Movie): Boolean {
-        // التأكد أولاً إن الفيلم موجود في القاعدة
         val existingEntity = localRepo.getById(movie.id)
         val currentStatus = existingEntity?.isFavorite ?: false
         val newStatus = !currentStatus
 
-        // إذا كان الفيلم موجود، نحدث الـ isFavorite فقط مع الحفاظ على كل البيانات
         val mediaEntity = if (existingEntity != null) {
             existingEntity.copy(isFavorite = newStatus)
         } else {
-            // إذا كان جديد، نضيفه بالكامل
             MediaEntity(
                 id = movie.id,
                 title = movie.title,
@@ -44,10 +41,8 @@ class FavoritesRepository(
             )
         }
 
-        // 1️⃣ حدّث الـ local DB (UX أسرع حتى لو النت وقع)
         localRepo.addOrUpdate(mediaEntity)
 
-        // 2️⃣ حاول تزامن مع TMDb account
         try {
             val sessionId = sessionManager.sessionId.first()
             val accountId = sessionManager.accountId.first()
@@ -76,32 +71,46 @@ class FavoritesRepository(
     /**
      * Get remote favorites list from TMDb
      */
-    suspend fun fetchFavoritesFromTmdb(): List<Int> {
+    suspend fun fetchFavoritesFromTmdb(): List<Pair<Int, String>> {
         val sessionId = sessionManager.sessionId.first()
         val accountId = sessionManager.accountId.first()
 
         if (sessionId.isNullOrEmpty() || accountId == null) return emptyList()
 
-        val response = api.getFavoriteMovies(accountId, sessionId)
-        if (!response.isSuccessful || response.body() == null) return emptyList()
+        val movieIds = try {
+            val resp = api.getFavoriteMovies(accountId, sessionId)
+            if (resp.isSuccessful && resp.body() != null) {
+                resp.body()!!.results.map { it.id to "movie" }
+            } else emptyList()
+        } catch (e: Exception) { emptyList() }
 
-        return response.body()!!.results.map { it.id }
+        val tvIds = try {
+            val resp = api.getFavoriteTvShows(accountId, sessionId)
+            if (resp.isSuccessful && resp.body() != null) {
+                resp.body()!!.results.map { it.id to "tv" }
+            } else emptyList()
+        } catch (e: Exception) { emptyList() }
+
+        return (movieIds + tvIds)
     }
 
-    /**
-     * Sync remote TMDb favorites → local Room DB
-     */
+
+    // Sync remote TMDb favorites → local Room DB
     suspend fun syncFavoritesFromTmdb() {
-        val remoteFavorites = fetchFavoritesFromTmdb()
+        val remote = fetchFavoritesFromTmdb()
+        val remoteIds = remote.map { it.first }.toSet()
 
-        // Clear old local favorites
-        localRepo.clearAllFavorites()
+        // get current local favorites
+        val currentFavs = localRepo.getFavorites().first().map { it.id }.toSet()
 
-        // Add new ones
-        remoteFavorites.forEach { id ->
-            localRepo.setFavorite(id, true)
-        }
+        // remove favorites that are local but not remote
+        val toRemove = currentFavs - remoteIds
+        toRemove.forEach { id -> localRepo.setFavorite(id, false) }
+
+        // add remote ones
+        remoteIds.forEach { id -> localRepo.setFavorite(id, true) }
     }
+
     suspend fun clearAllLocalFavorites() {
         // Remove all favorites from local Room DB
         localRepo.clearAllFavorites()

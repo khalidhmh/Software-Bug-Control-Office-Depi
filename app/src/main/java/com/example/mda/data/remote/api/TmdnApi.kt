@@ -288,6 +288,9 @@ interface TmdbApi {
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<Unit>
 
+
+
+    // favorite calls
     @GET("account/{account_id}/favorite/movies")
     suspend fun getFavoriteMovies(
         @Path("account_id") accountId: Int,
@@ -295,6 +298,12 @@ interface TmdbApi {
         @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
     ): Response<FavoriteMoviesResponse>
 
+    @GET("account/{account_id}/favorite/tv")
+    suspend fun getFavoriteTvShows(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("api_key") apiKey: String = BuildConfig.TMDB_API_KEY
+    ): Response<FavoriteMoviesResponse>
 
 
 

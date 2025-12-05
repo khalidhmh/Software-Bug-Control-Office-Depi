@@ -162,6 +162,8 @@ fun OnboardingPage(item: OnboardingItem) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            Spacer(modifier = Modifier.height(300.dp))
+
             Text(
                 text = item.icon,
                 fontSize = 64.sp,
