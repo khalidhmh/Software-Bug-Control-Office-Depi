@@ -4,7 +4,7 @@ import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.data.remote.model.Movie
 
 fun MediaEntity.mediaTypeFilterIsTv(): Boolean =
-    this.mediaType?.lowercase() == "tv" || this.firstAirDate != null
+    this.mediaType?.lowercase() == "tv"
 
 fun MediaEntity.toMovie(): Movie {
     return Movie(

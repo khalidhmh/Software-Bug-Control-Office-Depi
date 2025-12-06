@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
-import com.example.mda.ui.screens.genreDetails.mediaTypeFilterIsTv
 import com.example.mda.ui.screens.genreDetails.toMovie
 
 @Composable
@@ -22,7 +21,8 @@ fun MoviesList(
     movies: List<MediaEntity>,
     isLoading: Boolean,
     listState: LazyListState,
-    onMovieClick: (MediaEntity, String) -> Unit,
+    navigationMediaType: String,
+    onMovieClick: (MediaEntity) -> Unit,
     favoritesViewModel: FavoritesViewModel,
     isAuthenticated: Boolean,
     onLoginRequired: () -> Unit,
@@ -35,9 +35,8 @@ fun MoviesList(
         modifier = modifier
     ) {
         items(movies, key = { it.id }) { movie ->
-            val mediaType = if (movie.mediaTypeFilterIsTv()) "tv" else "movie"
             Box {
-                MovieCardList(movie = movie) { onMovieClick(movie, mediaType) }
+                MovieCardList(movie = movie) { onMovieClick(movie) }
                 FavoriteButton(
                     movie = movie.toMovie(),
                     viewModel = favoritesViewModel,

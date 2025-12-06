@@ -16,7 +16,6 @@ import com.example.mda.data.local.entities.MediaEntity
 import com.example.mda.ui.screens.components.MovieCardGrid
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
-import com.example.mda.ui.screens.genreDetails.mediaTypeFilterIsTv
 import com.example.mda.ui.screens.genreDetails.toMovie
 
 @Composable
@@ -24,7 +23,8 @@ fun MoviesGrid(
     movies: List<MediaEntity>,
     isLoading: Boolean,
     gridState: LazyGridState,
-    onMovieClick: (MediaEntity, String) -> Unit,
+    navigationMediaType: String,
+    onMovieClick: (MediaEntity) -> Unit,
     favoritesViewModel: FavoritesViewModel,
     isAuthenticated: Boolean,
     onLoginRequired: () -> Unit,
@@ -39,9 +39,8 @@ fun MoviesGrid(
         modifier = modifier
     ) {
         items(movies, key = { it.id }) { movie ->
-            val mediaType = if (movie.mediaTypeFilterIsTv()) "tv" else "movie"
             Box {
-                MovieCardGrid(movie = movie) { onMovieClick(movie, mediaType) }
+                MovieCardGrid(movie = movie) { onMovieClick(movie) }
                 FavoriteButton(
                     movie = movie.toMovie(),
                     viewModel = favoritesViewModel,

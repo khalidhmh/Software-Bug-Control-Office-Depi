@@ -92,6 +92,8 @@ fun GenreDetailsScreen(
         )
     }
 
+    val navigationMediaType = if (viewModel.mediaTypeFilter == MediaTypeFilter.TV_SHOWS) "tv" else "movie"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -147,8 +149,9 @@ fun GenreDetailsScreen(
                                 movies = viewModel.movies,
                                 isLoading = viewModel.isLoading,
                                 gridState = gridState,
-                                onMovieClick = { movie, mediaType ->
-                                    navController.navigate("detail/$mediaType/${movie.id}")
+                                navigationMediaType = navigationMediaType,
+                                onMovieClick = { movie ->
+                                    navController.navigate("detail/$navigationMediaType/${movie.id}")
                                 },
                                 favoritesViewModel = favoritesViewModel,
                                 isAuthenticated = authUiState.isAuthenticated,
@@ -168,8 +171,9 @@ fun GenreDetailsScreen(
                                 movies = viewModel.movies,
                                 isLoading = viewModel.isLoading,
                                 listState = listState,
-                                onMovieClick = { movie, mediaType ->
-                                    navController.navigate("detail/$mediaType/${movie.id}")
+                                navigationMediaType = navigationMediaType,
+                                onMovieClick = { movie ->
+                                    navController.navigate("detail/$navigationMediaType/${movie.id}")
                                 },
                                 favoritesViewModel = favoritesViewModel,
                                 isAuthenticated = authUiState.isAuthenticated,

@@ -18,7 +18,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,74 +43,51 @@ fun AnimatedNavigationBar(
     navController: NavController,
     buttons: List<ButtonData>,
     barColor: Color,
-    circleColor: Color,
+    circleColor: Color, // retained for API compatibility
     selectedColor: Color,
     unselectedColor: Color,
     modifier: Modifier = Modifier
 ) {
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val selectedItem = remember(currentRoute) {
-        buttons.indexOfFirst { it.route == currentRoute }.takeIf { it != -1 } ?: 0
-    }
+    val layoutDir = LocalLayoutDirection.current
+    val toDisplay = if (layoutDir == LayoutDirection.Rtl) buttons.reversed() else buttons
 
-    // الحاوية الرئيسية
+    // Single surface to avoid the duplicated bar effect
     Surface(
         modifier = modifier
-            .padding(horizontal = 12.dp) // مسافة من اليمين واليسار
-            // 🔥 حل المشكلة رقم 3: البار هيحترم زراير الموبايل ويطلع فوقيها
+            .padding(horizontal = 12.dp)
             .navigationBarsPadding()
-            .padding(bottom = 0.dp) // مسافة إضافية صغيرة فوق الزراير
             .fillMaxWidth()
-            .height(79.dp), // قللت الارتفاع سنة بسيطة للشياكة
+            .height(79.dp),
         color = barColor,
         shape = RoundedCornerShape(20.dp),
-        shadowElevation = 8.dp,
-        tonalElevation = 8.dp
+        tonalElevation = 8.dp,
+        shadowElevation = 8.dp
     ) {
-// نحدد إذا كانت اللغة عربية ولا لأ
-        val layoutDir = LocalLayoutDirection.current
-        val isArabic = layoutDir == LayoutDirection.Rtl
-
-        Surface(
-            modifier = modifier
-                .padding(horizontal = 12.dp)
-                .navigationBarsPadding()
-                .fillMaxWidth()
-                .height(79.dp),
-            color = barColor,
-            shape = RoundedCornerShape(20.dp),
-            tonalElevation = 8.dp,
-            shadowElevation = 8.dp
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // نخلي الترتيب يتقلب لو العربية
-                val toDisplay = if (isArabic) buttons.reversed() else buttons
-
-                toDisplay.forEach { button ->
-                    val isSelected = button.route == currentRoute
-                    PillItem(
-                        button = button,
-                        isSelected = isSelected,
-                        selectedColor = selectedColor,
-                        unselectedColor = unselectedColor
-                    ) {
-                        if (!isSelected) {
-                            navController.navigate(button.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+            toDisplay.forEach { button ->
+                val isSelected = button.route == currentRoute
+                PillItem(
+                    button = button,
+                    isSelected = isSelected,
+                    selectedColor = selectedColor,
+                    unselectedColor = unselectedColor
+                ) {
+                    if (!isSelected) {
+                        navController.navigate(button.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
                 }
@@ -116,6 +95,7 @@ fun AnimatedNavigationBar(
         }
     }
 }
+
 @Composable
 fun PillItem(
     button: ButtonData,
@@ -142,7 +122,6 @@ fun PillItem(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { onItemClick() }
-            // 🔥 حل المشكلة رقم 2: قللت البادينج عشان كلمة Settings تاخد راحتها ومتبقاش Sett
             .padding(vertical = 8.dp, horizontal = 12.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -159,8 +138,18 @@ fun PillItem(
 
             AnimatedVisibility(
                 visible = isSelected,
-                enter = fadeIn() + expandHorizontally(animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessLow)),
-                exit = fadeOut() + shrinkHorizontally(animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessLow))
+                enter = fadeIn() + expandHorizontally(
+                    animationSpec = spring(
+                        dampingRatio = 0.8f,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ),
+                exit = fadeOut() + shrinkHorizontally(
+                    animationSpec = spring(
+                        dampingRatio = 0.8f,
+                        stiffness = Spring.StiffnessLow
+                    )
+                )
             ) {
                 Row {
                     Spacer(modifier = Modifier.width(8.dp))
@@ -169,11 +158,11 @@ fun PillItem(
                         color = contentColor,
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp // صغرت الخط سنة بسيطة عشان المساحة
+                            fontSize = 13.sp
                         ),
                         maxLines = 1,
                         softWrap = false,
-                        overflow = TextOverflow.Clip // عشان ميحطش ... لو زنقت أوي
+                        overflow = TextOverflow.Clip
                     )
                 }
             }
