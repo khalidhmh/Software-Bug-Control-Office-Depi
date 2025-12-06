@@ -33,7 +33,6 @@ class PasswordSettingsScreenTest {
             )
         }
 
-        // Action button should display either Set PIN or Change PIN depending on state; check either
         composeRule.onNodeWithText(setPin).assertExists()
         // It's acceptable that only one of them appears depending on current DataStore; we assert at least one is present
         // If change pin is visible, this also passes

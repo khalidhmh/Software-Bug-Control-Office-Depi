@@ -18,28 +18,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
-/**
- * Bottom navigation bar عام وجاهز للاستخدام مع NavController.
- * لا يغير الشكل — يمنحك سلوك Nav كامل (save/restore state).
- */
+
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
-        BottomNavItem(route = "home", icon = Icons.Default.Home, label = "Home"),
-        BottomNavItem(route = "movies", icon = Icons.Default.Movie, label = "Movies"),
-        BottomNavItem(route = "tv", icon = Icons.Default.Tv, label = "TV"),
-        BottomNavItem(route = "profile", icon = Icons.Default.Person, label = "Profile")
+        BottomNavItem(route = "home", icon = Icons.Default.Home, label = localizedString(LocalizationKeys.NAV_HOME)),
+        BottomNavItem(route = "movies", icon = Icons.Default.Movie, label = localizedString(LocalizationKeys.NAV_MOVIES)),
+        BottomNavItem(route = "tv", icon = Icons.Default.Tv, label = localizedString(LocalizationKeys.NAV_TV)),
+        BottomNavItem(route = "profile", icon = Icons.Default.Person, label = localizedString(LocalizationKeys.NAV_PROFILE))
     )
 
-    // currentBackStackEntryAsState() يستخدم لمراقبة الراوت الحالي
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface, // بدل من لون مختلف
-        tonalElevation = 3.dp, // ظل خفيف
-        modifier = Modifier.height(56.dp) // بدل من 80dp أو أكتر
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp,
+        modifier = Modifier.height(56.dp)
     ) {
         items.forEach { item ->
             val selected = currentRoute == item.route
@@ -47,7 +45,6 @@ fun BottomNavigationBar(navController: NavController) {
                 selected = selected,
                 onClick = {
                     if (currentRoute != item.route) {
-                        // هذه الإعدادات تضمن سلوك جيد عند التنقل (singleTop, restore state)
                         navController.navigate(item.route) {
                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
@@ -59,7 +56,6 @@ fun BottomNavigationBar(navController: NavController) {
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.label,
-                        // اللون يتغير حسب الـ selected (تقدر تعدل الألوان حسب الثيم)
                         tint = if (selected) Color.Cyan else Color.Gray
                     )
                 },
