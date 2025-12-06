@@ -289,13 +289,35 @@ object StringsEN {
         // Navigation
         "nav_home" to "Home",
         "nav_movies" to "Movies",
-        "nav_actors" to "People",
+        "nav_actors" to "Actors",
         "nav_search" to "Search",
         "nav_favorites" to "Favorites",
         "nav_settings" to "Settings",
         "nav_profile" to "Profile",
         "nav_kids" to "Kids",
         "nav_history" to "History",
+        "nav_tv" to "TV",
+
+        // Genres
+        "genre_action" to "Action",
+        "genre_adventure" to "Adventure",
+        "genre_animation" to "Animation",
+        "genre_comedy" to "Comedy",
+        "genre_crime" to "Crime",
+        "genre_documentary" to "Documentary",
+        "genre_drama" to "Drama",
+        "genre_family" to "Family",
+        "genre_fantasy" to "Fantasy",
+        "genre_history" to "History",
+        "genre_horror" to "Horror",
+        "genre_music" to "Music",
+        "genre_mystery" to "Mystery",
+        "genre_romance" to "Romance",
+        "genre_science_fiction" to "Science Fiction",
+        "genre_tv_movie" to "TV Movie",
+        "genre_thriller" to "Thriller",
+        "genre_war" to "War",
+        "genre_western" to "Western",
 
         // Filter Options
         "filter_all_movies" to "All Movies",
@@ -533,13 +555,35 @@ object StringsAR {
         // Navigation
         "nav_home" to "الرئيسية",
         "nav_movies" to "الأفلام",
-        "nav_actors" to "People",
+        "nav_actors" to "الممثلون",
         "nav_search" to "البحث",
         "nav_favorites" to "المفضلة",
         "nav_settings" to "الإعدادات",
         "nav_profile" to "الملف الشخصي",
         "nav_kids" to "الأطفال",
         "nav_history" to "السجل",
+        "nav_tv" to "التلفاز",
+
+        // Genres
+        "genre_action" to "أكشن",
+        "genre_adventure" to "مغامرة",
+        "genre_animation" to "رسوم متحركة",
+        "genre_comedy" to "كوميديا",
+        "genre_crime" to "جريمة",
+        "genre_documentary" to "وثائقي",
+        "genre_drama" to "دراما",
+        "genre_family" to "عائلي",
+        "genre_fantasy" to "فانتازيا",
+        "genre_history" to "تاريخي",
+        "genre_horror" to "رعب",
+        "genre_music" to "موسيقى",
+        "genre_mystery" to "غموض",
+        "genre_romance" to "رومانسي",
+        "genre_science_fiction" to "خيال علمي",
+        "genre_tv_movie" to "فيلم تلفزيوني",
+        "genre_thriller" to "إثارة",
+        "genre_war" to "حرب",
+        "genre_western" to "ويسترن",
 
         // Help & FAQ
         "help_title" to "المساعدة والأسئلة الشائعة",
@@ -744,13 +788,35 @@ object StringsDE {
         // Navigation
         "nav_home" to "Startseite",
         "nav_movies" to "Filme",
-        "nav_actors" to "People",
+        "nav_actors" to "Schauspieler",
         "nav_search" to "Suche",
         "nav_favorites" to "Favoriten",
         "nav_settings" to "Einstellungen",
         "nav_profile" to "Profil",
         "nav_kids" to "Kinder",
         "nav_history" to "Verlauf",
+        "nav_tv" to "TV",
+
+        // Genres
+        "genre_action" to "Action",
+        "genre_adventure" to "Abenteuer",
+        "genre_animation" to "Animation",
+        "genre_comedy" to "Komödie",
+        "genre_crime" to "Krimi",
+        "genre_documentary" to "Dokumentarfilm",
+        "genre_drama" to "Drama",
+        "genre_family" to "Familie",
+        "genre_fantasy" to "Fantasy",
+        "genre_history" to "Geschichte",
+        "genre_horror" to "Horror",
+        "genre_music" to "Musik",
+        "genre_mystery" to "Mystery",
+        "genre_romance" to "Romanze",
+        "genre_science_fiction" to "Science-Fiction",
+        "genre_tv_movie" to "Fernsehfilm",
+        "genre_thriller" to "Thriller",
+        "genre_war" to "Krieg",
+        "genre_western" to "Western",
 
         // Filter Options
         "filter_all_movies" to "Alle Filme",
@@ -783,3 +849,7 @@ object StringsDE {
 
     operator fun get(key: String): String? = strings[key]
 }
+
+
+
+

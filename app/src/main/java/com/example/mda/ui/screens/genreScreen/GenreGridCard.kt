@@ -26,6 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.mda.R
 import com.example.mda.data.remote.model.Genre
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @Composable
 fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit) {
@@ -68,7 +70,7 @@ fun GenreGridCard(genre: Genre, @DrawableRes imageUrl: Int, onClick: () -> Unit)
             }
 
             Text(
-                text = genre.name,
+                text = mapGenreNameToKey(genre.name)?.let { localizedString(it) } ?: genre.name,
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
@@ -103,3 +105,28 @@ fun getGenrePlaceholderImage(genreName: String): Int {
         else -> R.drawable.family
     }
 }
+
+private fun mapGenreNameToKey(name: String): String? = when (name.trim().lowercase()) {
+    "action" -> LocalizationKeys.GENRE_ACTION
+    "adventure" -> LocalizationKeys.GENRE_ADVENTURE
+    "animation" -> LocalizationKeys.GENRE_ANIMATION
+    "comedy" -> LocalizationKeys.GENRE_COMEDY
+    "crime" -> LocalizationKeys.GENRE_CRIME
+    "documentary" -> LocalizationKeys.GENRE_DOCUMENTARY
+    "drama" -> LocalizationKeys.GENRE_DRAMA
+    "family" -> LocalizationKeys.GENRE_FAMILY
+    "fantasy" -> LocalizationKeys.GENRE_FANTASY
+    "history" -> LocalizationKeys.GENRE_HISTORY
+    "horror" -> LocalizationKeys.GENRE_HORROR
+    "music" -> LocalizationKeys.GENRE_MUSIC
+    "mystery" -> LocalizationKeys.GENRE_MYSTERY
+    "romance" -> LocalizationKeys.GENRE_ROMANCE
+    "science fiction" -> LocalizationKeys.GENRE_SCIENCE_FICTION
+    "tv movie" -> LocalizationKeys.GENRE_TV_MOVIE
+    "thriller" -> LocalizationKeys.GENRE_THRILLER
+    "war" -> LocalizationKeys.GENRE_WAR
+    "western" -> LocalizationKeys.GENRE_WESTERN
+    else -> null
+}
+
+

@@ -10,8 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
@@ -21,11 +28,13 @@ import com.example.mda.data.remote.model.Movie
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
 import androidx.navigation.NavController
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @Composable
 fun ForYouSection(
-    recommendedMovies: List<Movie>,   // 🔹 توصيات أفلام
-    recommendedTvShows: List<Movie>,  // 🔹 توصيات مسلسلات
+    recommendedMovies: List<Movie>,
+    recommendedTvShows: List<Movie>,
     onMovieClick: (Movie) -> Unit,
     favoritesViewModel: FavoritesViewModel,
     navController: NavController,
@@ -34,11 +43,14 @@ fun ForYouSection(
     val barColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
     val barOverlayColor = barColor.copy(alpha = 0.6f)
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Movies", "TV Shows")
+    val tabs = listOf(
+        localizedString(LocalizationKeys.SEARCH_FILTER_MOVIES),
+        localizedString(LocalizationKeys.SEARCH_FILTER_TV)
+    )
 
     Column {
         Text(
-            text = "For You",
+            text = localizedString(LocalizationKeys.HOME_FOR_YOU_TITLE),
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 22.sp
@@ -51,7 +63,6 @@ fun ForYouSection(
                 .clip(RoundedCornerShape(12.dp))
         ) {
             Column {
-                // ✅ تبويبات Movies / TV Shows
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = barOverlayColor,
@@ -68,12 +79,11 @@ fun ForYouSection(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // ✅ كل تبويب يعرض التوصيات الخاصة به
                 val itemsToShow = if (selectedTab == 0) recommendedMovies else recommendedTvShows
 
                 if (itemsToShow.isEmpty()) {
                     Text(
-                        text = "No recommendations yet.",
+                        text = localizedString(LocalizationKeys.DETAIL_NO_RECOMMENDATIONS),
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         fontSize = 14.sp,
                         modifier = Modifier.padding(horizontal = 8.dp)

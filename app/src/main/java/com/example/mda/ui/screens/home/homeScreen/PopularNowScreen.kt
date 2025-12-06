@@ -26,6 +26,8 @@ import com.example.mda.ui.screens.favorites.FavoritesViewModel
 import com.example.mda.ui.screens.favorites.components.FavoriteButton
 import com.example.mda.ui.screens.home.HomeViewModel
 import com.google.accompanist.swiperefresh.*
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -146,13 +148,13 @@ fun MediaTypeFilterRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         MediaTypeFilterChip(
-            text = "Movies",
+            text = localizedString(LocalizationKeys.SEARCH_FILTER_MOVIES),
             selected = selectedFilter == MediaTypeFilter.MOVIES,
             onClick = { onFilterChange(MediaTypeFilter.MOVIES) },
             modifier = Modifier.weight(1f)
         )
         MediaTypeFilterChip(
-            text = "TV Shows",
+            text = localizedString(LocalizationKeys.SEARCH_FILTER_TV),
             selected = selectedFilter == MediaTypeFilter.TV_SHOWS,
             onClick = { onFilterChange(MediaTypeFilter.TV_SHOWS) },
             modifier = Modifier.weight(1f)

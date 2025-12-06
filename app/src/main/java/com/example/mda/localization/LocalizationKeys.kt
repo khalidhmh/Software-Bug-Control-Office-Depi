@@ -238,6 +238,28 @@ object LocalizationKeys {
     const val NAV_KIDS = "nav_kids"
     const val NAV_HISTORY = "nav_history"
 
+    const val NAV_TV = "nav_tv"
+
+    const val GENRE_ACTION = "genre_action"
+    const val GENRE_ADVENTURE = "genre_adventure"
+    const val GENRE_ANIMATION = "genre_animation"
+    const val GENRE_COMEDY = "genre_comedy"
+    const val GENRE_CRIME = "genre_crime"
+    const val GENRE_DOCUMENTARY = "genre_documentary"
+    const val GENRE_DRAMA = "genre_drama"
+    const val GENRE_FAMILY = "genre_family"
+    const val GENRE_FANTASY = "genre_fantasy"
+    const val GENRE_HISTORY = "genre_history"
+    const val GENRE_HORROR = "genre_horror"
+    const val GENRE_MUSIC = "genre_music"
+    const val GENRE_MYSTERY = "genre_mystery"
+    const val GENRE_ROMANCE = "genre_romance"
+    const val GENRE_SCIENCE_FICTION = "genre_science_fiction"
+    const val GENRE_TV_MOVIE = "genre_tv_movie"
+    const val GENRE_THRILLER = "genre_thriller"
+    const val GENRE_WAR = "genre_war"
+    const val GENRE_WESTERN = "genre_western"
+
     // ==================== FILTER OPTIONS ====================
     const val FILTER_ALL_MOVIES = "filter_all_movies"
     const val FILTER_TOP_RATED = "filter_top_rated"
