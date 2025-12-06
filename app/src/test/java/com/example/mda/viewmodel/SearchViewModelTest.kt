@@ -34,7 +34,6 @@ class SearchViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        // مock للـ DAO بحيث ما يرميش exceptions
         coEvery { dao.getRecentHistory(any()) } returns flowOf(emptyList())
         coEvery { dao.getRecentHistoryOnce(any()) } returns emptyList()
         coEvery { dao.upsertSafe(any()) } returns Unit
@@ -42,7 +41,7 @@ class SearchViewModelTest {
         coEvery { dao.delete(any(), any()) } returns Unit
 
         viewModel = SearchViewModel(repository, dao, savedStateHandle)
-        viewModel.currentUserId = "user_123" // 🟩 مهم من أول وجديد
+        viewModel.currentUserId = "user_123"
     }
 
     @After
@@ -50,7 +49,6 @@ class SearchViewModelTest {
         Dispatchers.resetMain()
     }
 
-    // 🟩 التست الأول – لما البحث ينجح
     @Test
     fun `when search succeeds uiState becomes Success`() = runTest(testDispatcher) {
         val fakeResults = listOf(
@@ -72,7 +70,7 @@ class SearchViewModelTest {
         coEvery { repository.getTrendingMedia() } returns emptyList()
 
         viewModel.onQueryChange("Inception")
-        viewModel.submitSearch() // بدل retryLastSearch لأنك عدلت المنطق
+        viewModel.submitSearch()
 
         val successState = viewModel.uiState
             .filterIsInstance<UiState.Success>()
@@ -81,7 +79,6 @@ class SearchViewModelTest {
         assertTrue(successState is UiState.Success)
     }
 
-    // 🟥 التست التاني – لما البحث يفشل
     @Test
     fun `when search throws exception uiState becomes Error`() = runTest(testDispatcher) {
         coEvery { repository.searchByType(any(), any()) } throws RuntimeException("Network Error")
@@ -96,7 +93,6 @@ class SearchViewModelTest {
         assertTrue(errorState is UiState.Error)
     }
 
-    // 🟦 تست – emitIdleHistory لما فيه userId بيجيب النتائج من الـ DAO
     @Test
     fun `when emitIdleHistory called and user set history is returned`() = runTest(testDispatcher) {
         val fakeHistory = listOf(SearchHistoryEntity(query = "Inception", userId = "user_123"))
@@ -110,14 +106,12 @@ class SearchViewModelTest {
         assertTrue(state.items.first().query == "Inception")
     }
 
-    // 🟪 تست – clearHistory بيستدعي deleteAll بالـ userId
     @Test
     fun `when clearHistory called dao deleteAll is invoked with userId`() = runTest(testDispatcher) {
         viewModel.clearHistory()
         coVerify { dao.deleteAll("user_123") }
     }
 
-    // 🟧 تست – deleteOne بيستدعي delete بالـ userId
     @Test
     fun `when deleteOne called dao delete is invoked with query and userId`() = runTest(testDispatcher) {
         viewModel.deleteOne("Matrix")

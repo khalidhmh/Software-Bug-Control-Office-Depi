@@ -41,7 +41,6 @@ fun PopularNowScreen(
     var showGrid by remember { mutableStateOf(true) }
     var selectedFilter by remember { mutableStateOf(MediaTypeFilter.MOVIES) }
 
-    // البيانات
     val movies = homeViewModel.popularMovies.collectAsState(initial = emptyList()).value
     val tvShows = homeViewModel.popularTvShows.collectAsState(initial = emptyList()).value
 

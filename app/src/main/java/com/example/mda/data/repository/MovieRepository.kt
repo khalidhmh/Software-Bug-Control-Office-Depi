@@ -239,10 +239,8 @@ class MoviesRepository(
             )
         }
 
-        // 🔎 فلترة خاصة بالأطفال
-        // ✅ إصلاح: تخطي فلترة الأطفال عند البحث عن ممثلين "people"
         val filteredResults = if (type.lowercase() == "people") {
-            rawResults // نرجّعهم زي ما هم بدون فلترة genres/adult
+            rawResults
         } else {
             KidsFilter.filterKids(
                 rawResults.filterNot {
@@ -257,15 +255,10 @@ class MoviesRepository(
         return filteredResults
     }
 
-    // ---------------------- Smart Recommendations ----------------------
     suspend fun getSmartRecommendations(accountId: Int, sessionId: String): List<MediaEntity> = try {
 
         val collected = mutableListOf<MediaEntity>()
 
-        // =================================================
-        // 1️⃣ Viewed History & Similar (سجل المشاهدة)
-        // =================================================
-        // ✅ تصحيح: استخدام الدالة المساعدة في LocalRepo
         val historyList = localRepo.getMovieHistoryOnce()
 
         if (historyList.isNotEmpty()) {
@@ -294,10 +287,6 @@ class MoviesRepository(
                 collected.addAll(similarItems)
             }
         }
-
-        // =================================================
-        // 2️⃣ Rated Movies & TV (التقييمات)
-        // =================================================
         val ratedMoviesRes = api.getRatedMovies(accountId, sessionId)
         val ratedTvRes = api.getRatedTvShows(accountId, sessionId)
 
@@ -323,11 +312,6 @@ class MoviesRepository(
                 collected.addAll(related)
             }
         }
-
-        // =================================================
-        // 3️⃣ Search History (سجل البحث)
-        // =================================================
-        // ✅ تصحيح: استخدام الدالة المساعدة بدلاً من الوصول المباشر للـ DAO
         val searchHistory = localRepo.getSearchHistoryOnce(accountId.toString())
         if (searchHistory.isNotEmpty()) {
             searchHistory.take(3).forEach { item ->
@@ -342,9 +326,6 @@ class MoviesRepository(
             }
         }
 
-        // =================================================
-        // 4️⃣ Final Processing
-        // =================================================
         val finalList = if (collected.isEmpty()) {
             getGeneralFallback()
         } else {
@@ -352,7 +333,6 @@ class MoviesRepository(
                 .distinctBy { it.id }
                 .shuffled()
 
-            // ✅ تصحيح: استخدام دالة الحفظ الذكية للحفاظ على المفضلة
             localRepo.addOrUpdateAllFromApi(distinctList)
 
             distinctList
@@ -362,12 +342,10 @@ class MoviesRepository(
 
     } catch (e: Exception) {
         e.printStackTrace()
-        // ✅ تصحيح: استخدام الدالة المساعدة للجلب من الكاش
         val cached = localRepo.getAllOnce()
         if (cached.isNotEmpty()) cached.shuffled().take(20) else getGeneralFallback()
     }
 
-    // ---------------------- Fallback ----------------------
     private suspend fun getGeneralFallback(): List<MediaEntity> {
         return try {
             val trendingMovies = api.getTrendingMedia("movie", "day")
@@ -397,8 +375,7 @@ class MoviesRepository(
                 .take(25)
                 .map { it.toMediaEntity() }
 
-            // 🔥 Save Fallback to DB
-            Log.d(TAG, "💾 Saving Fallback data to DB (${finalEntities.size} items)")
+            Log.d(TAG, "Saving Fallback data to DB (${finalEntities.size} items)")
             localRepo.addOrUpdateAllFromApi(finalEntities)
 
             finalEntities

@@ -6,10 +6,6 @@ import com.example.mda.data.local.dao.ActorDao
 import com.example.mda.data.remote.RetrofitInstance
 import com.example.mda.data.repository.ActorsRepository
 
-/**
- * Khalid: Factory that accepts an optional ActorDao. If you already construct a repository
- * elsewhere, you can use the other constructor.
- */
 class ActorViewModelFactory(
     private val repository: ActorsRepository
 ) : ViewModelProvider.Factory {

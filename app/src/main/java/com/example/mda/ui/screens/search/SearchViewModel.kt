@@ -43,7 +43,6 @@ class SearchViewModel(
         observeSearchFlow()
     }
 
-    // ---------------- MAIN SEARCH FLOW ----------------
     private fun observeSearchFlow() {
         combine(
             query.debounce(400).distinctUntilChanged(),
@@ -80,7 +79,6 @@ class SearchViewModel(
         }
     }
 
-    // ---------------- USER ACTIONS ----------------
     fun submitSearch() {
         val q = query.value.trim()
         if (q.isBlank() || currentUserId == null) return
@@ -102,7 +100,6 @@ class SearchViewModel(
         searchTrigger.tryEmit(Unit)
     }
 
-    // ---------------- HISTORY ----------------
     fun observeHistory() {
         viewModelScope.launch {
             val uid = currentUserId

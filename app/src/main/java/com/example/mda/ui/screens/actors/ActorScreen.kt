@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mda.data.repository.ActorsRepository
 import com.example.mda.ui.navigation.TopBarState
@@ -19,8 +18,6 @@ import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import com.example.mda.localization.LocalizationKeys
-import com.example.mda.localization.localizedString
 
 @Composable
 fun ActorsScreen(

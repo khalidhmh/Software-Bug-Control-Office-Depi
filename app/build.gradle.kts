@@ -185,4 +185,9 @@ dependencies {
     testImplementation("androidx.test:core:1.6.1")
     // Robolectric to run Android-dependent unit tests on the JVM
     testImplementation("org.robolectric:robolectric:4.12.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("app.cash.turbine:turbine:1.0.0")
+    testImplementation("io.mockk:mockk:1.13.10")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.0")
+
 }

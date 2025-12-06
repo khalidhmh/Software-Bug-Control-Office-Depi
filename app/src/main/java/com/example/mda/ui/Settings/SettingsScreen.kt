@@ -1,6 +1,5 @@
 package com.example.mda.ui.screens.settings
 
-import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,7 +7,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -23,21 +21,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.mda.data.SettingsDataStore
-// 🟢 Imports from Fares (Localization)
 import com.example.mda.localization.LocalizationKeys
 import com.example.mda.localization.localizedString
-// 🟢 Imports from Main (Notification & Workers)
-import com.example.mda.notifications.NotificationHelper
 import com.example.mda.ui.navigation.TopBarState
 import com.example.mda.ui.screens.auth.AuthUiState
 import com.example.mda.ui.screens.auth.AuthViewModel
 import com.example.mda.ui.screens.favorites.FavoritesViewModel
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import com.example.mda.work.InactiveUserWorker
-import com.example.mda.work.SuggestedMovieWorker
-import com.example.mda.work.TrendingReminderWorker
-import androidx.core.content.edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,8 +45,6 @@ fun SettingsScreen(
     val sessionManager = remember { com.example.mda.data.datastore.SessionManager(context) }
     val uiState by authViewModel?.uiState?.collectAsState()
         ?: remember { mutableStateOf(AuthUiState()) }
-
-    // flows من الـ DataStore
     val localName by sessionManager.accountName.collectAsState(initial = "")
     val localUsername by sessionManager.accountUsername.collectAsState(initial = "")
     val isLoggedIn = uiState.isAuthenticated
@@ -142,8 +129,6 @@ fun SettingsScreen(
                 onToggleChange = { viewModel.updateTheme(if (it) 2 else 1) }
             )
         }
-
-        // ================= Group 3: App Info & Dev Tools =================
         SettingsGroupCard {
             SettingsItem(Icons.Default.Language, localizedString(LocalizationKeys.SETTINGS_LANGUAGE)) { navController.navigate("language_settings") }
             Divider()
