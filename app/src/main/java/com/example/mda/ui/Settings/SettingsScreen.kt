@@ -50,23 +50,28 @@ fun SettingsScreen(
     val isLoggedIn = uiState.isAuthenticated
     val account = uiState.accountDetails
 
-    val settingsTitle = localizedString(LocalizationKeys.SETTINGS_TITLE)
+    val title = localizedString(LocalizationKeys.SETTINGS_TITLE)
 
-    LaunchedEffect(settingsTitle) {
+    LaunchedEffect(uiState.isAuthenticated) {
+
         onTopBarStateChange(
             TopBarState(
-                title = settingsTitle,
+                title = title   ,
                 showBackButton = false
             )
         )
 
-        if (authViewModel != null && uiState.isAuthenticated && uiState.accountDetails == null) {
-            authViewModel.fetchAccountDetails()
+        if (uiState.isAuthenticated) {
+
+            if (uiState.accountDetails == null && authViewModel != null) {
+                authViewModel.fetchAccountDetails()
+            }
+
             FavoritesViewModel.syncFavoritesFromTmdb()
         }
     }
 
-    FavoritesViewModel.syncFavoritesFromTmdb()
+
 
     Column(
         modifier = Modifier

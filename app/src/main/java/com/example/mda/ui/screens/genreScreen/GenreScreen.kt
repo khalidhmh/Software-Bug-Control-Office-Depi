@@ -12,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.mda.localization.LocalizationKeys
+import com.example.mda.localization.localizedString
 import com.example.mda.ui.navigation.TopBarState
 import kotlinx.coroutines.launch
 
@@ -26,10 +28,12 @@ fun GenreScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val scope = rememberCoroutineScope()
+    val title = localizedString(LocalizationKeys.GENRE_TITLE)
 
     LaunchedEffect(Unit) {
         onTopBarStateChange(
-            TopBarState(title = "Movies")
+            TopBarState(title= title
+                , showBackButton = true)
         )
     }
 
