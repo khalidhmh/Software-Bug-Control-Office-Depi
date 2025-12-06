@@ -237,7 +237,7 @@ object StringsEN {
 
 
         // Genre Details
-        "genre_title" to "{genre}",
+        "genre_title" to "Movies",
         "genre_filter_all" to "All Movies",
         "genre_filter_top_rated" to "Top Rated",
         "genre_filter_newest" to "Newest",
@@ -503,7 +503,7 @@ object StringsAR {
         "detail_similar_count" to "مشابهة {count}",
         "detail_no_recommendations" to "لا توجد توصيات",
         "detail_no_similar" to "لا توجد أعمال مشابهة",
-
+        "genre_title" to "Movies",
         // Detail About extras
         "detail_about_movie" to "عن الفيلم",
         "detail_status" to "الحالة",
