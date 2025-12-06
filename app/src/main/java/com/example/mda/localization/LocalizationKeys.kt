@@ -15,6 +15,7 @@ object LocalizationKeys {
     const val HOME_GREETING_MORNING = "home_greeting_morning"
     const val HOME_GREETING_AFTERNOON = "home_greeting_afternoon"
     const val HOME_GREETING_EVENING = "home_greeting_evening"
+    const val HOME_GREETING_NIGHT = "home_greeting_night"
     const val HOME_SUBTITLE = "home_subtitle"
     const val HOME_BANNER_TITLE = "home_banner_title"
     const val HOME_FOR_YOU_TITLE = "home_for_you_title"

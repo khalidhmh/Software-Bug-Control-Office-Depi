@@ -67,7 +67,6 @@ fun ActorsView(
             items(actors, key = { "grid-${it.id}" }) { actor ->
                 ActorGridItem(actor = actor, navController = navController)
             }
-            // Bottom spacer to avoid navigation bar overlap
             item { Spacer(modifier = Modifier.height(100.dp)) }
         }
     } else {
@@ -87,7 +86,6 @@ fun ActorsView(
                     ActorListItem(actor = actor, navController = navController)
                 }
             }
-            // Bottom spacer to avoid navigation bar overlap
             item { Box(modifier = Modifier.height(100.dp)) }
         }
     }

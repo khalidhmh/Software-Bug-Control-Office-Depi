@@ -67,6 +67,7 @@ object StringsEN {
         "home_greeting_morning" to "Good Morning",
         "home_greeting_afternoon" to "Good Afternoon",
         "home_greeting_evening" to "Good Evening",
+        "home_greeting_night" to "Good Night",
         "home_subtitle" to "What do you want to watch?",
         "home_banner_title" to "Featured",
         "home_for_you_title" to "For You",
@@ -380,6 +381,7 @@ object StringsAR {
         "home_greeting_morning" to "صباح الخير",
         "home_greeting_afternoon" to "مساء الخير",
         "home_greeting_evening" to "تصبح على خير",
+        "home_greeting_night" to "تصبح على خير",
         "home_subtitle" to "ماذا تريد أن تشاهد؟",
         "home_banner_title" to "المختارة",
         "home_for_you_title" to "من أجلك",
@@ -605,7 +607,6 @@ object StringsAR {
 // ==================== GERMAN STRINGS ====================
 object StringsDE {
     private val strings = mapOf(
-        // ... (rest of the code remains the same)
 // -------------------- Search --------------------
         "search_title" to "Suche",
         "search_filter_all" to "Alle",
@@ -778,7 +779,8 @@ object StringsDE {
         "common_show_more" to "Mehr anzeigen",
         "common_show_less" to "Weniger anzeigen",
         "common_expand" to "Erweitern",
-        "common_collapse" to "Einklappen"
+        "common_collapse" to "Einklappen",
+        "home_greeting_night" to "Gute Nacht",
     )
 
     operator fun get(key: String): String? = strings[key]

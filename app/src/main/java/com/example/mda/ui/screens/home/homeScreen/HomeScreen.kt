@@ -24,7 +24,6 @@ import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.example.mda.localization.LocalizationKeys
 import com.example.mda.localization.localizedString
-
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -38,15 +37,12 @@ fun HomeScreen(
     favoritesViewModel: FavoritesViewModel,
     authViewModel: AuthViewModel
 ) {
-    // 1️⃣ تجميع البيانات من الـ ViewModel
     val trendingEntities by viewModel.trendingMedia.collectAsState()
     val mixedEntities by viewModel.popularMixed.collectAsState()
 
-    // ✅ استخدام القوائم المفلترة الجديدة
     val recMoviesEntities by viewModel.recommendedMovies.collectAsState()
     val recTvEntities by viewModel.recommendedTvShows.collectAsState()
 
-    // 2️⃣ تحويل MediaEntity إلى Movie
     val trendingList = remember(trendingEntities) { trendingEntities.map { it.toMovie() } }
     val bannerList = remember(mixedEntities) { mixedEntities.map { it.toMovie() } }
 
@@ -60,33 +56,27 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     val authUiState by authViewModel.uiState.collectAsState()
 
-    // 🚀 التعديل هنا: منع التحميل المتكرر
     LaunchedEffect(Unit) {
-        // لو القوائم فاضية (أول مرة نفتح)، حمل الداتا
         if (trendingEntities.isEmpty() || mixedEntities.isEmpty()) {
             viewModel.onUserActivityDetected(forceRefresh = true)
         } else {
-            // لو الداتا موجودة، بس حدث التوصيات في الخلفية من غير ما تعمل Loading Spinner
-            // (اختياري: ممكن تخليها false لو مش عايز تحدث خالص)
             viewModel.onUserActivityDetected(forceRefresh = false)
         }
     }
 
-    // 🔹 منطق الترحيب الذكي حسب الوقت + الترجمة
     val greetingKey = remember {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         when (hour) {
             in 5..11 -> LocalizationKeys.HOME_GREETING_MORNING
             in 12..16 -> LocalizationKeys.HOME_GREETING_AFTERNOON
             in 17..20 -> LocalizationKeys.HOME_GREETING_EVENING
-            else -> LocalizationKeys.HOME_GREETING_MORNING
+            else -> LocalizationKeys.HOME_GREETING_NIGHT
         }
     }
     
     val titleText = localizedString(greetingKey)
     val subtitleText = localizedString(LocalizationKeys.HOME_SUBTITLE)
 
-    // ده لازم يفضل موجود عشان يرجع العنوان لما نرجع من صفحة تانية
     LaunchedEffect(titleText, subtitleText) {
         onTopBarStateChange(
             TopBarState(
@@ -104,7 +94,6 @@ fun HomeScreen(
                 viewModel.loadTrending("day")
                 viewModel.loadPopularData()
                 viewModel.loadTopRated()
-                // هنا بنجبر التحديث عشان المستخدم سحب الشاشة بنفسه
                 viewModel.onUserActivityDetected(forceRefresh = true)
                 delay(1500)
                 refreshing = false
@@ -129,7 +118,6 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // ---------------- Banner ----------------
             item {
                 AnimatedVisibility(
                     visible = bannerList.isNotEmpty(),
@@ -139,7 +127,6 @@ fun HomeScreen(
                 }
             }
 
-            // ---------------- For You Section ----------------
             item {
                 val showRecommendations = recommendedMoviesList.isNotEmpty() || recommendedTvShowsList.isNotEmpty()
 
@@ -160,7 +147,6 @@ fun HomeScreen(
                 }
             }
 
-            // ---------------- Trending ----------------
             item {
                 TrendingSection(
                     trendingMovies = trendingList,
@@ -175,7 +161,6 @@ fun HomeScreen(
                 )
             }
 
-            // ---------------- Popular ----------------
             item {
                 PopularSection(
                     popularMovies = bannerList,

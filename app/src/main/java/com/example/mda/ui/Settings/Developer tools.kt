@@ -116,8 +116,6 @@ fun DeveloperInfoCard(
     val colorScheme = MaterialTheme.colorScheme
     val background = colorScheme.surface
     val textColor = colorScheme.onSurface
-
-    // لو حابة تميّزي الكارت "الخطر" بشكل طفيف من غير لون صارخ
     val borderColor = if (highlight) colorScheme.primary.copy(alpha = 0.25f)
     else colorScheme.outline.copy(alpha = 0.15f)
 
